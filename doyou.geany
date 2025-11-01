@@ -20,17 +20,16 @@ indent_mode=2
 [project]
 name=doyou
 base_path=/home/manohy/Projects/doyou
+description=
 
 [long line marker]
 long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=2
-FILE_NAME_0=672;Rust;0;EUTF-8;1;1;0;%2Fhome%2Fmanohy%2FProjects%2Fdoyou%2Fsrc-tauri%2Fsrc%2Flib.rs;0;4
-FILE_NAME_1=7;Rust;0;EUTF-8;1;1;0;%2Fhome%2Fmanohy%2FProjects%2Fdoyou%2Fsrc%2Fmain.rs;0;4
-FILE_NAME_2=2216;Rust;0;EUTF-8;1;1;0;%2Fhome%2Fmanohy%2FProjects%2Fdoyou%2Fsrc%2Fapp.rs;0;4
-FILE_NAME_3=273;Rust;0;EUTF-8;1;1;0;%2Fhome%2Fmanohy%2FProjects%2Fdoyou%2Fcommon%2Fcommon.rs;0;4
+current_page=0
+FILE_NAME_0=1650;Rust;0;EUTF-8;1;1;0;%2Fhome%2Fmanohy%2FProjects%2Fdoyou%2Fsrc%2Fapp.rs;0;4
+FILE_NAME_1=328;Rust;0;EUTF-8;1;1;0;%2Fhome%2Fmanohy%2FProjects%2Fdoyou%2Fcommon%2Fcommon.rs;0;4
 
 [VTE]
 last_dir=/home/manohy/Projects/doyou

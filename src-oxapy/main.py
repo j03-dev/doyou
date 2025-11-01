@@ -67,6 +67,7 @@ def main():
         HttpServer(("0.0.0.0", 5555))
         .attach(
             Router()
+            .route(get("/health", lambda _r: "Good!"))
             .route(get("/api/v1/search", search_youtube))
             .route(get("/api/v1/download", download))
             .route(get("/api/v1/listen", listen))
