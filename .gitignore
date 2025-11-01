@@ -1,3 +1,8 @@
 /dist/
 /target/
 /Cargo.lock
+
+
+/node_modules
+**/.env
+/src-oxapy/media/
