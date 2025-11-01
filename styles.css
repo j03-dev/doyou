@@ -524,9 +524,20 @@
   .flex {
     display: flex;
   }
+  .btn-square {
+    @layer daisyui.modifier {
+      padding-inline: calc(0.25rem * 0);
+      width: var(--size);
+      height: var(--size);
+    }
+  }
   .size-50 {
     width: calc(var(--spacing) * 50);
     height: calc(var(--spacing) * 50);
+  }
+  .size-\[1\.2em\] {
+    width: 1.2em;
+    height: 1.2em;
   }
   .h-\[1em\] {
     height: 1em;
@@ -572,6 +583,29 @@
   .shadow-md {
     --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 2px 4px -2px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .btn-ghost {
+    @layer daisyui.modifier {
+      &:not(.btn-active, :hover, :active:focus, :focus-visible) {
+        --btn-shadow: "";
+        --btn-bg: #0000;
+        --btn-border: #0000;
+        --btn-noise: none;
+        &:not(:disabled, [disabled], .btn-disabled) {
+          outline-color: currentcolor;
+          --btn-fg: currentColor;
+        }
+      }
+      @media (hover: none) {
+        &:hover:not(.btn-active, :active, :focus-visible, :disabled, [disabled], .btn-disabled) {
+          --btn-shadow: "";
+          --btn-bg: #0000;
+          --btn-border: #0000;
+          --btn-noise: none;
+          --btn-fg: currentColor;
+        }
+      }
+    }
   }
 }
 @layer base {
