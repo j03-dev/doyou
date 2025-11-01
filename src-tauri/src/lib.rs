@@ -1,6 +1,6 @@
 use common::{Response, Videos, Downloaded};
 
-static BASE_URL: &'static str = "http://locahost:5555/api/v1";
+static BASE_URL: &'static str = "http://localhost:5555/api/v1";
 
 #[tauri::command]
 fn search(name: &str) -> Response<Videos, String> {
