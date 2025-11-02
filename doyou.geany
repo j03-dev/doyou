@@ -28,10 +28,11 @@ long_line_column=72
 
 [files]
 current_page=2
-FILE_NAME_0=2371;Rust;0;EUTF-8;1;1;0;%2Fhome%2Fmanohy%2FProjects%2Fdoyou%2Fsrc%2Fapp.rs;0;4
-FILE_NAME_1=392;Rust;0;EUTF-8;1;1;0;%2Fhome%2Fmanohy%2FProjects%2Fdoyou%2Fcommon%2Fcommon.rs;0;4
-FILE_NAME_2=703;Python;0;EUTF-8;1;1;0;%2Fhome%2Fmanohy%2FProjects%2Fdoyou%2Fsrc-oxapy%2Fmain.py;0;4
+FILE_NAME_0=2782;Rust;0;EUTF-8;1;1;0;%2Fhome%2Fmanohy%2FProjects%2Fdoyou%2Fsrc%2Fapp.rs;0;4
+FILE_NAME_1=391;Rust;0;EUTF-8;1;1;0;%2Fhome%2Fmanohy%2FProjects%2Fdoyou%2Fcommon%2Fcommon.rs;0;4
+FILE_NAME_2=380;Python;0;EUTF-8;1;1;0;%2Fhome%2Fmanohy%2FProjects%2Fdoyou%2Fsrc-oxapy%2Fmain.py;0;4
 FILE_NAME_3=473;Rust;0;EUTF-8;1;1;0;%2Fhome%2Fmanohy%2FProjects%2Fdoyou%2Fsrc-tauri%2Fsrc%2Flib.rs;0;4
+FILE_NAME_4=0;Rust;0;EUTF-8;1;1;0;%2Fhome%2Fmanohy%2FProjects%2Fdoyou%2Fsrc-tauri%2Fbuild.rs;0;4
 
 [VTE]
-last_dir=/home/manohy
+last_dir=/home/manohy/Projects/doyou

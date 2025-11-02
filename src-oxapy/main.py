@@ -4,6 +4,7 @@ from googleapiclient.discovery import build
 import dotenv
 import os
 import yt_dlp
+import time
 
 dotenv.load_dotenv()
 
@@ -15,6 +16,7 @@ youtube = build("youtube", "v3", developerKey=GOOGLE_API_KEY)
 
 
 def search_youtube(r: Request):
+    time.sleep(3)
     q = r.query()
     query_searh = q.get("q")
 
