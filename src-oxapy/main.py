@@ -1,4 +1,4 @@
-from oxapy import HttpServer, Request, Router, FileStreaming, get
+from oxapy import HttpServer, Request, Router, Status, FileStreaming, get, exceptions
 from googleapiclient.discovery import build
 
 import dotenv
@@ -16,42 +16,51 @@ youtube = build("youtube", "v3", developerKey=GOOGLE_API_KEY)
 
 def search_youtube(r: Request):
     q = r.query()
-    query_searh = q["q"]
-    assert query_searh, "must be pass query 'q'"
-    request = youtube.search().list(
-        part="snippet",
-        q=query_searh,
-        type="video",
-        maxResults=10,
-    )
-    response = request.execute()
-    return response
+    query_searh = q.get("q")
+
+    if not query_searh:
+        raise exceptions.BadRequestError("The 'q' query is not found!")
+
+    try:
+        request = youtube.search().list(
+            part="snippet",
+            q=query_searh,
+            type="video",
+            maxResults=10,
+        )
+        response = request.execute()
+        return response
+    except Exception as e:
+        raise exceptions.InternalError(f"Verify your internet connection: {e}")
 
 
 def download(r: Request):
     q = r.query()
     video_id = q.get("id")
-    assert video_id, "Video not found"
 
-    url = f"https://www.youtube.com/watch?v={video_id}"
+    if not video_id:
+        raise exceptions.BadRequestError("The 'id' query is not found!")
 
-    ydl_opts = {
-        "format": "bestaudio/best",
-        "postprocessors": [
-            {
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "mp3",
-                "preferredquality": "192",
-            }
-        ],
-        "outtmpl": f"{MEDIA_DIR}/{video_id}.%(ext)s",
-        "noplaylist": True,
-    }
+    try:
+        url = f"https://www.youtube.com/watch?v={video_id}"
+        ydl_opts = {
+            "format": "bestaudio/best",
+            "postprocessors": [
+                {
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": "mp3",
+                    "preferredquality": "192",
+                }
+            ],
+            "outtmpl": f"{MEDIA_DIR}/{video_id}.%(ext)s",
+            "noplaylist": True,
+        }
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
-
-    return {"video_id": video_id}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+        return {"video_id": video_id}
+    except Exception as e:
+        return {"detail": str(e)}, Status.INTERNAL_SERVER_ERROR
 
 
 def listen(r: Request):

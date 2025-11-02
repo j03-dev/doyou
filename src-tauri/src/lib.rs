@@ -5,7 +5,14 @@ static BASE_URL: &'static str = "http://localhost:5555/api/v1";
 #[tauri::command]
 fn search(name: &str) -> Response<Videos, String> {
     match reqwest::blocking::get(format!("{BASE_URL}/search?q={name}")) {
-        Ok(response) => Response::Success(response.json().unwrap()),
+        Ok(response) => {
+            if response.status().is_server_error() || response.status().is_client_error() {
+                let detail = response.json::<serde_json::Value>().unwrap();
+                let message = detail.get("detail").unwrap();
+                return Response::Failed(message.to_string());
+            }
+            Response::Success(response.json().unwrap())
+        }
         Err(err) => Response::Failed(err.to_string()),
     }
 }
@@ -13,7 +20,14 @@ fn search(name: &str) -> Response<Videos, String> {
 #[tauri::command]
 fn download(video_id: &str) -> Response<Downloaded, String> {
     match reqwest::blocking::get(format!("{BASE_URL}/download?id={video_id}")) {
-        Ok(response) => Response::Success(response.json().unwrap()),
+        Ok(response) => {
+            if response.status().is_server_error() || response.status().is_client_error() {
+                let detail = response.json::<serde_json::Value>().unwrap();
+                let message = detail.get("detail").unwrap();
+                return Response::Failed(message.to_string());
+            }
+            Response::Failed(response.json().unwrap())
+        }
         Err(err) => Response::Failed(err.to_string()),
     }
 }
