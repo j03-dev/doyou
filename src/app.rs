@@ -17,6 +17,59 @@ struct SearchArgs<'a> {
 }
 
 #[component]
+pub fn Card(item: Item) -> impl IntoView {
+	let (favorite_state, set_favorite_state) = signal(false);
+	let (play_state, set_play_state) = signal(false);
+	
+	view! {
+		<li class="list-row">
+			<div>
+				<img class="size-50 rounded-box" src={ move || item.snippet.thumbnails.medium.url.clone() } />
+			</div>
+			<div>
+				<div> { move || item.snippet.title.clone() } </div>
+				<div class="text-xs uppercase font-semibold opacite-60">
+					{ move || item.snippet.channel_title.clone() }
+				</div>
+				<p class="list-col-wrap text-xs"> { move || item.snippet.description.clone() } </p>
+				
+				
+				<button class="btn btn-square btn-ghost" on:click=move |_| set_play_state.set(!play_state.get())>
+					<svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+						<g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor">
+							<Show when=move || play_state.get()
+								  fallback=move || view!{<path d="M6 3L20 12 6 21 6 3z"></path>}
+							 >
+							<path d="M6 4H8V20H6zM16 4H18V20H16z"></path>
+							</Show>
+						</g>
+					</svg>
+				</button>
+				
+				
+				<button class="btn btn-square btn-ghost" on:click=move |_| set_favorite_state.set(!favorite_state.get())>
+				  <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+						<g stroke-linejoin="round"
+						   stroke-linecap="round" 
+						   stroke-width="2"
+						   fill="none"
+						   stroke="currentColor"
+						   class={ move || {
+									if favorite_state.get() {"fill-red-500 stroke-red-500".to_string()} 
+									else {"fill-transparent stroke-current".to_string()}
+							     }}
+						 >
+							<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z">
+							</path>
+						</g>
+					</svg>
+				</button>
+			</div>
+	   </li>
+	}
+}
+
+#[component]
 pub fn App() -> impl IntoView {
     let (search_query, set_search_query) = signal(String::new());
     let (videos, set_videos) = signal(Vec::<Item>::new());
@@ -60,7 +113,7 @@ pub fn App() -> impl IntoView {
             <main>
 				<div class="navbar bg-base-100 shadow-sm text-neutral">
 				  <div class="flex-1">
-					<a class="btn btn-ghost text-neutral text-xl">daisyUI</a>
+					<a class="btn btn-ghost text-neutral text-xl">DoYou</a>
 				  </div>
 				  <div class="flex-none">
 					<label class="swap swap-rotate">
@@ -100,7 +153,7 @@ pub fn App() -> impl IntoView {
                           </svg>
                           <input type="search" class="grow" placeholder="Search" on:input=update_query />
                       </label>
-                      <button class="btn btn-neutral" type="submit">"Search"</button>
+                      <button class="btn btn-neutral text-white" type="submit">"Search"</button>
                     </form>
 
                     <Show when=move || status_msg.get().is_some()>
@@ -119,33 +172,12 @@ pub fn App() -> impl IntoView {
                                 <For
                                     each=move || videos.get()
                                     key=|item| item.id.video_id.clone()
-                                    children=move |item: Item| {
-                                        view! {
-                                            <li class="list-row">
-                                                <div>
-                                                    <img class="size-50 rounded-box" src={ move || item.snippet.thumbnails.medium.url.clone() } />
-                                                </div>
-                                                <div>
-                                                    <div> { move || item.snippet.title.clone() } </div>
-                                                    <div class="text-xs uppercase font-semibold opacite-60">
-                                                        { move || item.snippet.channel_title.clone() }
-                                                    </div>
-                                                    <p class="list-col-wrap text-xs"> { move || item.snippet.description.clone() } </p>
-                                                    <button class="btn btn-square btn-ghost">
-                                                        <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor"><path d="M6 3L20 12 6 21 6 3z"></path></g></svg>
-                                                    </button>
-                                                    <button class="btn btn-square btn-ghost">
-                                                      <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></g></svg>
-                                                    </button>
-                                                </div>
-                                           </li>
-                                        }
-                                    }
+                                    children=move |item: Item| {view! {<Card item=item/>} }
                                 />
                            </ul>
                         }
                     >
-                        <div class="flex justify-center items-center">
+                        <div class="flex h-screen justify-center items-center">
                             <span class="loading loading-spinner text-neutral size-30"></span>
                         </div>
                     </Show>
