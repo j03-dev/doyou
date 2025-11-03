@@ -38,11 +38,11 @@ pub fn App() -> impl IntoView {
                 set_status_msg.set(Some("Please entrer a search query.".to_string()));
                 return;
             }
-            let args = serde_wasm_bindgen::to_value(&SearchArgs { name: &query }).unwrap();
-
+            
             set_isloading.set(true);
             set_status_msg.set(None);
-
+            
+			let args = serde_wasm_bindgen::to_value(&SearchArgs { name: &query }).unwrap();		
             let js_value = invoke("search", args).await;
 
             match serde_wasm_bindgen::from_value::<Response<Videos, String>>(js_value) {
@@ -145,7 +145,7 @@ pub fn App() -> impl IntoView {
                            </ul>
                         }
                     >
-                        <div class="flex h-screen justify-center items-center">
+                        <div class="flex justify-center items-center">
                             <span class="loading loading-spinner text-neutral size-30"></span>
                         </div>
                     </Show>
