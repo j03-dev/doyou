@@ -1,10 +1,20 @@
-from oxapy import HttpServer, Request, Router, Status, FileStreaming, get, exceptions
+from oxapy import (
+    HttpServer,
+    Request,
+    Cors,
+    Router,
+    Status,
+    FileStreaming,
+    get,
+    exceptions,
+)
 from googleapiclient.discovery import build
 
 import dotenv
 import os
 import yt_dlp
 import time
+import logging
 
 dotenv.load_dotenv()
 
@@ -73,11 +83,18 @@ def listen(r: Request):
     return FileStreaming(path, content_type="audio/mpeg")
 
 
+def log(r: Request, next, **kwargs):
+    logging.log(1000, f"{r.method} {r.uri}")
+    return next(r, **kwargs)
+
+
 def main():
     (
         HttpServer(("0.0.0.0", 5555))
+        .cors(Cors())
         .attach(
             Router()
+            .middleware(log)
             .route(get("/health", lambda _r: "Good!"))
             .route(get("/api/v1/search", search_youtube))
             .route(get("/api/v1/download", download))

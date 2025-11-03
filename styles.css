@@ -8,6 +8,7 @@
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
     --color-red-500: oklch(63.7% 0.237 25.331);
+    --color-black: #000;
     --color-white: #fff;
     --spacing: 0.25rem;
     --text-xs: 0.75rem;
@@ -1672,6 +1673,28 @@
     border-style: var(--tw-border-style);
     border-width: 1px;
   }
+  .btn-dash {
+    @layer daisyui.modifier {
+      &:not( .btn-active, :hover, :active:focus, :focus-visible, :disabled, [disabled], .btn-disabled, :checked ) {
+        --btn-shadow: "";
+        border-style: dashed;
+        --btn-bg: #0000;
+        --btn-fg: var(--btn-color);
+        --btn-border: var(--btn-color);
+        --btn-noise: none;
+      }
+      @media (hover: none) {
+        &:hover:not( .btn-active, :active, :focus-visible, :disabled, [disabled], .btn-disabled, :checked ) {
+          --btn-shadow: "";
+          border-style: dashed;
+          --btn-bg: #0000;
+          --btn-fg: var(--btn-color);
+          --btn-border: var(--btn-color);
+          --btn-noise: none;
+        }
+      }
+    }
+  }
   .bg-base-100 {
     background-color: var(--color-base-100);
   }
@@ -1725,6 +1748,12 @@
   }
   .text-neutral {
     color: var(--color-neutral);
+  }
+  .text-primary {
+    color: var(--color-primary);
+  }
+  .text-secondary {
+    color: var(--color-secondary);
   }
   .text-white {
     color: var(--color-white);
@@ -1805,10 +1834,23 @@
       --btn-fg: var(--color-neutral-content);
     }
   }
+  .btn-secondary {
+    @layer daisyui.modifier.color {
+      --btn-color: var(--color-secondary);
+      --btn-fg: var(--color-secondary-content);
+    }
+  }
   .input-neutral {
     @layer daisyui.modifier {
       &, &:focus, &:focus-within {
         --input-color: var(--color-neutral);
+      }
+    }
+  }
+  .input-secondary {
+    @layer daisyui.modifier {
+      &, &:focus, &:focus-within {
+        --input-color: var(--color-secondary);
       }
     }
   }
