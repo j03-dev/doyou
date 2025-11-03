@@ -3,7 +3,6 @@ from oxapy import (
     Request,
     Cors,
     Router,
-    Status,
     FileStreaming,
     get,
     exceptions,
@@ -53,26 +52,28 @@ def download(r: Request):
     if not video_id:
         raise exceptions.BadRequestError("The 'id' query is not found!")
 
-    try:
-        url = f"https://www.youtube.com/watch?v={video_id}"
-        ydl_opts = {
-            "format": "bestaudio/best",
-            "postprocessors": [
-                {
-                    "key": "FFmpegExtractAudio",
-                    "preferredcodec": "mp3",
-                    "preferredquality": "192",
-                }
-            ],
-            "outtmpl": f"{MEDIA_DIR}/{video_id}.%(ext)s",
-            "noplaylist": True,
-        }
+    path_part = f"{MEDIA_DIR}/{video_id}"
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+    if os.path.exists(f"{path_part}.mp3"):
         return {"video_id": video_id}
-    except Exception as e:
-        return {"detail": str(e)}, Status.INTERNAL_SERVER_ERROR
+
+    url = f"https://www.youtube.com/watch?v={video_id}"
+    ydl_opts = {
+        "format": "bestaudio/best",
+        "postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192",
+            }
+        ],
+        "outtmpl": f"{path_part}.%(ext)s",
+        "noplaylist": True,
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+    return {"video_id": video_id}
 
 
 def listen(r: Request):

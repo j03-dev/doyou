@@ -1,28 +1,46 @@
-use leptos::task::spawn_local;
 use leptos::{ev::SubmitEvent, prelude::*};
+use leptos::{html::Audio, task::spawn_local};
 
-use crate::services;
+use crate::services::{self, BASE_URL};
 use crate::types::{Item, Response};
 
 #[component]
 pub fn Card(item: Item) -> impl IntoView {
     let (favorite_state, set_favorite_state) = signal(false);
     let (play_state, set_play_state) = signal(false);
+    let audio_ref = NodeRef::<Audio>::new();
 
-    let (isdownloaded, set_isdownloaded) = signal(false);
+    let (is_downloading, set_is_downloading) = signal(false);
 
-    let play = move |_| {
-        set_play_state.set(!play_state.get());
-        let video_id = item.id.video_id.clone();
-
-        spawn_local(async move {
-            set_isdownloaded.set(true);
-            match services::download(video_id).await {
-                Response::Success(_) => todo!(),
-                Response::Failed(err) => todo!(),
-            };
-            set_isdownloaded.set(false);
-        });
+    let play_pause = move |_| {
+        if let Some(audio) = audio_ref.get() {
+            if audio.paused() {
+                if audio.src().is_empty() {
+                    let video_id = item.id.video_id.clone();
+                    spawn_local(async move {
+                        set_is_downloading.set(true);
+                        match services::download(video_id).await {
+                            Response::Success(downloaded) => {
+                                set_is_downloading.set(false);
+                                let audio_url =
+                                    format!("{BASE_URL}/listen?id={}", downloaded.video_id);
+                                if let Some(audio) = audio_ref.get() {
+                                    audio.set_src(&audio_url);
+                                    if audio.play().is_ok() {
+                                        set_play_state.set(true);
+                                    }
+                                }
+                            }
+                            Response::Failed(_err) => set_is_downloading.set(false),
+                        };
+                    });
+                } else if audio.play().is_ok() {
+                    set_play_state.set(true);
+                }
+            } else if audio.pause().is_ok() {
+                set_play_state.set(false);
+            }
+        }
     };
 
     view! {
@@ -37,9 +55,10 @@ pub fn Card(item: Item) -> impl IntoView {
                 </div>
                 <p class="list-col-wrap text-xs"> { move || item.snippet.description.clone() } </p>
 
+                <audio node_ref=audio_ref on:ended=move |_| set_play_state.set(false)/>
 
-                <button class="btn btn-square btn-ghost" on:click=play>
-                    <Show when=move || isdownloaded.get()
+                <button class="btn btn-square btn-ghost" on:click=play_pause>
+                    <Show when=move || is_downloading.get()
                           fallback=move || view! {
                             <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor">
@@ -82,9 +101,9 @@ pub fn Card(item: Item) -> impl IntoView {
 pub fn App() -> impl IntoView {
     let (search_query, set_search_query) = signal(String::new());
     let (videos, set_videos) = signal(Vec::<Item>::new());
-    let (status_msg, set_status_msg) = signal(Option::None);
+    let (status_msg, set_status_msg) = signal(None);
 
-    let (isloading, set_isloading) = signal(false);
+    let (is_loading, set_is_loading) = signal(false);
 
     let update_query = move |ev| {
         let v = event_target_value(&ev);
@@ -97,18 +116,18 @@ pub fn App() -> impl IntoView {
         spawn_local(async move {
             let query = search_query.get_untracked();
             if query.is_empty() {
-                set_status_msg.set(Some("Please entrer a search query.".to_string()));
+                set_status_msg.set(Some("Please enter a search query.".to_string()));
                 return;
             }
 
-            set_isloading.set(true);
+            set_is_loading.set(true);
             set_status_msg.set(None);
 
             match services::search(query).await {
                 Response::Success(videos) => set_videos.set(videos.items),
                 Response::Failed(err) => set_status_msg.set(Some(format!("Search failed: {err}"))),
             };
-            set_isloading.set(false);
+            set_is_loading.set(false);
         });
     };
 
@@ -169,7 +188,7 @@ pub fn App() -> impl IntoView {
                 </Show>
 
                 <Show
-                    when=move || isloading.get()
+                    when=move || is_loading.get()
                     fallback=move || view! {
                         <ul class="list bg-base-100 rounded-box shadow-md">
                             <For
