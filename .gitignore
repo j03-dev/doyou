@@ -6,3 +6,4 @@
 /node_modules
 **/.env
 /src-oxapy/media/
+*.geany

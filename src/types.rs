@@ -5,6 +5,7 @@ pub struct Id {
     #[serde(rename = "videoId")]
     pub video_id: String,
 }
+
 #[derive(Deserialize, Serialize, Clone)]
 pub struct Thumb {
     pub url: String,
