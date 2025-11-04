@@ -95,18 +95,15 @@ pub fn App() -> impl IntoView {
                     </div>
                 </Show>
 
-                <Show
-                    when=move || is_loading.get()
-                    fallback=move || view! {
-                        <ul class="list bg-base-100 rounded-box shadow-md">
-                            <For
-                                each=move || videos.get()
-                                key=|item| item.id.video_id.clone()
-                                children=move |item: Item| {view! {<MusicCard item=item/>} }
-                            />
-                       </ul>
-                    }
-                >
+                <Show when=move || is_loading.get() fallback=move || view! {
+					<ul class="list bg-base-100 rounded-box shadow-md">
+						<For
+							each=move || videos.get()
+							key=|item| item.id.video_id.clone()
+							children=move |item: Item| {view! {<MusicCard item=item/>} }
+						/>
+				   </ul>
+				}>
                     <div class="flex h-screen justify-center items-center">
                         <span class="loading loading-spinner text-neutral size-30"></span>
                     </div>
