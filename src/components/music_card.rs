@@ -39,11 +39,9 @@ pub fn MusicCard(item: Item) -> impl IntoView {
     
     let player = Player::new();
     
-    let is_playing = Memo::new(move |_| player.is_playing.get());
-
     let play_pause = move |_| {
 		let video_id = item.id.video_id.clone();
-		let player = *&player;
+		let player = player;
         spawn_local(async move {
 			set_is_downloading.set(true);
 			match services::download(video_id).await {
@@ -74,7 +72,7 @@ pub fn MusicCard(item: Item) -> impl IntoView {
                     <Show when=move || is_downloading.get() fallback=move || view! {
                             <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor">
-                                <Show when=move || is_playing.get() fallback=move || view!{
+                                <Show when=move || player.is_playing.get() fallback=move || view!{
 									<path d="M6 3L20 12 6 21 6 3z"></path>
 								}>
                                     <path d="M6 4H8V20H6zM16 4H18V20H16z"></path>
@@ -85,7 +83,6 @@ pub fn MusicCard(item: Item) -> impl IntoView {
                           <span class="loading loading-spinner"></span>
                     </Show>
                 </button>
-
 
                 <button class="btn btn-square btn-ghost" on:click=move |_| set_favorite_state.set(!favorite_state.get())>
                   <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
