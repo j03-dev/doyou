@@ -8,9 +8,11 @@ use crate::music_player::MusicPlayer;
 
 
 #[component]
-pub fn Player(rw_signal: RwSignal<Option<Item>>) -> impl IntoView {
+pub fn Player() -> impl IntoView {
 	let music_player = MusicPlayer::new();
-	let item = Memo::new(move |_| rw_signal.get());
+	provide_context(music_player);
+	
+	let item = Memo::new(move |_| music_player.item.get());
 	
 	view! {
 		<Show when= move || item.get().is_some()>
@@ -29,7 +31,10 @@ pub fn Player(rw_signal: RwSignal<Option<Item>>) -> impl IntoView {
 							<path d="M18 18V6l-8 6 8 6zM6 6h2v12H6V6z" />
 						</svg>
 					</button>
-					<button class="btn btn-ghost btn-circle">
+					<button class="btn btn-ghost btn-circle" on:click=move |_| {
+						if music_player.is_playing.get() { music_player.pause() }
+						else { music_player.play() }
+					}>
 						{move || if music_player.is_playing.get() {
 							view! {
 								<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -65,8 +70,6 @@ pub fn App() -> impl IntoView {
     let (status_msg, set_status_msg) = signal(None);
 
     let (is_loading, set_is_loading) = signal(false);
-    
-    let rw_signal_item = RwSignal::new(None::<Item>);
 
     let update_query = move |ev| {
         let v = event_target_value(&ev);
@@ -155,7 +158,7 @@ pub fn App() -> impl IntoView {
 						<For
 							each=move || videos.get()
 							key=|item| item.id.video_id.clone()
-							children=move |item: Item| {view! {<MusicCard item=item rw_signal=rw_signal_item/>} }
+							children=move |item: Item| {view! {<MusicCard item=item/>} }
 						/>
 				   </ul>
 				}>
@@ -166,7 +169,7 @@ pub fn App() -> impl IntoView {
             </div>
             
             <div class="fixed bottom-0 left-0 w-full bg-base-200 text-neutral shadow-inner"> 
-				<Player rw_signal=rw_signal_item/>
+				<Player/>
 			</div>
 			
         </main>
