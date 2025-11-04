@@ -4,74 +4,138 @@ use leptos::{html::Audio, task::spawn_local};
 use crate::services::{self, BASE_URL};
 use crate::types::{Item, Response};
 
-#[component]
-pub fn Card(item: Item) -> impl IntoView {
-    let (favorite_state, set_favorite_state) = signal(false);
-    let (play_state, set_play_state) = signal(false);
-    let audio_ref = NodeRef::<Audio>::new();
+#[derive(Clone, Copy)]
+struct Player {
+    audio_ref: NodeRef<Audio>,
+    is_downloading: RwSignal<bool>,
+    playing_item: RwSignal<Option<Item>>,
+    is_playing: RwSignal<bool>,
+}
 
-    let (is_downloading, set_is_downloading) = signal(false);
+impl Player {
+    fn new() -> Self {
+        Self {
+            audio_ref: NodeRef::new(),
+            is_downloading: RwSignal::new(false),
+            playing_item: RwSignal::new(None),
+            is_playing: RwSignal::new(false),
+        }
+    }
 
-    let play_pause = move |_| {
-        if let Some(audio) = audio_ref.get() {
-            if audio.paused() {
-                if audio.src().is_empty() {
-                    let video_id = item.id.video_id.clone();
-                    spawn_local(async move {
-                        set_is_downloading.set(true);
-                        match services::download(video_id).await {
-                            Response::Success(downloaded) => {
-                                set_is_downloading.set(false);
-                                let audio_url =
-                                    format!("{BASE_URL}/listen?id={}", downloaded.video_id);
-                                if let Some(audio) = audio_ref.get() {
-                                    audio.set_src(&audio_url);
-                                    if audio.play().is_ok() {
-                                        set_play_state.set(true);
-                                    }
-                                }
-                            }
-                            Response::Failed(_err) => set_is_downloading.set(false),
-                        };
-                    });
-                } else if audio.play().is_ok() {
-                    set_play_state.set(true);
-                }
-            } else if audio.pause().is_ok() {
-                set_play_state.set(false);
+    fn toggle_play(&self, item: &Item) {
+        let is_current_item = self
+            .playing_item
+            .get()
+            .map(|i| i.id.video_id == item.id.video_id)
+            .unwrap_or(false);
+
+        if self.is_playing.get() && is_current_item {
+            self.pause();
+        } else {
+            self.play(item);
+        }
+    }
+
+    fn play(&self, item: &Item) {
+        let audio = self.audio_ref.get().expect("audio element to be present");
+        let is_current_item = self
+            .playing_item
+            .get()
+            .map(|i| i.id.video_id == item.id.video_id)
+            .unwrap_or(false);
+
+        if is_current_item {
+            if audio.play().is_ok() {
+                self.is_playing.set(true);
+            }
+        } else {
+            self.playing_item.set(Some(item.clone()));
+            self.is_playing.set(false);
+            let video_id = item.id.video_id.clone();
+            let player = *self;
+
+            spawn_local(async move {
+                player.is_downloading.set(true);
+                match services::download(video_id).await {
+                    Response::Success(downloaded) => {
+                        player.is_downloading.set(false);
+                        let audio_url = format!("{BASE_URL}/listen?id={}", downloaded.video_id);
+                        audio.set_src(&audio_url);
+                        if audio.play().is_ok() {
+                            player.is_playing.set(true);
+                        }
+                    }
+                    Response::Failed(_err) => {
+                        player.is_downloading.set(false);
+                        player.playing_item.set(None);
+                    }
+                };
+            });
+        }
+    }
+
+    fn pause(&self) {
+        if let Some(audio) = self.audio_ref.get() {
+            if audio.pause().is_ok() {
+                self.is_playing.set(false);
             }
         }
-    };
+    }
+}
+
+
+#[component]
+pub fn Card(item: Item) -> impl IntoView {
+    let player = use_context::<Player>().expect("player to be provided");
+    let (favorite_state, set_favorite_state) = signal(false);
+
+    let video_id = item.id.video_id.clone();
+    let video_id1 = item.id.video_id.clone();
+
+    let is_playing_this = Memo::new(move |_| {
+        player.is_playing.get()
+            && player
+                .playing_item
+                .get()
+                .map(|i| i.id.video_id == video_id)
+                .unwrap_or(false)
+    });
+
+    let is_downloading_this = Memo::new(move |_| {
+        player.is_downloading.get()
+            && player
+                .playing_item
+                .get()
+                .map(|i| i.id.video_id == video_id1)
+                .unwrap_or(false)
+    });
 
     view! {
         <li class="list-row">
             <div>
-                <img class="size-50 rounded-box" src={ move || item.snippet.thumbnails.medium.url.clone() } />
+                <img class="size-50 rounded-box" src={  item.snippet.thumbnails.medium.url.clone() } />
             </div>
             <div>
-                <div> { move || item.snippet.title.clone() } </div>
+                <div> { item.snippet.title.clone() } </div>
                 <div class="text-xs uppercase font-semibold opacite-60">
-                    { move || item.snippet.channel_title.clone() }
+                    { item.snippet.channel_title.clone() }
                 </div>
-                <p class="list-col-wrap text-xs"> { move || item.snippet.description.clone() } </p>
+                <p class="list-col-wrap text-xs"> { item.snippet.description.clone() } </p>
 
-                <audio node_ref=audio_ref on:ended=move |_| set_play_state.set(false)/>
-
-                <button class="btn btn-square btn-ghost" on:click=play_pause>
-                    <Show when=move || is_downloading.get()
-                          fallback=move || view! {
-                            <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor">
-                                <Show when=move || play_state.get()
-                                      fallback=move || view!{<path d="M6 3L20 12 6 21 6 3z"></path>}
-                                    >
+                <button class="btn btn-square btn-ghost" on:click=move |_| player.toggle_play(&item)>
+                     <Show when=move || is_downloading_this.get() fallback=move || view! {
+                        <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor">
+                               <Show when=move || is_playing_this.get() fallback=move || view!{
+                                    <path d="M6 3L20 12 6 21 6 3z"></path>
+                                }>
                                     <path d="M6 4H8V20H6zM16 4H18V20H16z"></path>
                                 </Show>
-                                </g>
-                            </svg>
-                          }>
-                          <span class="loading loading-spinner"></span>
-                    </Show>
+                            </g>
+                        </svg>
+                     }>
+                        <span class="loading loading-spinner"></span>
+                     </Show>
                 </button>
 
 
@@ -99,6 +163,9 @@ pub fn Card(item: Item) -> impl IntoView {
 
 #[component]
 pub fn App() -> impl IntoView {
+    let player = Player::new();
+    provide_context(player);
+
     let (search_query, set_search_query) = signal(String::new());
     let (videos, set_videos) = signal(Vec::<Item>::new());
     let (status_msg, set_status_msg) = signal(None);
@@ -133,6 +200,12 @@ pub fn App() -> impl IntoView {
 
     view! {
         <main>
+            <audio
+                node_ref=player.audio_ref
+                on:ended=move |_| player.is_playing.set(false)
+                on:play=move |_| player.is_playing.set(true)
+                on:pause=move |_| player.is_playing.set(false)
+            />
             <div class="navbar bg-base-100 shadow-sm text-neutral">
               <div class="flex-1">
                 <a class="btn btn-ghost text-neutral text-xl">DoYou</a>
