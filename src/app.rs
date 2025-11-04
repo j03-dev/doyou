@@ -4,6 +4,59 @@ use leptos::{ev::SubmitEvent, prelude::*};
 use crate::components::MusicCard;
 use crate::services;
 use crate::types::{Item, Response};
+use crate::music_player::MusicPlayer;
+
+
+#[component]
+pub fn Player(rw_signal: RwSignal<Option<Item>>) -> impl IntoView {
+	let music_player = MusicPlayer::new();
+	let item = Memo::new(move |_| rw_signal.get());
+	
+	view! {
+		<Show when= move || item.get().is_some()>
+			<div class="container mx-auto p-4 flex items-center justify-between">
+				<audio node_ref=music_player.audio_ref on:ended=move |_| music_player.is_playing.set(false)/>
+				<div class="flex items-center gap-4 w-1/3">
+					<img src={move || item.get().map(|i| i.snippet.thumbnails.medium.url).unwrap_or("https://via.placeholder.com/64".to_string()) } alt="Thumbnail" class="w-16 h-16 rounded-md object-cover" />
+					<div>
+						<p class="font-bold text-lg">{move || item.get().map(|i| i.snippet.title).unwrap_or("Unknow title".to_string()) }</p>
+						<p class="text-sm">{"Artist Name"}</p>
+					</div>
+				</div>
+				<div class="flex items-center gap-2 justify-center flex-grow">
+					<button class="btn btn-ghost btn-circle">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M18 18V6l-8 6 8 6zM6 6h2v12H6V6z" />
+						</svg>
+					</button>
+					<button class="btn btn-ghost btn-circle">
+						{move || if music_player.is_playing.get() {
+							view! {
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+									<path d="M6 4h4v16H6zM14 4h4v16h-4z" />
+								</svg>
+							}
+						} else {
+							view! {
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+									<path d="M5 3l14 9-14 9V3z" />
+								</svg>
+							}
+						}}
+					</button>
+					<button class="btn btn-ghost btn-circle">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M6 6v12l8-6-8-6zM18 6h-2v12h2V6z" />
+						</svg>
+					</button>
+				</div>
+				<div class="w-1/3 text-right">
+					<progress class="progress progress-neutral" value="40" max="100"></progress>
+				</div>
+			</div>
+		</Show>
+    }
+}
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -12,6 +65,8 @@ pub fn App() -> impl IntoView {
     let (status_msg, set_status_msg) = signal(None);
 
     let (is_loading, set_is_loading) = signal(false);
+    
+    let rw_signal_item = RwSignal::new(None::<Item>);
 
     let update_query = move |ev| {
         let v = event_target_value(&ev);
@@ -100,7 +155,7 @@ pub fn App() -> impl IntoView {
 						<For
 							each=move || videos.get()
 							key=|item| item.id.video_id.clone()
-							children=move |item: Item| {view! {<MusicCard item=item/>} }
+							children=move |item: Item| {view! {<MusicCard item=item rw_signal=rw_signal_item/>} }
 						/>
 				   </ul>
 				}>
@@ -109,6 +164,11 @@ pub fn App() -> impl IntoView {
                     </div>
                 </Show>
             </div>
+            
+            <div class="fixed bottom-0 left-0 w-full bg-base-200 text-neutral shadow-inner"> 
+				<Player rw_signal=rw_signal_item/>
+			</div>
+			
         </main>
     }
 }

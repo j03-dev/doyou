@@ -2,6 +2,7 @@ mod app;
 mod components;
 mod services;
 mod types;
+mod music_player;
 
 use app::*;
 use leptos::prelude::*;

@@ -1,22 +1,22 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, PartialEq, Clone)]
 pub struct Id {
     #[serde(rename = "videoId")]
     pub video_id: String,
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, PartialEq, Clone)]
 pub struct Thumb {
     pub url: String,
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, PartialEq, Clone)]
 pub struct Thumbnails {
     pub medium: Thumb,
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, PartialEq, Clone)]
 pub struct Snippet {
     pub title: String,
     pub description: String,
@@ -25,7 +25,7 @@ pub struct Snippet {
     pub channel_title: String,
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, PartialEq, Clone)]
 pub struct Item {
     pub id: Id,
     pub snippet: Snippet,
