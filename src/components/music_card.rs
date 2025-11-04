@@ -6,52 +6,54 @@ use crate::types::{Item, Response};
 
 #[derive(Clone, Copy)]
 struct Player {
-	audio_ref: NodeRef<Audio>,
-	is_playing: RwSignal<bool>,
+    audio_ref: NodeRef<Audio>,
+    is_playing: RwSignal<bool>,
 }
 
 impl Player {
-	fn new() -> Self {
-		Self { 
-			audio_ref: NodeRef::new(),
-			is_playing: RwSignal::new(false), 
-		}
-	}
-	
+    fn new() -> Self {
+        Self {
+            audio_ref: NodeRef::new(),
+            is_playing: RwSignal::new(false),
+        }
+    }
+
     fn play(&self, src: &str) {
-		if let Some(audio) = self.audio_ref.get() {
-			if audio.paused() {
-				if audio.src().is_empty() {audio.set_src(src);}
-				assert!(audio.play().is_ok());
-				self.is_playing.set(true);
-			} else {
-				assert!(audio.pause().is_ok());
-				self.is_playing.set(false);
-			}
-		}
-	}
+        if let Some(audio) = self.audio_ref.get() {
+            if audio.paused() {
+                if audio.src().is_empty() {
+                    audio.set_src(src);
+                }
+                assert!(audio.play().is_ok());
+                self.is_playing.set(true);
+            } else {
+                assert!(audio.pause().is_ok());
+                self.is_playing.set(false);
+            }
+        }
+    }
 }
 
 #[component]
 pub fn MusicCard(item: Item) -> impl IntoView {
     let (favorite_state, set_favorite_state) = signal(false);
     let (is_downloading, set_is_downloading) = signal(false);
-    
+
     let player = Player::new();
-    
+
     let play_pause = move |_| {
-		let video_id = item.id.video_id.clone();
-		let player = player;
+        let video_id = item.id.video_id.clone();
+        let player = player;
         spawn_local(async move {
-			set_is_downloading.set(true);
-			match services::download(video_id).await {
-				Response::Success(downloaded) => {
-					set_is_downloading.set(false);
-					player.play(&format!("{BASE_URL}/listen?id={}", downloaded.video_id));
-				}
-				Response::Failed(_err) => set_is_downloading.set(false),
-			};
-		});
+            set_is_downloading.set(true);
+            match services::download(video_id).await {
+                Response::Success(downloaded) => {
+                    set_is_downloading.set(false);
+                    player.play(&format!("{BASE_URL}/listen?id={}", downloaded.video_id));
+                }
+                Response::Failed(_err) => set_is_downloading.set(false),
+            };
+        });
     };
 
     view! {
@@ -73,8 +75,8 @@ pub fn MusicCard(item: Item) -> impl IntoView {
                             <svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor">
                                 <Show when=move || player.is_playing.get() fallback=move || view!{
-									<path d="M6 3L20 12 6 21 6 3z"></path>
-								}>
+                                    <path d="M6 3L20 12 6 21 6 3z"></path>
+                                }>
                                     <path d="M6 4H8V20H6zM16 4H18V20H16z"></path>
                                 </Show>
                                 </g>

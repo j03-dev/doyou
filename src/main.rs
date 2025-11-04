@@ -1,7 +1,7 @@
 mod app;
+mod components;
 mod services;
 mod types;
-mod components;
 
 use app::*;
 use leptos::prelude::*;

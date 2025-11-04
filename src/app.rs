@@ -1,10 +1,9 @@
-use leptos::{ev::SubmitEvent, prelude::*};
 use leptos::task::spawn_local;
+use leptos::{ev::SubmitEvent, prelude::*};
 
+use crate::components::MusicCard;
 use crate::services;
 use crate::types::{Item, Response};
-use crate::components::MusicCard;
-
 
 #[component]
 pub fn App() -> impl IntoView {
