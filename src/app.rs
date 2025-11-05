@@ -22,7 +22,7 @@ pub fn Player() -> impl IntoView {
 					<img src={move || item.get().map(|i| i.snippet.thumbnails.medium.url).unwrap_or("https://via.placeholder.com/64".to_string()) } alt="Thumbnail" class="w-16 h-16 rounded-md object-cover" />
 					<div>
 						<p class="font-bold text-lg">{move || item.get().map(|i| i.snippet.title).unwrap_or("Unknow title".to_string()) }</p>
-						<p class="text-sm">{"Artist Name"}</p>
+						<p class="text-sm">{move || item.get().map(|i| i.snippet.channel_title).unwrap_or("Unknow channel".to_string())}</p>
 					</div>
 				</div>
 				<div class="flex items-center gap-2 justify-center flex-grow">
