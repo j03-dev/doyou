@@ -8,6 +8,7 @@
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
     --color-red-500: oklch(63.7% 0.237 25.331);
+    --color-black: #000;
     --color-white: #fff;
     --spacing: 0.25rem;
     --text-xs: 0.75rem;
@@ -174,6 +175,76 @@
   }
 }
 @layer utilities {
+  .dock {
+    @layer daisyui.component {
+      position: fixed;
+      right: calc(0.25rem * 0);
+      bottom: calc(0.25rem * 0);
+      left: calc(0.25rem * 0);
+      z-index: 1;
+      display: flex;
+      width: 100%;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-around;
+      background-color: var(--color-base-100);
+      padding: calc(0.25rem * 2);
+      color: currentcolor;
+      border-top: 0.5px solid var(--color-base-content);
+      @supports (color: color-mix(in lab, red, red)) {
+        border-top: 0.5px solid color-mix(in oklab, var(--color-base-content) 5%, #0000);
+      }
+      height: 4rem;
+      height: calc(4rem + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom);
+      > * {
+        position: relative;
+        margin-bottom: calc(0.25rem * 2);
+        display: flex;
+        height: 100%;
+        max-width: calc(0.25rem * 32);
+        flex-shrink: 1;
+        flex-basis: 100%;
+        cursor: pointer;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1px;
+        border-radius: var(--radius-box);
+        background-color: transparent;
+        transition: opacity 0.2s ease-out;
+        @media (hover: hover) {
+          &:hover {
+            opacity: 80%;
+          }
+        }
+        &[aria-disabled="true"], &[disabled] {
+          &, &:hover {
+            pointer-events: none;
+            color: var(--color-base-content);
+            @supports (color: color-mix(in lab, red, red)) {
+              color: color-mix(in oklab, var(--color-base-content) 10%, transparent);
+            }
+            opacity: 100%;
+          }
+        }
+        .dock-label {
+          font-size: 0.6875rem;
+        }
+        &:after {
+          content: "";
+          position: absolute;
+          height: calc(0.25rem * 1);
+          width: calc(0.25rem * 6);
+          border-radius: calc(infinity * 1px);
+          background-color: transparent;
+          bottom: 0.2rem;
+          border-top: 3px solid transparent;
+          transition: background-color 0.1s ease-out, text-color 0.1s ease-out, width 0.1s ease-out;
+        }
+      }
+    }
+  }
   .btn {
     :where(&) {
       @layer daisyui.component {
@@ -722,6 +793,9 @@
   .fixed {
     position: fixed;
   }
+  .relative {
+    position: relative;
+  }
   .static {
     position: static;
   }
@@ -730,6 +804,87 @@
   }
   .left-0 {
     left: calc(var(--spacing) * 0);
+  }
+  .stack {
+    @layer daisyui.component {
+      display: inline-grid;
+      grid-template-columns: 3px 4px 1fr 4px 3px;
+      grid-template-rows: 3px 4px 1fr 4px 3px;
+      & > * {
+        height: 100%;
+        width: 100%;
+        &:nth-child(n + 2) {
+          width: 100%;
+          opacity: 70%;
+        }
+        &:nth-child(2) {
+          z-index: 2;
+          opacity: 90%;
+        }
+        &:nth-child(1) {
+          z-index: 3;
+          width: 100%;
+        }
+      }
+    }
+    @layer daisyui.modifier {
+      &, &.stack-bottom {
+        > * {
+          grid-column: 3 / 4;
+          grid-row: 3 / 6;
+          &:nth-child(2) {
+            grid-column: 2 / 5;
+            grid-row: 2 / 5;
+          }
+          &:nth-child(1) {
+            grid-column: 1 / 6;
+            grid-row: 1 / 4;
+          }
+        }
+      }
+      &.stack-top {
+        > * {
+          grid-column: 3 / 4;
+          grid-row: 1 / 4;
+          &:nth-child(2) {
+            grid-column: 2 / 5;
+            grid-row: 2 / 5;
+          }
+          &:nth-child(1) {
+            grid-column: 1 / 6;
+            grid-row: 3 / 6;
+          }
+        }
+      }
+      &.stack-start {
+        > * {
+          grid-column: 1 / 4;
+          grid-row: 3 / 4;
+          &:nth-child(2) {
+            grid-column: 2 / 5;
+            grid-row: 2 / 5;
+          }
+          &:nth-child(1) {
+            grid-column: 3 / 6;
+            grid-row: 1 / 6;
+          }
+        }
+      }
+      &.stack-end {
+        > * {
+          grid-column: 3 / 6;
+          grid-row: 3 / 4;
+          &:nth-child(2) {
+            grid-column: 2 / 5;
+            grid-row: 2 / 5;
+          }
+          &:nth-child(1) {
+            grid-column: 1 / 4;
+            grid-row: 1 / 6;
+          }
+        }
+      }
+    }
   }
   .list-col-wrap {
     @layer daisyui.modifier {
@@ -762,6 +917,31 @@
   }
   .my-5 {
     margin-block: calc(var(--spacing) * 5);
+  }
+  .status {
+    @layer daisyui.component {
+      display: inline-block;
+      aspect-ratio: 1 / 1;
+      width: calc(0.25rem * 2);
+      height: calc(0.25rem * 2);
+      border-radius: var(--radius-selector);
+      background-color: var(--color-base-content);
+      @supports (color: color-mix(in lab, red, red)) {
+        background-color: color-mix(in oklab, var(--color-base-content) 20%, transparent);
+      }
+      background-position: center;
+      background-repeat: no-repeat;
+      vertical-align: middle;
+      color: color-mix(in srgb, #000 30%, transparent);
+      @supports (color: color-mix(in lab, red, red)) {
+        color: color-mix(in oklab, var(--color-black) 30%, transparent);
+      }
+      background-image: radial-gradient( circle at 35% 30%, oklch(1 0 0 / calc(var(--depth) * 0.5)), #0000 );
+      box-shadow: 0 2px 3px -1px currentColor;
+      @supports (color: color-mix(in lab, red, red)) {
+        box-shadow: 0 2px 3px -1px color-mix(in oklab, currentColor calc(var(--depth) * 100%), #0000);
+      }
+    }
   }
   .alert {
     border-width: var(--border);
@@ -890,6 +1070,24 @@
   }
   .transform {
     transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
+  }
+  .link {
+    @layer daisyui.component {
+      cursor: pointer;
+      text-decoration-line: underline;
+      &:focus {
+        --tw-outline-style: none;
+        outline-style: none;
+        @media (forced-colors: active) {
+          outline: 2px solid transparent;
+          outline-offset: 2px;
+        }
+      }
+      &:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+      }
+    }
   }
   .flex-row {
     flex-direction: row;

@@ -91,7 +91,7 @@ def log(r: Request, next, **kwargs):
 
 def main():
     (
-        HttpServer(("0.0.0.0", 5555))
+        HttpServer(("0.0.0.0", 8080))
         .cors(Cors())
         .attach(
             Router()
