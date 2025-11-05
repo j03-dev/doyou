@@ -1,6 +1,24 @@
-# Tauri + Leptos
+# DoYou - YouTube Music Alternative
 
-This template should help get you started developing with Tauri and Leptos.
+DoYou is a desktop application that serves as an alternative to YouTube Music, allowing you to play YouTube videos as audio.
+
+## Features
+
+- Search for YouTube videos.
+- Play audio from YouTube videos.
+- User-friendly interface.
+
+## Screenshot
+
+![DoYou Screenshot](screen.png)
+
+## Technologies Used
+
+This project is built with:
+
+- Tauri
+- Leptos
+- Rust
 
 ## Recommended IDE Setup
 
