@@ -1,8 +1,7 @@
-use leptos::prelude::*;
 use leptos::html::Audio;
+use leptos::prelude::*;
 
 use crate::types::Item;
-
 
 #[derive(Clone, Copy)]
 pub struct MusicPlayer {
@@ -24,31 +23,31 @@ impl MusicPlayer {
 
     pub fn start(&self, src: &str) {
         if let Some(audio) = self.audio_ref.get() {
-			audio.set_src(src); // allways set the src
-			assert!(audio.play().is_ok());
-			self.is_playing.set(true);
+            audio.set_src(src); // allways set the src
+            assert!(audio.play().is_ok());
+            self.is_playing.set(true);
         }
     }
-    
+
     pub fn play(&self) {
-		if let Some(audio) = self.audio_ref.get() {
-			assert!(audio.play().is_ok());
-			self.is_playing.set(true);
-		}
-	}
-	
-	pub fn pause(&self) {
-		if let Some(audio) = self.audio_ref.get() {
-			assert!(audio.pause().is_ok());
-			self.is_playing.set(false);
-		}
-	}
-	
-	pub fn toggle_play(&self) {
-		if self.is_playing.get() {
-			self.pause()
-		} else {
-			self.play()
-		}
-	}
+        if let Some(audio) = self.audio_ref.get() {
+            assert!(audio.play().is_ok());
+            self.is_playing.set(true);
+        }
+    }
+
+    pub fn pause(&self) {
+        if let Some(audio) = self.audio_ref.get() {
+            assert!(audio.pause().is_ok());
+            self.is_playing.set(false);
+        }
+    }
+
+    pub fn toggle_play(&self) {
+        if self.is_playing.get() {
+            self.pause()
+        } else {
+            self.play()
+        }
+    }
 }

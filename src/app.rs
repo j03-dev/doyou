@@ -1,23 +1,22 @@
 use leptos::task::spawn_local;
 use leptos::{ev::SubmitEvent, prelude::*};
 
+use crate::music_player::MusicPlayer;
 use crate::services;
 use crate::types::{Item, Response};
-use crate::music_player::MusicPlayer;
 
-use crate::components::player::Player;
 use crate::components::music_card::MusicCard;
-
+use crate::components::player::Player;
 
 #[component]
 pub fn App() -> impl IntoView {
     let (search_query, set_search_query) = signal(String::new());
     let (status_msg, set_status_msg) = signal(None);
     let (is_loading, set_is_loading) = signal(false);
-    
-	let music_player = MusicPlayer::new();
-	provide_context(music_player);
-   
+
+    let music_player = MusicPlayer::new();
+    provide_context(music_player);
+
     let update_query = move |ev| {
         let v = event_target_value(&ev);
         set_search_query.set(v);
@@ -46,7 +45,7 @@ pub fn App() -> impl IntoView {
 
     view! {
         <main>
-			<audio node_ref=music_player.audio_ref on:ended=move |_| music_player.is_playing.set(false)/>
+            <audio node_ref=music_player.audio_ref on:ended=move |_| music_player.is_playing.set(false)/>
             <div class="navbar bg-base-100 shadow-sm text-neutral">
               <div class="flex-1">
                 <a class="btn btn-ghost text-neutral text-xl">DoYou</a>
@@ -72,7 +71,7 @@ pub fn App() -> impl IntoView {
               </div>
             </div>
 
-            <div class="m-2">
+            <div class="m-2 pb-24">
                 <form class="flex flex-row justify-center gap-2" on:submit=search_videos>
                    <label class="input input-neutral">
                       <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -102,24 +101,24 @@ pub fn App() -> impl IntoView {
                 </Show>
 
                 <Show when=move || is_loading.get() fallback=move || view! {
-					<ul class="list bg-base-100 rounded-box shadow-md">
-						<For
-							each=move || music_player.playlist.get()
-							key=|item| item.id.video_id.clone()
-							children=move |item: Item| {view! {<MusicCard item=item/>} }
-						/>
-				   </ul>
-				}>
+                    <ul class="list bg-base-100 rounded-box shadow-md">
+                        <For
+                            each=move || music_player.playlist.get()
+                            key=|item| item.id.video_id.clone()
+                            children=move |item: Item| {view! {<MusicCard item=item/>} }
+                        />
+                   </ul>
+                }>
                     <div class="flex h-screen justify-center items-center">
                         <span class="loading loading-spinner text-neutral size-30"></span>
                     </div>
                 </Show>
             </div>
-            
-            <div class="fixed bottom-0 left-0 w-full bg-base-200 text-neutral shadow-inner"> 
-				<Player/>
-			</div>
-			
+
+            <div class="fixed bottom-0 left-0 w-full bg-base-200 text-neutral shadow-inner">
+                <Player/>
+            </div>
+
         </main>
     }
 }

@@ -1,8 +1,8 @@
 mod app;
 mod components;
+mod music_player;
 mod services;
 mod types;
-mod music_player;
 
 use app::*;
 use leptos::prelude::*;
