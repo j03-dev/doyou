@@ -8,29 +8,29 @@ use crate::services::{self, BASE_URL};
 #[component]
 pub fn MusicCard(item: Item) -> impl IntoView {
 	let player = use_context::<MusicPlayer>().unwrap();
-	
+	let (is_loading, set_is_loading) = signal(false);
     let (favorite_state, set_favorite_state) = signal(false);
-    
-   	let i = std::sync::Arc::new(item.clone());
+   	let arc_item = std::sync::Arc::new(item.clone());
     
     let start_music = move |_| {
 		let video_id = item.id.video_id.clone();
-		let i = i.clone();
+		let item = arc_item.clone();
 		spawn_local(async move {
+			set_is_loading.set(true);
 			match services::download(video_id).await {
 				Response::Success(downloaded) => {
-					player.item.set(Some(i.as_ref().clone()));
-					player.toggle_play(&format!("{BASE_URL}/listen?id={}", downloaded.video_id));
+					set_is_loading.set(false);
+					player.playing.set(Some(item.as_ref().clone()));
+					player.start(&format!("{BASE_URL}/listen?id={}", downloaded.video_id));
 				}
-				Response::Failed(_err) => todo!()
+				Response::Failed(_err) => set_is_loading.set(false),
 			};
 		});
-
 	};
-    
+	
     view! {
-        <li class="list-row" on:click=start_music>
-            <div>
+        <li class="list-row">
+            <div on:click=start_music>
                 <img class="size-50 rounded-box" src={ item.snippet.thumbnails.medium.url.clone() } />
             </div>
             <div>
@@ -56,6 +56,10 @@ pub fn MusicCard(item: Item) -> impl IntoView {
                         </g>
                     </svg>
                 </button>
+                
+				<Show when=move || is_loading.get()> 
+					<span class="loading loading-dots loading-sm"></span>	
+                 </Show>
             </div>
        </li>
     }

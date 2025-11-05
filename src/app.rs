@@ -1,76 +1,23 @@
 use leptos::task::spawn_local;
 use leptos::{ev::SubmitEvent, prelude::*};
 
-use crate::components::MusicCard;
 use crate::services;
 use crate::types::{Item, Response};
 use crate::music_player::MusicPlayer;
 
+use crate::components::player::Player;
+use crate::components::music_card::MusicCard;
 
-#[component]
-pub fn Player() -> impl IntoView {
-	let music_player = MusicPlayer::new();
-	provide_context(music_player);
-	
-	let item = Memo::new(move |_| music_player.item.get());
-	
-	view! {
-		<Show when= move || item.get().is_some()>
-			<div class="container mx-auto p-4 flex items-center justify-between">
-				<audio node_ref=music_player.audio_ref on:ended=move |_| music_player.is_playing.set(false)/>
-				<div class="flex items-center gap-4 w-1/3">
-					<img src={move || item.get().map(|i| i.snippet.thumbnails.medium.url).unwrap_or("https://via.placeholder.com/64".to_string()) } alt="Thumbnail" class="w-16 h-16 rounded-md object-cover" />
-					<div>
-						<p class="font-bold text-lg">{move || item.get().map(|i| i.snippet.title).unwrap_or("Unknow title".to_string()) }</p>
-						<p class="text-sm">{move || item.get().map(|i| i.snippet.channel_title).unwrap_or("Unknow channel".to_string())}</p>
-					</div>
-				</div>
-				<div class="flex items-center gap-2 justify-center flex-grow">
-					<button class="btn btn-ghost btn-circle">
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-							<path d="M18 18V6l-8 6 8 6zM6 6h2v12H6V6z" />
-						</svg>
-					</button>
-					<button class="btn btn-ghost btn-circle" on:click=move |_| {
-						if music_player.is_playing.get() { music_player.pause() }
-						else { music_player.play() }
-					}>
-						{move || if music_player.is_playing.get() {
-							view! {
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-									<path d="M6 4h4v16H6zM14 4h4v16h-4z" />
-								</svg>
-							}
-						} else {
-							view! {
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-									<path d="M5 3l14 9-14 9V3z" />
-								</svg>
-							}
-						}}
-					</button>
-					<button class="btn btn-ghost btn-circle">
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-							<path d="M6 6v12l8-6-8-6zM18 6h-2v12h2V6z" />
-						</svg>
-					</button>
-				</div>
-				<div class="w-1/3 text-right">
-					<progress class="progress progress-neutral" value="40" max="100"></progress>
-				</div>
-			</div>
-		</Show>
-    }
-}
 
 #[component]
 pub fn App() -> impl IntoView {
     let (search_query, set_search_query) = signal(String::new());
-    let (videos, set_videos) = signal(Vec::<Item>::new());
     let (status_msg, set_status_msg) = signal(None);
-
     let (is_loading, set_is_loading) = signal(false);
-
+    
+	let music_player = MusicPlayer::new();
+	provide_context(music_player);
+   
     let update_query = move |ev| {
         let v = event_target_value(&ev);
         set_search_query.set(v);
@@ -90,7 +37,7 @@ pub fn App() -> impl IntoView {
             set_status_msg.set(None);
 
             match services::search(query).await {
-                Response::Success(videos) => set_videos.set(videos.items),
+                Response::Success(result) => music_player.playlist.set(result.items),
                 Response::Failed(err) => set_status_msg.set(Some(format!("Search failed: {err}"))),
             };
             set_is_loading.set(false);
@@ -99,6 +46,7 @@ pub fn App() -> impl IntoView {
 
     view! {
         <main>
+			<audio node_ref=music_player.audio_ref on:ended=move |_| music_player.is_playing.set(false)/>
             <div class="navbar bg-base-100 shadow-sm text-neutral">
               <div class="flex-1">
                 <a class="btn btn-ghost text-neutral text-xl">DoYou</a>
@@ -156,7 +104,7 @@ pub fn App() -> impl IntoView {
                 <Show when=move || is_loading.get() fallback=move || view! {
 					<ul class="list bg-base-100 rounded-box shadow-md">
 						<For
-							each=move || videos.get()
+							each=move || music_player.playlist.get()
 							key=|item| item.id.video_id.clone()
 							children=move |item: Item| {view! {<MusicCard item=item/>} }
 						/>

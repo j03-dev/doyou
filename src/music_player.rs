@@ -8,7 +8,8 @@ use crate::types::Item;
 pub struct MusicPlayer {
     pub audio_ref: NodeRef<Audio>,
     pub is_playing: RwSignal<bool>,
-    pub item: RwSignal<Option<Item>>,
+    pub playing: RwSignal<Option<Item>>,
+    pub playlist: RwSignal<Vec<Item>>,
 }
 
 impl MusicPlayer {
@@ -16,22 +17,16 @@ impl MusicPlayer {
         Self {
             audio_ref: NodeRef::new(),
             is_playing: RwSignal::new(false),
-            item: RwSignal::new(None),
+            playing: RwSignal::new(None),
+            playlist: RwSignal::new(Vec::new()),
         }
     }
 
-    pub fn toggle_play(&self, src: &str) {
+    pub fn start(&self, src: &str) {
         if let Some(audio) = self.audio_ref.get() {
-            if audio.paused() {
-                if audio.src().is_empty() {
-                    audio.set_src(src);
-                }
-                assert!(audio.play().is_ok());
-                self.is_playing.set(true);
-            } else {
-                assert!(audio.pause().is_ok());
-                self.is_playing.set(false);
-            }
+			audio.set_src(src); // allways set the src
+			assert!(audio.play().is_ok());
+			self.is_playing.set(true);
         }
     }
     
@@ -45,8 +40,15 @@ impl MusicPlayer {
 	pub fn pause(&self) {
 		if let Some(audio) = self.audio_ref.get() {
 			assert!(audio.pause().is_ok());
-			self.is_playing.set(true);
+			self.is_playing.set(false);
 		}
 	}
 	
+	pub fn toggle_play(&self) {
+		if self.is_playing.get() {
+			self.pause()
+		} else {
+			self.play()
+		}
+	}
 }

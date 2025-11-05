@@ -1,3 +1,2 @@
-mod music_card;
-
-pub use music_card::MusicCard;
+pub mod music_card;
+pub mod player;
