@@ -10,17 +10,22 @@ DoYou is a desktop application that serves as an alternative to YouTube Music, a
 
 ## Screenshots
 
-### Desktop
-
-![DoYou Screenshot](images/desktop.png)
-
-### Web
-
-![DoYou Screenshot](images/web.png)
-
-### Mobile
-
-![DoYou Screenshot](images/mobile.png)
+<table align="center">
+  <tr>
+    <td align="center">
+      <strong>Desktop</strong><br>
+      <img src="images/desktop.png" alt="DoYou Desktop" width="300">
+    </td>
+    <td align="center">
+      <strong>Web</strong><br>
+      <img src="images/web.png" alt="DoYou Web" width="300">
+    </td>
+    <td align="center">
+      <strong>Mobile</strong><br>
+      <img src="images/mobile.png" alt="DoYou Mobile" width="200">
+    </td>
+  </tr>
+</table>
 
 ## Technologies Used
 
