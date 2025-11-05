@@ -8,9 +8,19 @@ DoYou is a desktop application that serves as an alternative to YouTube Music, a
 - Play audio from YouTube videos.
 - User-friendly interface.
 
-## Screenshot
+## Screenshots
 
-![DoYou Screenshot](screen.png)
+### Desktop
+
+![DoYou Screenshot](images/desktop.png)
+
+### Web
+
+![DoYou Screenshot](images/web.png)
+
+### Mobile
+
+![DoYou Screenshot](images/mobile.png)
 
 ## Technologies Used
 
