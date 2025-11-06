@@ -19,6 +19,7 @@ dotenv.load_dotenv()
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 MEDIA_DIR = "media"
+SECRET_FILE = "/etc/secrets/cookies.txt"
 
 youtube = build("youtube", "v3", developerKey=GOOGLE_API_KEY)
 
@@ -67,6 +68,7 @@ def download(r: Request):
         ],
         "outtmpl": f"{path_part}.%(ext)s",
         "noplaylist": True,
+        "cookiefile": SECRET_FILE,
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
