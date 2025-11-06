@@ -8,5 +8,6 @@ dependencies = [
     "google-api-python-client>=2.186.0",
     "oxapy>=0.7.0",
     "python-dotenv>=1.2.1",
+    "sqlalchemy-libsql>=0.2.0",
     "yt-dlp>=2025.10.22",
 ]
