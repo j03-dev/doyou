@@ -9,10 +9,13 @@ from oxapy import (
 )
 from googleapiclient.discovery import build
 
+import contextlib
 import dotenv
 import os
 import yt_dlp
 import logging
+import shutil
+import tempfile
 
 dotenv.load_dotenv()
 
@@ -22,6 +25,22 @@ MEDIA_DIR = "media"
 SECRET_FILE = "/etc/secrets/cookies.txt"
 
 youtube = build("youtube", "v3", developerKey=GOOGLE_API_KEY)
+
+
+@contextlib.contextmanager
+def temp_cookie_file(original_path):
+    if not os.path.exists(original_path):
+        yield None
+        return
+
+    tmp_dir = tempfile.mkdtemp()
+    try:
+        temp_path = os.path.join(tmp_dir, 'cookies.txt')
+        shutil.copy(original_path, temp_path)
+        yield temp_path
+    finally:
+        if tmp_dir:
+            shutil.rmtree(tmp_dir)
 
 
 def search_youtube(r: Request):
@@ -57,22 +76,25 @@ def download(r: Request):
         return {"video_id": video_id}
 
     url = f"https://www.youtube.com/watch?v={video_id}"
-    ydl_opts = {
-        "format": "bestaudio/best",
-        "postprocessors": [
-            {
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "mp3",
-                "preferredquality": "192",
-            }
-        ],
-        "outtmpl": f"{path_part}.%(ext)s",
-        "noplaylist": True,
-        "cookiefile": SECRET_FILE,
-    }
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
+    with temp_cookie_file(SECRET_FILE) as cookie_file:
+        ydl_opts = {
+            "format": "bestaudio/best",
+            "postprocessors": [
+                {
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": "mp3",
+                    "preferredquality": "192",
+                }
+            ],
+            "outtmpl": f"{path_part}.%(ext)s",
+            "noplaylist": True,
+        }
+        if cookie_file:
+            ydl_opts["cookiefile"] = cookie_file
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
     return {"video_id": video_id}
 
 
