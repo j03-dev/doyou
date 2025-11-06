@@ -1,12 +1,12 @@
 use crate::types::{Downloaded, Response, Videos};
 
-pub static BASE_URL: &str = "http://10.0.2.2:8080/api/v1";
+pub static BASE_URL: &str = "https://doyou-cysy.onrender.com";
 
 pub async fn search(name: String) -> Response<Videos, String> {
     match reqwest::get(format!("{BASE_URL}/search?q={name}")).await {
         Ok(response) => {
             if response.status().is_server_error() || response.status().is_client_error() {
-				let error_message = format!("Request failed with status: {}", response.status());
+                let error_message = format!("Request failed with status: {}", response.status());
                 let detail = response
                     .json::<serde_json::Value>()
                     .await
