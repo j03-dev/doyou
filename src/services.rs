@@ -1,6 +1,6 @@
 use crate::types::{Downloaded, Response, Videos};
 
-pub static BASE_URL: &str = "https://doyou-cysy.onrender.com";
+pub static BASE_URL: &str = "http://localhost:8080/api/v1";
 
 pub async fn search(name: String) -> Response<Videos, String> {
     match reqwest::get(format!("{BASE_URL}/search?q={name}")).await {
