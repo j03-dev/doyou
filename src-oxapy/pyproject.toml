@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "google-api-python-client>=2.186.0",
-    "oxapy>=0.7.0",
+    "oxapy>=0.6.7",
     "python-dotenv>=1.2.1",
     "yt-dlp>=2025.10.22",
 ]
