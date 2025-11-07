@@ -23,6 +23,7 @@ import yt_dlp
 import logging
 import shutil
 import tempfile
+import uuid
 
 dotenv.load_dotenv()
 
@@ -40,6 +41,7 @@ ENGINE = create_engine(
 DB = sessionmaker(bind=ENGINE)
 SECRET = os.getenv("SECRET")
 JWT = jwt.Jwt(SECRET)
+SECRET_FILE = "/etc/secrets/cookies.txt"
 
 youtube = build("youtube", "v3", developerKey=GOOGLE_API_KEY)
 
@@ -148,7 +150,10 @@ def like(r: Request, video_id: str):
 
 def likes(r: Request, video_id: str):
     liked_songs = r.db.query(LikedSong).filter(User.id == r.user.id)
-    liked_song_serializer = LikedSongSerializer(instance=liked_songs, many=True)
+    liked_song_serializer = LikedSongSerializer(
+        instance=liked_songs,
+        many=True,
+    )
     return {"liked_songs": liked_song_serializer.data}
 
 
