@@ -1,9 +1,15 @@
 use leptos::prelude::*;
 use leptos::task::spawn_local;
+use serde::{Deserialize, Serialize};
 
+use crate::invoke;
 use crate::music_player::MusicPlayer;
-use crate::services;
-use crate::types::{Item, Response};
+use commons::{Download, Item, Response};
+
+#[derive(Deserialize, Serialize)]
+struct DownloadArgs<'a> {
+    video_id: &'a str,
+}
 
 #[component]
 pub fn MusicCard(item: Item) -> impl IntoView {
@@ -17,14 +23,22 @@ pub fn MusicCard(item: Item) -> impl IntoView {
         let item = arc_item.clone();
         spawn_local(async move {
             set_is_loading.set(true);
-            match services::download(video_id).await {
-                Response::Success(downloaded) => {
-                    set_is_loading.set(false);
-                    player.playing.set(Some(item.as_ref().clone()));
-                    player.start(&downloaded.url);
-                }
-                Response::Failed(_err) => set_is_loading.set(false),
-            };
+            let args = serde_wasm_bindgen::to_value(&DownloadArgs {
+                video_id: &video_id,
+            })
+            .unwrap();
+            let js_value = invoke("download", args).await;
+            match serde_wasm_bindgen::from_value::<Response<Download, String>>(js_value) {
+                Ok(v) => match v {
+                    Response::Success(downloaded) => {
+                        set_is_loading.set(false);
+                        player.playing.set(Some(item.as_ref().clone()));
+                        player.start(&downloaded.url);
+                    }
+                    _ => set_is_loading.set(false),
+                },
+                _ => set_is_loading.set(false),
+            }
         });
     };
 

@@ -1,12 +1,19 @@
 use leptos::task::spawn_local;
 use leptos::{ev::SubmitEvent, prelude::*};
+use serde::{Deserialize, Serialize};
 
 use crate::music_player::MusicPlayer;
-use crate::services;
-use crate::types::{Item, Response};
+use commons::{Item, Videos, Response};
 
 use crate::components::music_card::MusicCard;
 use crate::components::player::Player;
+use crate::invoke;
+
+
+#[derive(Serialize, Deserialize)]
+struct SearchArgs<'a> {
+	name: &'a str
+}
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -34,11 +41,18 @@ pub fn App() -> impl IntoView {
 
             set_is_loading.set(true);
             set_status_msg.set(None);
+            
+            let args = serde_wasm_bindgen::to_value(&SearchArgs {name: &query}).unwrap();
 
-            match services::search(query).await {
-                Response::Success(result) => music_player.playlist.set(result.items),
-                Response::Failed(err) => set_status_msg.set(Some(format!("Search failed: {err}"))),
-            };
+            let js_value = invoke("search", args).await;
+            
+            match serde_wasm_bindgen::from_value::<Response<Videos, String>>(js_value) {
+				Ok(v) => match v {
+					Response::Success(videos) => music_player.playlist.set(videos.items),
+					Response::Failed(e)=> set_status_msg.set(Some(e))
+				}
+				Err(e) => set_status_msg.set(Some(e.to_string()))
+			};
             set_is_loading.set(false);
         });
     };

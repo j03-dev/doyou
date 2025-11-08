@@ -1,7 +1,7 @@
 use leptos::html::Audio;
 use leptos::prelude::*;
 
-use crate::types::Item;
+use commons::Item;
 
 #[derive(Clone, Copy)]
 pub struct MusicPlayer {
