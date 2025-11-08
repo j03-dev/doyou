@@ -1,4 +1,4 @@
-use crate::types::{Downloaded, Response, Videos};
+use crate::types::{Download, Response, Videos};
 
 pub static BASE_URL: &str = "http://localhost:8080/api/v1";
 
@@ -27,7 +27,7 @@ pub async fn search(name: String) -> Response<Videos, String> {
     }
 }
 
-pub async fn download(video_id: String) -> Response<Downloaded, String> {
+pub async fn download(video_id: String) -> Response<Download, String> {
     match reqwest::get(format!("{BASE_URL}/download?id={video_id}")).await {
         Ok(response) => {
             if response.status().is_server_error() || response.status().is_client_error() {

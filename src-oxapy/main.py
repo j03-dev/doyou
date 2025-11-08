@@ -3,7 +3,6 @@ from oxapy import (
     Request,
     Cors,
     Router,
-    FileStreaming,
     exceptions,
 )
 from googleapiclient.discovery import build
@@ -11,16 +10,16 @@ from googleapiclient.discovery import build
 import contextlib
 import dotenv
 import os
-import yt_dlp
 import logging
 import shutil
 import tempfile
+import subprocess
+import json
 
 dotenv.load_dotenv()
 
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-MEDIA_DIR = "media"
 SECRET_FILE = "/etc/secrets/cookies.txt"
 youtube = build("youtube", "v3", developerKey=GOOGLE_API_KEY)
 
@@ -76,44 +75,36 @@ def download(r: Request):
     q = r.query()
     video_id = q.get("id")
 
-    if not video_id:
-        raise exceptions.BadRequestError("The 'id' query is not found!")
-
-    path_part = f"{MEDIA_DIR}/{video_id}"
-
-    if os.path.exists(f"{path_part}.mp3"):
-        return {"video_id": video_id}
-
     url = f"https://www.youtube.com/watch?v={video_id}"
 
-    with temp_cookie_file(SECRET_FILE) as cookie_file:
-        ydl_opts = {
-            "format": "bestaudio/best",
-            "postprocessors": [
-                {
-                    "key": "FFmpegExtractAudio",
-                    "preferredcodec": "mp3",
-                    "preferredquality": "192",
-                }
-            ],
-            "outtmpl": f"{path_part}.%(ext)s",
-            "noplaylist": True,
-        }
-        if cookie_file:
-            ydl_opts["cookiefile"] = cookie_file
+    clean_env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin")}
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-    return {"video_id": video_id}
+    result = subprocess.run(
+        [
+            "yt-dlp",
+            "-f",
+            "bestaudio",
+            "--no-playlist",
+            "-j",  # Output video data as JSON to stdout
+            url,
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+        env=clean_env,
+    )
 
+    video_data = json.loads(result.stdout)
 
-@router.get("/api/v1/listen")
-def listen(r: Request):
-    q = r.query()
-    video_id = q.get("id")
-    assert video_id, "Video not found"
-    path = f"{MEDIA_DIR}/{video_id}.mp3"
-    return FileStreaming(path, content_type="audio/mpeg")
+    final_url = video_data.get("url")
+
+    headers = video_data.get("http_headers", {})
+    user_agent = headers.get("User-Agent")
+
+    return {
+        "url": final_url,
+        "required_user_agent": user_agent,  # Provide this for debugging/client use
+    }
 
 
 def main():

@@ -2,7 +2,7 @@ use leptos::prelude::*;
 use leptos::task::spawn_local;
 
 use crate::music_player::MusicPlayer;
-use crate::services::{self, BASE_URL};
+use crate::services;
 use crate::types::{Item, Response};
 
 #[component]
@@ -21,7 +21,7 @@ pub fn MusicCard(item: Item) -> impl IntoView {
                 Response::Success(downloaded) => {
                     set_is_loading.set(false);
                     player.playing.set(Some(item.as_ref().clone()));
-                    player.start(&format!("{BASE_URL}/listen?id={}", downloaded.video_id));
+                    player.start(&downloaded.url);
                 }
                 Response::Failed(_err) => set_is_loading.set(false),
             };

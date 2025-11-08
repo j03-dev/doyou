@@ -37,8 +37,8 @@ pub struct Videos {
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct Downloaded {
-    pub video_id: String,
+pub struct Download {
+    pub url: String,
 }
 
 #[derive(Deserialize, Serialize)]
