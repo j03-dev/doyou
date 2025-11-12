@@ -1,50 +1,43 @@
-# Development
+# DoYou
 
-Your new bare-bones project includes minimal organization with a single `main.rs` file and a few assets.
+DoYou is a simple desktop application for listening to music from YouTube. This project was created as a way to learn frontend development with Rust using the [Dioxus](httpss.dioxuslabs.com/) framework.
 
-```
-project/
-├─ assets/ # Any assets that are used by the app should be placed here
-├─ src/
-│  ├─ main.rs # main.rs is the entry point to your application and currently contains all components for the app
-├─ Cargo.toml # The Cargo.toml file defines the dependencies and feature flags for your project
-```
+## Getting Started
 
-### Automatic Tailwind (Dioxus 0.7+)
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-As of Dioxus 0.7, there no longer is a need to manually install tailwind. Simply `dx serve` and you're good to go!
+### Prerequisites
 
-Automatic tailwind is supported by checking for a file called `tailwind.css` in your app's manifest directory (next to Cargo.toml). To customize the file, use the dioxus.toml:
+Before you begin, ensure you have the following installed:
 
-```toml
-[application]
-tailwind_input = "my.css"
-tailwind_output = "assets/out.css" # also customize the location of the out file!
-```
+*   [Rust](httpss.www.rust-lang.org/tools/install)
+*   [yt-dlp](httpss.github.com/yt-dlp/yt-dlp)
+*   [Dioxus CLI](httpss.dioxuslabs.com/learn/0.5/getting_started/desktop) (install with `cargo install dioxus-cli`)
 
-### Tailwind Manual Install
+You will also need a Google API key.
 
-To use tailwind plugins or manually customize tailwind, you can can install the Tailwind CLI and use it directly.
+### Installation
 
-### Tailwind
-1. Install npm: https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
-2. Install the Tailwind CSS CLI: https://tailwindcss.com/docs/installation/tailwind-cli
-3. Run the following command in the root of the project to start the Tailwind CSS compiler:
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/your-username/doyou.git
+    cd doyou
+    ```
+2.  Set up your environment variables. Create a `.env` file in the root of the project and add your Google API key:
+    ```
+    GOOGLE_API_KEY=your_api_key_here
+    ```
+3.  Run the application:
+    ```bash
+    dx serve
+    ```
+    This will start the development server and open the application.
 
-```bash
-npx @tailwindcss/cli -i ./input.css -o ./assets/tailwind.css --watch
-```
+## Future Goals
 
-### Serving Your App
+*   Remove the dependency on `yt-dlp` to allow for a more portable application.
+*   Build and deploy the application for Android devices.
 
-Run the following command in the root of your project to start developing with the default platform:
+## Development Notes
 
-```bash
-dx serve --platform desktop
-```
-
-To run for a different platform, use the `--platform platform` flag. E.g.
-```bash
-dx serve --platform desktop
-```
-
+This project uses [Tailwind CSS](httpss.tailwindcss.com/) for styling. The Dioxus CLI automatically handles the Tailwind CSS build process.
