@@ -134,10 +134,10 @@ fn MusicCard(item: Item) -> Element {
     let mut is_loading = use_signal(|| false);
     let playback = use_context::<Playback>();
 
-    let it = std::sync::Arc::new(item.clone());
+    let it = item.clone();
 
     let start = move |_| {
-        let it = it.as_ref().clone();
+        let it = it.clone();
         let mut playback = playback;
         spawn(async move {
             is_loading.set(true);
