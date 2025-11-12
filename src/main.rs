@@ -1,7 +1,7 @@
 mod types;
 
 use dioxus::prelude::*;
-use types::{Download, Item, Videos};
+use types::{Item, Videos};
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
@@ -18,6 +18,22 @@ fn App() -> Element {
     let mut status_msg = use_signal(|| None::<String>);
 
     let playback = use_context_provider(|| Playback::new("audio"));
+
+    let search = move |_| async move {
+        if search_query().is_empty() {
+            status_msg.set(Some("Please enter a search query.".to_string()));
+            return;
+        }
+
+        status_msg.set(None);
+        is_loading.set(true);
+
+        match api_search(search_query()).await {
+            Ok(videos) => playback.playlist.clone().set(videos.items),
+            Err(err) => status_msg.set(Some(err.to_string())),
+        };
+        is_loading.set(false);
+    };
 
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
@@ -50,23 +66,7 @@ fn App() -> Element {
             }
         }
         div { class: "m-2 pb-24",
-            form {
-                class: "flex flex-row justify-center gap-2",
-                onsubmit: move |_| async move {
-                    if search_query().is_empty() {
-                        status_msg.set(Some("Please enter a search query.".to_string()));
-                        return;
-                    }
-
-                    status_msg.set(None);
-                    is_loading.set(true);
-
-                    match search(search_query()).await {
-                        Ok(videos) => playback.playlist.clone().set(videos.items),
-                        Err(err) => status_msg.set(Some(err.to_string())),
-                    };
-                    is_loading.set(false);
-                },
+            form { class: "flex flex-row justify-center gap-2", onsubmit: search,
                 label { class: "input input-neutral",
                     svg {
                         class: "h-[1em] opacity-50",
@@ -132,29 +132,29 @@ fn App() -> Element {
 fn MusicCard(item: Item) -> Element {
     let mut favorite = use_signal(|| false);
     let mut is_loading = use_signal(|| false);
-    let player = use_context::<Playback>();
+    let playback = use_context::<Playback>();
 
     let it = std::sync::Arc::new(item.clone());
 
+    let start = move |_| {
+        let it = it.as_ref().clone();
+        let mut playback = playback;
+        spawn(async move {
+            is_loading.set(true);
+            match api_get_url(it.id.video_id.clone()).await {
+                Ok(url) => {
+                    playback.playing.set(Some(it));
+                    playback.start(url);
+                }
+                Err(_) => todo!(),
+            };
+            is_loading.set(false);
+        });
+    };
+
     rsx! {
         li { class: "list-row",
-            div {
-                onclick: move |_| {
-                    let it = it.as_ref().clone();
-                    let mut player = player;
-                    spawn(async move {
-                        is_loading.set(true);
-                        let result = download(it.id.video_id.clone()).await;
-                        match result {
-                            Ok(downloaded) => {
-                                player.playing.set(Some(it));
-                                player.start(downloaded.url);
-                            }
-                            Err(_) => todo!(),
-                        };
-                        is_loading.set(false);
-                    });
-                },
+            div { onclick: start,
                 img {
                     class: "size-50 rounded-box",
                     src: item.snippet.thumbnails.medium.url,
@@ -330,9 +330,9 @@ impl Playback {
         spawn(async move {
             let _ = document::eval(&format!(
                 r#"
-                 let audio = document.getElementById('{id}')
-                 if (audio) audio.play()
-            "#
+                   let audio = document.getElementById('{id}')
+                   if (audio) audio.play()
+                "#
             ));
         });
         self.is_playing.set(true);
@@ -343,9 +343,9 @@ impl Playback {
         spawn(async move {
             let _ = document::eval(&format!(
                 r#"
-                 let audio = document.getElementById('{id}')
-                 if (audio) audio.pause()
-            "#
+                   let audio = document.getElementById('{id}')
+                   if (audio) audio.pause()
+                "#
             ));
         });
         self.is_playing.set(false);
@@ -361,7 +361,7 @@ impl Playback {
 }
 
 #[get("/api/search")]
-async fn search(name: String) -> Result<Videos, ServerFnError> {
+async fn api_search(name: String) -> Result<Videos, ServerFnError> {
     let key = match std::env::var("GOOGLE_API_KEY") {
         Ok(k) => k,
         Err(err) => return Err(ServerFnError::new(err.to_string())),
@@ -378,8 +378,8 @@ async fn search(name: String) -> Result<Videos, ServerFnError> {
     }
 }
 
-#[post("/api/download")]
-async fn download(video_id: String) -> Result<Download, ServerFnError> {
+#[get("/api/url")]
+async fn api_get_url(video_id: String) -> Result<String, ServerFnError> {
     let url = format!("https://www.youtube.com/watch?v={video_id}");
     match std::process::Command::new("yt-dlp")
         .args(&["-f", "bestaudio", "--get-url", "--no-playlist", &url])
@@ -387,7 +387,7 @@ async fn download(video_id: String) -> Result<Download, ServerFnError> {
     {
         Ok(output) => {
             let audio_url = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            Ok(Download { url: audio_url })
+            Ok(audio_url)
         }
         Err(err) => Err(ServerFnError::new(err.to_string())),
     }

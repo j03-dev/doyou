@@ -35,8 +35,3 @@ pub struct Item {
 pub struct Videos {
     pub items: Vec<Item>,
 }
-
-#[derive(Deserialize, Serialize)]
-pub struct Download {
-    pub url: String,
-}
