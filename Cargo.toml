@@ -1,18 +1,20 @@
 [package]
-name = "doyou-ui"
+name = "dx-doyou"
 version = "0.1.0"
+authors = ["FITAHIANA Nomeniavo Joe <24nomeniavo@gmail.com>"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[dependencies]
-leptos = { version = "0.7", features = ["csr"] }
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-js-sys = "0.3"
-serde = { version = "1", features = ["derive"] }
-serde-wasm-bindgen = "0.6"
-console_error_panic_hook = "0.1.7"
-commons.path = "commons"
 
-[workspace]
-members = ["src-tauri", "commons"]
+[dependencies]
+dioxus = { version = "0.7.1", features = ["fullstack"] }
+serde = { version = "1", features = ["derive"] }
+reqwest = { version = "0.12.24", features= ["json"] }
+dotenv = "0.15.0"
+
+[features]
+default = ["desktop"]
+web = ["dioxus/web"]
+desktop = ["dioxus/desktop"]
+mobile = ["dioxus/mobile"]
+server = ["dioxus/server"]
