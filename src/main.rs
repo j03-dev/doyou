@@ -13,11 +13,10 @@ fn main() {
 
 #[component]
 fn App() -> Element {
-    let mut search_query = use_signal(|| String::new());
     let mut is_loading = use_signal(|| false);
+    let mut search_query = use_signal(|| String::new());
     let mut status_msg = use_signal(|| None::<String>);
-
-    let playback = use_context_provider(|| Playback::new("audio"));
+    let mut playback = use_context_provider(|| Playback::new("audio"));
 
     let search = move |_| async move {
         if search_query().is_empty() {
@@ -29,7 +28,7 @@ fn App() -> Element {
         is_loading.set(true);
 
         match api_search(search_query()).await {
-            Ok(videos) => playback.playlist.clone().set(videos.items),
+            Ok(videos) => playback.playlist.set(videos.items),
             Err(err) => status_msg.set(Some(err.to_string())),
         };
         is_loading.set(false);
@@ -90,7 +89,7 @@ fn App() -> Element {
                 }
                 button { class: "btn btn-neutral", r#type: "submit", "Search" }
             }
-            if status_msg().is_some() {
+            if let Some(message) = status_msg() {
                 div { role: "alert", class: "alert alert-error my-5",
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
@@ -104,7 +103,7 @@ fn App() -> Element {
                             d: "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z",
                         }
                     }
-                    span { {status_msg().unwrap()} }
+                    span { {message} }
                 }
             }
             if is_loading() {
@@ -132,13 +131,12 @@ fn App() -> Element {
 fn MusicCard(item: Item) -> Element {
     let mut favorite = use_signal(|| false);
     let mut is_loading = use_signal(|| false);
-    let playback = use_context::<Playback>();
+    let mut playback = use_context::<Playback>();
 
     let it = item.clone();
 
     let start = move |_| {
         let it = it.clone();
-        let mut playback = playback;
         spawn(async move {
             is_loading.set(true);
             match api_get_url(it.id.video_id.clone()).await {
