@@ -33,7 +33,17 @@ fn App() -> Element {
     let mut is_loading = use_signal(|| false);
     let mut search_query = use_signal(|| String::new());
     let mut status_msg = use_signal(|| None::<String>);
+    let mut theme = use_signal(|| "light".to_string());
     let mut playback = use_context_provider(|| Playback::new("audio"));
+
+    use_effect(move || {
+        let _ = document::eval(&format!(
+            r#"
+                document.documentElement.setAttribute('data-theme', '{}')
+           "#,
+            theme()
+        ));
+    });
 
     let search = move |_| async move {
         if search_query().is_empty() {
@@ -54,17 +64,20 @@ fn App() -> Element {
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
-        div { class: "navbar bg-base-100 shadow-sm text-neutral",
+        div { class: "navbar bg-base-100 shadow-sm text-secondary",
             audio { id: "audio" }
             div { class: "flex-1",
-                a { class: "btn btn-ghost text-neutral text-xl", "DoYou" }
+                a { class: "btn btn-ghost text-secondary text-xl", "DoYou" }
             }
             div { class: "flex-none",
                 label { class: "swap swap-rotate",
                     input {
                         r#type: "checkbox",
                         class: "theme-controller",
-                        value: "synthwave",
+                        onclick: move |_| {
+                            let new_theme = if theme() == "light" { "dark" } else { "light" };
+                            theme.set(new_theme.to_string());
+                        },
                     }
                     svg {
                         class: "swap-off h-10 w-10 fill-current",
@@ -83,7 +96,7 @@ fn App() -> Element {
         }
         div { class: "m-2 pb-24",
             form { class: "flex flex-row justify-center gap-2", onsubmit: search,
-                label { class: "input input-neutral",
+                label { class: "input input-secondary",
                     svg {
                         class: "h-[1em] opacity-50",
                         xmlns: "http://wwww.w3.org/2000/svg",
@@ -104,7 +117,7 @@ fn App() -> Element {
                         oninput: move |e| search_query.set(e.value()),
                     }
                 }
-                button { class: "btn btn-neutral", r#type: "submit", "Search" }
+                button { class: "btn btn-secondary", r#type: "submit", "Search" }
             }
             if let Some(message) = status_msg() {
                 div { role: "alert", class: "alert alert-error my-5",
@@ -125,7 +138,7 @@ fn App() -> Element {
             }
             if is_loading() {
                 div { class: "flex h-screen justify-center items-center",
-                    span { class: "loading loading-spinner text-neutral size-20" }
+                    span { class: "loading loading-spinner text-secondary size-20" }
                 }
             } else {
                 ul { class: "list bg-base-100 rounded-box shadow-md",
@@ -135,7 +148,7 @@ fn App() -> Element {
                 }
             }
         }
-        div { class: "fixed bottom-0 left-0 w-full bg-base-200 text-neutral shadow-inner",
+        div { class: "fixed bottom-0 left-0 w-full bg-base-200 text-secondary shadow-inner",
             if playback.playing.read().as_ref().is_some() {
                 MusicPlayer {}
             }
