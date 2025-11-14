@@ -8,7 +8,24 @@ const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 fn main() {
     dotenv::dotenv().ok();
+
+    #[cfg(not(feature = "desktop"))]
     dioxus::launch(App);
+
+    #[cfg(feature = "desktop")]
+    {
+        dioxus::LaunchBuilder::new()
+            .with_cfg(
+                dioxus::desktop::Config::default()
+                    .with_menu(None)
+                    .with_window(
+                        dioxus::desktop::WindowBuilder::new()
+                            .with_maximized(true)
+                            .with_title("doyou"),
+                    ),
+            )
+            .launch(App);
+    }
 }
 
 #[component]
