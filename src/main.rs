@@ -20,7 +20,6 @@ fn main() {
                     .with_menu(None)
                     .with_window(
                         dioxus::desktop::WindowBuilder::new()
-                            .with_maximized(true)
                             .with_title("doyou"),
                     ),
             )
@@ -64,10 +63,10 @@ fn App() -> Element {
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
-        div { class: "navbar bg-base-100 shadow-sm text-secondary",
+        div { class: "navbar bg-base-100 shadow-sm text-primary",
             audio { id: "audio" }
             div { class: "flex-1",
-                a { class: "btn btn-ghost text-secondary text-xl", "DoYou" }
+                a { class: "btn btn-ghost text-xl", "DoYou" }
             }
             div { class: "flex-none",
                 label { class: "swap swap-rotate",
@@ -96,7 +95,7 @@ fn App() -> Element {
         }
         div { class: "m-2 pb-24",
             form { class: "flex flex-row justify-center gap-2", onsubmit: search,
-                label { class: "input input-secondary",
+                label { class: "input input-primary",
                     svg {
                         class: "h-[1em] opacity-50",
                         xmlns: "http://wwww.w3.org/2000/svg",
@@ -117,7 +116,6 @@ fn App() -> Element {
                         oninput: move |e| search_query.set(e.value()),
                     }
                 }
-                button { class: "btn btn-secondary", r#type: "submit", "Search" }
             }
             if let Some(message) = status_msg() {
                 div { role: "alert", class: "alert alert-error my-5",
@@ -138,7 +136,7 @@ fn App() -> Element {
             }
             if is_loading() {
                 div { class: "flex h-screen justify-center items-center",
-                    span { class: "loading loading-spinner text-secondary size-20" }
+                    span { class: "loading loading-spinner text-neutral size-20" }
                 }
             } else {
                 ul { class: "list bg-base-100 rounded-box shadow-md",
@@ -148,7 +146,7 @@ fn App() -> Element {
                 }
             }
         }
-        div { class: "fixed bottom-0 left-0 w-full bg-base-200 text-secondary shadow-inner",
+        div { class: "fixed bottom-0 left-0 w-full bg-base-200 shadow-inner",
             if playback.playing.read().as_ref().is_some() {
                 MusicPlayer {}
             }
@@ -279,8 +277,8 @@ fn MusicPlayer() -> Element {
                     }
                 }
                 button {
+                    class: "btn btn-circle btn-primary",
                     onclick: move |_| playback.toggle_play(),
-                    class: "btn btn-ghost btn-cirle",
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         class: "h-6 w-6",
@@ -309,7 +307,7 @@ fn MusicPlayer() -> Element {
             }
             div { class: "w-full md: w-1/3",
                 progress {
-                    class: "progress progress-netural w-full",
+                    class: "progress progress-primary w-full",
                     value: "40",
                     max: "100",
                 }
