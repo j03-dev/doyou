@@ -18,10 +18,7 @@ fn main() {
             .with_cfg(
                 dioxus::desktop::Config::default()
                     .with_menu(None)
-                    .with_window(
-                        dioxus::desktop::WindowBuilder::new()
-                            .with_title("doyou"),
-                    ),
+                    .with_window(dioxus::desktop::WindowBuilder::new().with_title("doyou")),
             )
             .launch(App);
     }
@@ -39,7 +36,7 @@ fn App() -> Element {
         let _ = document::eval(&format!(
             r#"
                 document.documentElement.setAttribute('data-theme', '{}')
-           "#,
+            "#,
             theme()
         ));
     });
