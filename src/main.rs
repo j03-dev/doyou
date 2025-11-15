@@ -134,12 +134,12 @@ fn App() -> Element {
             }
             if is_loading() {
                 div { class: "flex h-screen justify-center items-center",
-                    span { class: "loading loading-spinner text-neutral size-20" }
+                    span { class: "loading loading-spinner text-secondary size-20" }
                 }
             } else {
                 ul { class: "list bg-base-100 rounded-box shadow-md",
-                    for item in playback.playlist.read().clone() {
-                        MusicCard { item }
+                    for (index , item) in playback.playlist.read().iter().enumerate() {
+                        MusicCard { item: item.clone(), index }
                     }
                 }
             }
@@ -153,7 +153,7 @@ fn App() -> Element {
 }
 
 #[component]
-fn MusicCard(item: Item) -> Element {
+fn MusicCard(item: Item, index: usize) -> Element {
     let mut favorite = use_signal(|| false);
     let mut is_loading = use_signal(|| false);
     let mut playback = use_context::<Playback>();
@@ -167,7 +167,7 @@ fn MusicCard(item: Item) -> Element {
             match api_get_url(it.id.video_id.clone()).await {
                 Ok(url) => {
                     playback.playing.set(Some(it));
-                    playback.start(url);
+                    playback.start(url, index);
                 }
                 Err(_) => todo!(),
             };
@@ -224,6 +224,22 @@ fn MusicCard(item: Item) -> Element {
 #[component]
 fn MusicPlayer() -> Element {
     let mut playback = use_context::<Playback>();
+    let mut is_loading = use_signal(|| false);
+
+    let playback_contorler = move |delta: i8| {
+        let playlist = playback.playlist.read().clone();
+        let mut index = playback.current_index.read().clone();
+        index = (index + delta as usize) % playlist.len();
+        spawn(async move {
+            let item = playlist[index].clone();
+            is_loading.set(true);
+            // TODO: handle the error here
+            let src = api_get_url(item.id.video_id.clone()).await.unwrap();
+            is_loading.set(false);
+            playback.playing.set(Some(item));
+            playback.start(src, index);
+        });
+    };
 
     rsx! {
         div { class: "container mx-auto p-4 flex flex-col md:flex-row items-center justify-between gap-4",
@@ -265,7 +281,10 @@ fn MusicPlayer() -> Element {
                 }
             }
             div { class: "flex item-center gap-2 justify-center",
-                button { class: "btn btn-ghost btn-circle",
+                // prev button
+                button {
+                    onclick: move |_| playback_contorler(-1),
+                    class: "btn btn-ghost btn-circle",
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         class: "h-6 w-6",
@@ -274,26 +293,36 @@ fn MusicPlayer() -> Element {
                         path { d: "M18 18V6l-8 6 8 6zM6 6h2v12H6V6z" }
                     }
                 }
-                button {
-                    class: "btn btn-circle btn-primary",
-                    onclick: move |_| playback.toggle_play(),
-                    svg {
-                        xmlns: "http://www.w3.org/2000/svg",
-                        class: "h-6 w-6",
-                        fill: "currentColor",
-                        view_box: "0 0 24 24",
-                        path {
-                            d: {
-                                if *playback.is_playing.read() {
-                                    "M6 4h4v16H6zM14 4h4v16h-4z"
-                                } else {
-                                    "M5 3l14 9-14 9V3z"
-                                }
-                            },
+                // play button
+                if !is_loading() {
+                    button {
+                        class: "btn btn-circle btn-primary",
+                        onclick: move |_| playback.toggle_play(),
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            class: "h-6 w-6",
+                            fill: "currentColor",
+                            view_box: "0 0 24 24",
+                            path {
+                                d: {
+                                    if *playback.is_playing.read() {
+                                        "M6 4h4v16H6zM14 4h4v16h-4z"
+                                    } else {
+                                        "M5 3l14 9-14 9V3z"
+                                    }
+                                },
+                            }
                         }
                     }
+                } else {
+                    button { class: "btn btn-circle btn-primary",
+                        span { class: "loading loading-spinner" }
+                    }
                 }
-                button { class: "btn btn-ghost btn-circle",
+                // next button
+                button {
+                    onclick: move |_| playback_contorler(1),
+                    class: "btn btn-ghost btn-circle",
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
                         class: "h-6 w-6",
@@ -320,6 +349,7 @@ struct Playback {
     is_playing: Signal<bool>,
     playing: Signal<Option<Item>>,
     playlist: Signal<Vec<Item>>,
+    current_index: Signal<usize>,
 }
 
 impl Playback {
@@ -329,10 +359,11 @@ impl Playback {
             is_playing: Signal::new(false),
             playing: Signal::new(None),
             playlist: Signal::new(Vec::new()),
+            current_index: Signal::new(0),
         }
     }
 
-    fn start(&mut self, src: String) {
+    fn start(&mut self, src: String, index: usize) {
         let id = self.id.read().clone();
         spawn(async move {
             let _ = document::eval(&format!(
@@ -345,6 +376,7 @@ impl Playback {
                "#
             ));
         });
+        self.current_index.set(index);
         self.is_playing.set(true);
     }
 
