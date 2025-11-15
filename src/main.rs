@@ -162,10 +162,7 @@ fn MusicCard(item: Item, index: usize) -> Element {
 
     rsx! {
         li { class: "list-row",
-            div {
-                onclick: move |_| {
-                    playback.start(index);
-                },
+            div { onclick: move |_| playback.start(index),
                 img {
                     class: "size-30 rounded-box",
                     src: item.snippet.thumbnails.medium.url,
@@ -343,6 +340,7 @@ impl Playback {
         let id = self.id.read().clone();
         let mut playback = *self;
         spawn(async move {
+            playback.current_index.set(index);
             playback.is_loading.set(true);
             let src = api_get_url(item.id.video_id.clone()).await.unwrap();
             playback.playing.set(Some(item));
@@ -357,7 +355,6 @@ impl Playback {
                "#
             ));
         });
-        self.current_index.set(index);
         self.is_playing.set(true);
     }
 
