@@ -412,7 +412,10 @@ async fn api_search(name: String) -> Result<Videos, ServerFnError> {
             if response.status().is_client_error() || response.status().is_server_error() {
                 return Err(ServerFnError::new(response.text().await.unwrap()));
             }
-            return Ok(response.json().await.unwrap());
+            return Ok(response
+                .json()
+                .await
+                .map_err(|err| ServerFnError::new(err.to_string()))?);
         }
         Err(err) => Err(ServerFnError::new(err.to_string())),
     }
