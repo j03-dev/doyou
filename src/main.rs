@@ -137,7 +137,7 @@ fn App() -> Element {
                     span { class: "loading loading-spinner text-secondary size-20" }
                 }
             } else {
-                ul { class: "list bg-base-100 rounded-box shadow-md",
+                ul { class: "list bg-base-100 rounded-box shadow-md pt-5",
                     for (index , item) in playback.playlist.read().iter().enumerate() {
                         MusicCard { item: item.clone(), index }
                     }
@@ -160,8 +160,11 @@ fn MusicCard(item: Item, index: usize) -> Element {
     let is_loading =
         use_memo(move || *playback.current_index.read() == index && *playback.is_loading.read());
 
+    let is_playing_now =
+        use_memo(move || *playback.current_index.read() == index && *playback.is_playing.read());
+
     rsx! {
-        li { class: "list-row",
+        li { class: if is_playing_now() { "list-row bg-secondary text-base-content" } else { "list-row" },
             div { onclick: move |_| playback.start(index),
                 img {
                     class: "size-30 rounded-box",
