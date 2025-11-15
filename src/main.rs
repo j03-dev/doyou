@@ -62,7 +62,12 @@ fn App() -> Element {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
         div { class: "navbar bg-base-100 shadow-sm text-primary",
-            audio { id: "audio", onended: move |_| playback.playback_contorler(1) }
+            audio {
+                id: "audio",
+                onended: move |_| playback.playback_controler(1),
+                ontimeupdate: move |_| playback.update_current_time(),
+                ondurationchange: move |_| playback.update_duration(),
+            }
             div { class: "flex-1",
                 a { class: "btn btn-ghost text-xl", "DoYou" }
             }
@@ -255,7 +260,7 @@ fn MusicPlayer() -> Element {
             div { class: "flex item-center gap-2 justify-center",
                 // prev button
                 button {
-                    onclick: move |_| playback.playback_contorler(-1),
+                    onclick: move |_| playback.playback_controler(-1),
                     class: "btn btn-ghost btn-circle",
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
@@ -293,7 +298,7 @@ fn MusicPlayer() -> Element {
                 }
                 // next button
                 button {
-                    onclick: move |_| playback.playback_contorler(1),
+                    onclick: move |_| playback.playback_controler(1),
                     class: "btn btn-ghost btn-circle",
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
@@ -307,8 +312,8 @@ fn MusicPlayer() -> Element {
             div { class: "w-1/3",
                 progress {
                     class: "progress progress-primary w-full",
-                    value: "40",
-                    max: "100",
+                    value: playback.current_time.read().to_string(),
+                    max: playback.duration.read().to_string(),
                 }
             }
         }
@@ -323,6 +328,8 @@ struct Playback {
     playlist: Signal<Vec<Item>>,
     current_index: Signal<usize>,
     is_loading: Signal<bool>,
+    current_time: Signal<f64>,
+    duration: Signal<f64>,
 }
 
 impl Playback {
@@ -334,6 +341,8 @@ impl Playback {
             playlist: Signal::new(Vec::new()),
             current_index: Signal::new(0),
             is_loading: Signal::new(false),
+            current_time: Signal::new(0.0),
+            duration: Signal::new(0.0),
         }
     }
 
@@ -395,11 +404,51 @@ impl Playback {
         }
     }
 
-    fn playback_contorler(&mut self, delta: i8) {
+    fn playback_controler(&mut self, delta: i8) {
         let playlist = self.playlist.read().clone();
         let mut index = self.current_index.read().clone();
         index = (index + delta as usize) % playlist.len();
         self.start(index);
+    }
+
+    fn update_current_time(&mut self) {
+        let id = self.id.read().clone();
+        let mut playback = *self;
+        spawn(async move {
+            let mut eval = document::eval(&format!(
+                r#"
+                    const audio = document.getElementById('{id}')
+                    if (audio) dioxus.send({{ currentTime: audio.currentTime }})
+                "#
+            ));
+
+            if let Ok(value) = eval.recv::<serde_json::Value>().await {
+                if let Some(time) = value.get("currentTime").and_then(|v| v.as_f64()) {
+                    playback.current_time.set(time);
+                }
+            }
+        });
+    }
+
+    fn update_duration(&mut self) {
+        let id = self.id.read().clone();
+        let mut playback = *self;
+        spawn(async move {
+            let mut eval = document::eval(&format!(
+                r#"
+                    const audio = document.getElementById('{id}')
+                    if (audio) dioxus.send({{ duration: audio.duration }})
+                "#
+            ));
+
+            if let Ok(value) = eval.recv::<serde_json::Value>().await {
+                if let Some(duration) = value.get("duration").and_then(|v| v.as_f64()) {
+                    if duration.is_finite() && duration > 0.0 {
+                        playback.duration.set(duration);
+                    }
+                }
+            }
+        });
     }
 }
 
