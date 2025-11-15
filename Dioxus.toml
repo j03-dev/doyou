@@ -3,7 +3,7 @@
 [web.app]
 
 # HTML title tag content
-title = "dx-doyou"
+title = "doyou"
 
 # include `assets` in web platform
 [web.resource]

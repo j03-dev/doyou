@@ -41,7 +41,8 @@ fn App() -> Element {
         ));
     });
 
-    let search = move |_| async move {
+    let search = move |evt: Event<FormData>| async move {
+        evt.prevent_default();
         if search_query().is_empty() {
             status_msg.set(Some("Please enter a search query.".to_string()));
             return;
@@ -382,7 +383,7 @@ impl Playback {
     }
 }
 
-#[get("/api/search")]
+#[get("/api/search?name")]
 async fn api_search(name: String) -> Result<Videos, ServerFnError> {
     let key = match std::env::var("GOOGLE_API_KEY") {
         Ok(k) => k,
@@ -400,7 +401,7 @@ async fn api_search(name: String) -> Result<Videos, ServerFnError> {
     }
 }
 
-#[get("/api/url")]
+#[get("/api/url?video_id")]
 async fn api_get_url(video_id: String) -> Result<String, ServerFnError> {
     let url = format!("https://www.youtube.com/watch?v={video_id}");
     match std::process::Command::new("yt-dlp")

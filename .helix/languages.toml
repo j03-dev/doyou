@@ -1,4 +1,4 @@
 [[language]]
 name = "rust"
 auto-format = true
-formatter = { command = "dx", args = ["fmt", "-f", "-"] }
+formatter = { command = "bash", args = ["-c", "cargo fmt && dx fmt -f -"] }
