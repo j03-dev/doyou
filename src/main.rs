@@ -62,7 +62,7 @@ fn App() -> Element {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
         div { class: "navbar bg-base-100 shadow-sm text-primary",
-            audio { id: "audio" }
+            audio { id: "audio", onended: move |_| playback.playback_contorler(1) }
             div { class: "flex-1",
                 a { class: "btn btn-ghost text-xl", "DoYou" }
             }
@@ -155,29 +155,17 @@ fn App() -> Element {
 #[component]
 fn MusicCard(item: Item, index: usize) -> Element {
     let mut favorite = use_signal(|| false);
-    let mut is_loading = use_signal(|| false);
     let mut playback = use_context::<Playback>();
 
-    let it = item.clone();
-
-    let start = move |_| {
-        let it = it.clone();
-        spawn(async move {
-            is_loading.set(true);
-            match api_get_url(it.id.video_id.clone()).await {
-                Ok(url) => {
-                    playback.playing.set(Some(it));
-                    playback.start(url, index);
-                }
-                Err(_) => todo!(),
-            };
-            is_loading.set(false);
-        });
-    };
+    let is_loading =
+        use_memo(move || *playback.current_index.read() == index && *playback.is_loading.read());
 
     rsx! {
         li { class: "list-row",
-            div { onclick: start,
+            div {
+                onclick: move |_| {
+                    playback.start(index);
+                },
                 img {
                     class: "size-30 rounded-box",
                     src: item.snippet.thumbnails.medium.url,
@@ -224,22 +212,6 @@ fn MusicCard(item: Item, index: usize) -> Element {
 #[component]
 fn MusicPlayer() -> Element {
     let mut playback = use_context::<Playback>();
-    let mut is_loading = use_signal(|| false);
-
-    let playback_contorler = move |delta: i8| {
-        let playlist = playback.playlist.read().clone();
-        let mut index = playback.current_index.read().clone();
-        index = (index + delta as usize) % playlist.len();
-        spawn(async move {
-            let item = playlist[index].clone();
-            is_loading.set(true);
-            // TODO: handle the error here
-            let src = api_get_url(item.id.video_id.clone()).await.unwrap();
-            is_loading.set(false);
-            playback.playing.set(Some(item));
-            playback.start(src, index);
-        });
-    };
 
     rsx! {
         div { class: "container mx-auto p-4 flex flex-col md:flex-row items-center justify-between gap-4",
@@ -283,7 +255,7 @@ fn MusicPlayer() -> Element {
             div { class: "flex item-center gap-2 justify-center",
                 // prev button
                 button {
-                    onclick: move |_| playback_contorler(-1),
+                    onclick: move |_| playback.playback_contorler(-1),
                     class: "btn btn-ghost btn-circle",
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
@@ -294,7 +266,7 @@ fn MusicPlayer() -> Element {
                     }
                 }
                 // play button
-                if !is_loading() {
+                if !*playback.is_loading.read() {
                     button {
                         class: "btn btn-circle btn-primary",
                         onclick: move |_| playback.toggle_play(),
@@ -321,7 +293,7 @@ fn MusicPlayer() -> Element {
                 }
                 // next button
                 button {
-                    onclick: move |_| playback_contorler(1),
+                    onclick: move |_| playback.playback_contorler(1),
                     class: "btn btn-ghost btn-circle",
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
@@ -332,7 +304,7 @@ fn MusicPlayer() -> Element {
                     }
                 }
             }
-            div { class: "w-full md: w-1/3",
+            div { class: "w-1/3",
                 progress {
                     class: "progress progress-primary w-full",
                     value: "40",
@@ -350,6 +322,7 @@ struct Playback {
     playing: Signal<Option<Item>>,
     playlist: Signal<Vec<Item>>,
     current_index: Signal<usize>,
+    is_loading: Signal<bool>,
 }
 
 impl Playback {
@@ -360,12 +333,20 @@ impl Playback {
             playing: Signal::new(None),
             playlist: Signal::new(Vec::new()),
             current_index: Signal::new(0),
+            is_loading: Signal::new(false),
         }
     }
 
-    fn start(&mut self, src: String, index: usize) {
+    fn start(&mut self, index: usize) {
+        let playlist = self.playlist.read();
+        let item = playlist[index].clone();
         let id = self.id.read().clone();
+        let mut playback = *self;
         spawn(async move {
+            playback.is_loading.set(true);
+            let src = api_get_url(item.id.video_id.clone()).await.unwrap();
+            playback.playing.set(Some(item));
+            playback.is_loading.set(false);
             let _ = document::eval(&format!(
                 r#"
                    let audio = document.getElementById('{id}')
@@ -412,6 +393,13 @@ impl Playback {
         } else {
             self.play();
         }
+    }
+
+    fn playback_contorler(&mut self, delta: i8) {
+        let playlist = self.playlist.read().clone();
+        let mut index = self.current_index.read().clone();
+        index = (index + delta as usize) % playlist.len();
+        self.start(index);
     }
 }
 
