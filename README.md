@@ -23,7 +23,7 @@ You will also need a Google API key.
 
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/your-username/doyou.git
+    git clone https://github.com/j03-dev/doyou.git
     cd doyou
     ```
 2.  Set up your environment variables. Create a `.env` file in the root of the project and add your Google API key:
