@@ -309,7 +309,7 @@ fn MusicPlayer() -> Element {
                     }
                 }
             }
-            div { class: "w-1/3",
+            div { class: "w-full md:w-1/3",
                 progress {
                     class: "progress progress-primary w-full",
                     value: playback.current_time.read().to_string(),
