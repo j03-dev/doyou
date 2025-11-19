@@ -63,7 +63,7 @@ fn App() -> Element {
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
         div { class: "navbar bg-base-100 shadow-sm text-primary",
             audio {
-                id: "audio",
+                id: playback.id,
                 onended: move |_| playback.playback_controller(1),
                 ontimeupdate: move |_| playback.update_current_time(),
                 ondurationchange: move |_| playback.update_duration(),
@@ -423,7 +423,7 @@ impl Playback {
 
     fn update_current_time(&mut self) {
         let id = self.id;
-        let mut playback = *self;
+        let mut state = *self;
         spawn(async move {
             let mut eval = document::eval(&format!(
                 r#"
@@ -434,7 +434,7 @@ impl Playback {
 
             if let Ok(value) = eval.recv::<serde_json::Value>().await {
                 if let Some(time) = value.get("currentTime").and_then(|v| v.as_f64()) {
-                    playback.current_time.set(time);
+                    state.current_time.set(time);
                 }
             }
         });
@@ -442,7 +442,7 @@ impl Playback {
 
     fn update_duration(&mut self) {
         let id = self.id;
-        let mut playback = *self;
+        let mut state = *self;
         spawn(async move {
             let mut eval = document::eval(&format!(
                 r#"
@@ -454,7 +454,7 @@ impl Playback {
             if let Ok(value) = eval.recv::<serde_json::Value>().await {
                 if let Some(duration) = value.get("duration").and_then(|v| v.as_f64()) {
                     if duration.is_finite() && duration > 0.0 {
-                        playback.duration.set(duration);
+                        state.duration.set(duration);
                     }
                 }
             }
