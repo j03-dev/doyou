@@ -347,7 +347,7 @@ impl Playback {
     }
 
     fn start(&mut self, index: usize) {
-        let item = match self.playlist.read().get(index).cloned() {
+        let item = match self.playlist.read().get(index as usize).cloned() {
             Some(item) => item,
             None => return,
         };
@@ -411,13 +411,13 @@ impl Playback {
         }
     }
 
-    fn playback_controller(&mut self, delta: i8) {
+    fn playback_controller(&mut self, delta: isize) {
         let len = self.playlist.read().len();
         if len == 0 {
             return;
         }
         let current = *self.current_index.read();
-        let new_index = (current as isize + delta as isize).rem_euclid(len as isize) as usize;
+        let new_index = (current as isize + delta).rem_euclid(len as isize) as usize;
         self.start(new_index);
     }
 
