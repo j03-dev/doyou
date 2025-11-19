@@ -14,7 +14,7 @@ reqwest = { version = "0.12.24", features = ["json"] }
 dotenv = "0.15.0"
 
 [features]
-default = ["desktop"]
+default = ["web"]
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop"]
 mobile = ["dioxus/mobile"]

@@ -64,7 +64,7 @@ fn App() -> Element {
         div { class: "navbar bg-base-100 shadow-sm text-primary",
             audio {
                 id: "audio",
-                onended: move |_| playback.playback_controler(1),
+                onended: move |_| playback.playback_controller(1),
                 ontimeupdate: move |_| playback.update_current_time(),
                 ondurationchange: move |_| playback.update_duration(),
             }
@@ -260,7 +260,7 @@ fn MusicPlayer() -> Element {
             div { class: "flex item-center gap-2 justify-center",
                 // prev button
                 button {
-                    onclick: move |_| playback.playback_controler(-1),
+                    onclick: move |_| playback.playback_controller(-1),
                     class: "btn btn-ghost btn-circle",
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
@@ -298,7 +298,7 @@ fn MusicPlayer() -> Element {
                 }
                 // next button
                 button {
-                    onclick: move |_| playback.playback_controler(1),
+                    onclick: move |_| playback.playback_controller(1),
                     class: "btn btn-ghost btn-circle",
                     svg {
                         xmlns: "http://www.w3.org/2000/svg",
@@ -322,7 +322,7 @@ fn MusicPlayer() -> Element {
 
 #[derive(Clone, Copy)]
 struct Playback {
-    id: Signal<String>,
+    id: &'static str,
     is_playing: Signal<bool>,
     playing: Signal<Option<Item>>,
     playlist: Signal<Vec<Item>>,
@@ -333,9 +333,9 @@ struct Playback {
 }
 
 impl Playback {
-    fn new(id: &str) -> Self {
+    fn new(id: &'static str) -> Self {
         Self {
-            id: Signal::new(id.to_string()),
+            id,
             is_playing: Signal::new(false),
             playing: Signal::new(None),
             playlist: Signal::new(Vec::new()),
@@ -347,52 +347,59 @@ impl Playback {
     }
 
     fn start(&mut self, index: usize) {
-        let playlist = self.playlist.read();
-        let item = playlist[index].clone();
-        let id = self.id.read().clone();
-        let mut playback = *self;
-        spawn(async move {
-            playback.current_index.set(index);
-            playback.is_loading.set(true);
-            let src = api_get_url(item.id.video_id.clone()).await.unwrap();
-            playback.playing.set(Some(item));
-            playback.is_loading.set(false);
-            let _ = document::eval(&format!(
-                r#"
-                   let audio = document.getElementById('{id}')
-                   if (audio) {{
-                       audio.src = '{src}'
-                       audio.play()
-                   }}
-               "#
-            ));
-        });
+        let item = match self.playlist.read().get(index).cloned() {
+            Some(item) => item,
+            None => return,
+        };
+
+        let mut state = *self;
         self.is_playing.set(true);
+
+        spawn(async move {
+            state.current_index.set(index);
+            state.is_loading.set(true);
+            match api_get_url(item.id.video_id.clone()).await {
+                Ok(src) => {
+                    state.playing.set(Some(item));
+                    let _ = document::eval(&format!(
+                        r#"
+                           let audio = document.getElementById('{id}')
+                           if (audio) {{
+                               audio.src = '{src}'
+                               audio.play()
+                           }}
+                       "#,
+                        id = state.id
+                    ));
+                }
+                Err(e) => {
+                    let _ = document::eval(&format!("console.log({e})"));
+                    state.is_playing.set(false);
+                }
+            };
+            state.is_loading.set(false);
+        });
     }
 
     fn play(&mut self) {
-        let id = self.id.read().clone();
-        spawn(async move {
-            let _ = document::eval(&format!(
-                r#"
-                   let audio = document.getElementById('{id}')
-                   if (audio) audio.play()
-                "#
-            ));
-        });
+        let _ = document::eval(&format!(
+            r#"
+               let audio = document.getElementById('{id}')
+               if (audio) audio.play()
+            "#,
+            id = self.id
+        ));
         self.is_playing.set(true);
     }
 
     fn pause(&mut self) {
-        let id = self.id.read().clone();
-        spawn(async move {
-            let _ = document::eval(&format!(
-                r#"
-                   let audio = document.getElementById('{id}')
-                   if (audio) audio.pause()
-                "#
-            ));
-        });
+        let _ = document::eval(&format!(
+            r#"
+               let audio = document.getElementById('{id}')
+               if (audio) audio.pause()
+            "#,
+            id = self.id
+        ));
         self.is_playing.set(false);
     }
 
@@ -404,15 +411,18 @@ impl Playback {
         }
     }
 
-    fn playback_controler(&mut self, delta: i8) {
-        let playlist = self.playlist.read().clone();
-        let mut index = self.current_index.read().clone();
-        index = (index + delta as usize) % playlist.len();
-        self.start(index);
+    fn playback_controller(&mut self, delta: i8) {
+        let len = self.playlist.read().len();
+        if len == 0 {
+            return;
+        }
+        let current = *self.current_index.read();
+        let new_index = (current as isize + delta as isize).rem_euclid(len as isize) as usize;
+        self.start(new_index);
     }
 
     fn update_current_time(&mut self) {
-        let id = self.id.read().clone();
+        let id = self.id;
         let mut playback = *self;
         spawn(async move {
             let mut eval = document::eval(&format!(
@@ -431,7 +441,7 @@ impl Playback {
     }
 
     fn update_duration(&mut self) {
-        let id = self.id.read().clone();
+        let id = self.id;
         let mut playback = *self;
         spawn(async move {
             let mut eval = document::eval(&format!(
