@@ -1,0 +1,60 @@
+use dioxus::prelude::*;
+
+use crate::{playback::Playback, types::Item};
+
+#[component]
+pub fn MusicCard(item: Item, index: usize) -> Element {
+    let mut favorite = use_signal(|| false);
+    let mut playback = use_context::<Playback>();
+
+    let is_loading =
+        use_memo(move || *playback.current_index.read() == index && *playback.is_loading.read());
+
+    let is_playing_now =
+        use_memo(move || *playback.current_index.read() == index && *playback.is_playing.read());
+
+    rsx! {
+        li { class: if is_playing_now() { "list-row bg-secondary text-base-content" } else { "list-row" },
+            div { onclick: move |_| playback.start(index),
+                img {
+                    class: "size-30 rounded-box",
+                    src: item.snippet.thumbnails.medium.url,
+                }
+            }
+            div {
+                div { {item.snippet.title} }
+                div { class: "text-xs uppercase font-semibold opacity-60",
+                    {item.snippet.channel_title}
+                }
+                p { class: "list-col-wrap text-xs mt-2", {item.snippet.description} }
+                if is_loading() {
+                    span { class: "loading loading-dots loading-sm" }
+                }
+            }
+            button {
+                class: if is_playing_now() { "btn btn-soft btn-error" } else { "btn btn-square btn-ghost" },
+                onclick: move |_| favorite.set(!favorite()),
+                svg {
+                    class: "size-[1.2em]",
+                    xmlns: "http://www.w3.org/2000/svg",
+                    view_box: "0 0 24 24",
+                    g {
+                        stroke_linejoin: "round",
+                        stroke_linecap: "round",
+                        stroke_width: "2",
+                        fill: "none",
+                        stroke: "currentColor",
+                        class: {
+                            if favorite() {
+                                "fill-red-500 stroke-red-5000"
+                            } else {
+                                "fill-transparent stroke-current"
+                            }
+                        },
+                        path { d: "M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" }
+                    }
+                }
+            }
+        }
+    }
+}
