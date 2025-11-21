@@ -1,4 +1,4 @@
-[[language]]
-name = "rust"
-auto-format = true
-formatter = { command = "bash", args = ["-c", "dx fmt -f -"] }
+# [[language]]
+# name = "rust"
+# auto-format = true
+# formatter = { command = "bash", args = ["-c", "dx fmt -f -"] }
