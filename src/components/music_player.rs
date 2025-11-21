@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::playback::Playback;
+use crate::providers::Playback;
 
 #[component]
 pub fn MusicPlayer() -> Element {

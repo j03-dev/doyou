@@ -1,6 +1,6 @@
 mod app;
 mod components;
-mod playback;
+mod providers;
 mod servers;
 mod types;
 

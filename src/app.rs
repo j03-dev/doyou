@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::components::*;
-use crate::playback::Playback;
+use crate::providers::Playback;
 use crate::servers;
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
@@ -35,13 +35,6 @@ pub fn App() -> Element {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
         NavBar {}
-        audio {
-            id: playback.id,
-            onended: move |_| playback.playback_controller(1),
-            ontimeupdate: move |_| playback.update_current_time(),
-            ondurationchange: move |_| playback.update_duration(),
-        }
-
         div { class: "m-2 pb-24",
             form { class: "flex flex-row justify-center gap-2", onsubmit: search,
                 label { class: "input input-primary",
@@ -96,6 +89,12 @@ pub fn App() -> Element {
             }
         }
         div { class: "fixed bottom-0 left-0 w-full bg-base-200 shadow-inner",
+            audio {
+                id: playback.id,
+                onended: move |_| playback.playback_controller(1),
+                ontimeupdate: move |_| playback.update_current_time(),
+                ondurationchange: move |_| playback.update_duration(),
+            }
             if playback.playing.read().as_ref().is_some() {
                 MusicPlayer {}
             }
