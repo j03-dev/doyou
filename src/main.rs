@@ -187,7 +187,7 @@ fn MusicCard(item: Item, index: usize) -> Element {
                 }
             }
             button {
-                class: "btn btn-square btn-ghost",
+                class: if is_playing_now() { "btn btn-soft btn-error" } else { "btn btn-square btn-ghost" },
                 onclick: move |_| favorite.set(!favorite()),
                 svg {
                     class: "size-[1.2em]",
@@ -347,9 +347,9 @@ impl Playback {
     }
 
     fn start(&mut self, index: usize) {
-        let item = match self.playlist.read().get(index as usize).cloned() {
+        let item = match self.playlist.read().get(index).cloned() {
             Some(item) => item,
-            None => return,
+            _ => return,
         };
 
         let mut state = *self;
