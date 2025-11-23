@@ -14,6 +14,13 @@ pub fn App() -> Element {
     let mut status_msg = use_signal(|| None::<String>);
     let mut playback = use_context_provider(|| Playback::new("audio"));
 
+    use_effect(move || {
+        spawn(async move {
+            let videos = servers::api_suggestion().await.unwrap();
+            playback.playlist.set(videos.items);
+        });
+    });
+
     let search = move |evt: Event<FormData>| async move {
         evt.prevent_default();
         if search_query().is_empty() {

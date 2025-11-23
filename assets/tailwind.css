@@ -8,6 +8,7 @@
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
     monospace;
     --color-red-500: oklch(63.7% 0.237 25.331);
+    --color-white: #fff;
     --spacing: 0.25rem;
     --text-xs: 0.75rem;
     --text-xs--line-height: calc(1 / 0.75);
@@ -816,13 +817,6 @@
       height: var(--size);
     }
   }
-  .btn-square {
-    @layer daisyui.modifier {
-      padding-inline: calc(0.25rem * 0);
-      width: var(--size);
-      height: var(--size);
-    }
-  }
   .size-20 {
     width: calc(var(--spacing) * 20);
     height: calc(var(--spacing) * 20);
@@ -933,6 +927,27 @@
   .rounded-md {
     border-radius: var(--radius-md);
   }
+  .btn-dash {
+    @layer daisyui.modifier {
+      &:not( .btn-active, :hover, :active:focus, :focus-visible, input:checked:not(.filter .btn), :disabled, [disabled], .btn-disabled ) {
+        --btn-shadow: "";
+        --btn-bg: #0000;
+        --btn-fg: var(--btn-color);
+        --btn-border: var(--btn-color);
+        --btn-noise: none;
+      }
+      @media (hover: none) {
+        &:not(.btn-active, :active, :focus-visible, input:checked:not(.filter .btn)):hover {
+          --btn-shadow: "";
+          --btn-bg: #0000;
+          --btn-fg: var(--btn-color);
+          --btn-border: var(--btn-color);
+          --btn-noise: none;
+        }
+      }
+    }
+    border-style: dashed;
+  }
   .bg-base-100 {
     background-color: var(--color-base-100);
   }
@@ -958,11 +973,14 @@
   .fill-red-500 {
     fill: var(--color-red-500);
   }
-  .fill-transparent {
-    fill: transparent;
+  .fill-white {
+    fill: var(--color-white);
   }
   .stroke-current {
     stroke: currentcolor;
+  }
+  .stroke-white {
+    stroke: var(--color-white);
   }
   .object-cover {
     object-fit: cover;
@@ -1064,60 +1082,6 @@
           --btn-noise: none;
         }
       }
-    }
-  }
-  .btn-soft {
-    @layer daisyui.modifier {
-      &:not( .btn-active, :hover, :active:focus, :focus-visible, input:checked:not(.filter .btn), :disabled, [disabled], .btn-disabled ) {
-        --btn-shadow: "";
-        --btn-fg: var(--btn-color, var(--color-base-content));
-        --btn-bg: var(--btn-color, var(--color-base-content));
-        @supports (color: color-mix(in lab, red, red)) {
-          --btn-bg: color-mix(
-        in oklab,
-        var(--btn-color, var(--color-base-content)) 8%,
-        var(--color-base-100)
-      );
-        }
-        --btn-border: var(--btn-color, var(--color-base-content));
-        @supports (color: color-mix(in lab, red, red)) {
-          --btn-border: color-mix(
-        in oklab,
-        var(--btn-color, var(--color-base-content)) 10%,
-        var(--color-base-100)
-      );
-        }
-        --btn-noise: none;
-      }
-      @media (hover: none) {
-        &:not(.btn-active, :active, :focus-visible, input:checked:not(.filter .btn)):hover {
-          --btn-shadow: "";
-          --btn-fg: var(--btn-color, var(--color-base-content));
-          --btn-bg: var(--btn-color, var(--color-base-content));
-          @supports (color: color-mix(in lab, red, red)) {
-            --btn-bg: color-mix(
-          in oklab,
-          var(--btn-color, var(--color-base-content)) 8%,
-          var(--color-base-100)
-        );
-          }
-          --btn-border: var(--btn-color, var(--color-base-content));
-          @supports (color: color-mix(in lab, red, red)) {
-            --btn-border: color-mix(
-          in oklab,
-          var(--btn-color, var(--color-base-content)) 10%,
-          var(--color-base-100)
-        );
-          }
-          --btn-noise: none;
-        }
-      }
-    }
-  }
-  .btn-error {
-    @layer daisyui.modifier.color {
-      --btn-color: var(--color-error);
-      --btn-fg: var(--color-error-content);
     }
   }
   .btn-primary {

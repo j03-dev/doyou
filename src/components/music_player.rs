@@ -18,7 +18,7 @@ pub fn MusicPlayer() -> Element {
                             .clone()
                             .read()
                             .as_ref()
-                            .map(|i| i.snippet.thumbnails.medium.url.clone())
+                            .map(|i| i.snippet.thumbnails.as_ref().unwrap().medium.as_ref().unwrap().url.clone())
                             .unwrap_or("https://via.placeholder.com/64".to_string())
                     },
                 }
@@ -39,7 +39,7 @@ pub fn MusicPlayer() -> Element {
                                 .playing
                                 .read()
                                 .as_ref()
-                                .map(|i| i.snippet.channel_title.clone())
+                                .map(|i| i.snippet.channel_title.as_ref().unwrap().clone())
                                 .unwrap_or("Unknown".to_string())
                         }
                     }

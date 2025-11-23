@@ -40,7 +40,7 @@ impl Playback {
         spawn(async move {
             state.current_index.set(index);
             state.is_loading.set(true);
-            match servers::api_get_url(item.id.video_id.clone()).await {
+            match servers::api_get_url(item.id.as_string().unwrap().clone()).await {
                 Ok(src) => {
                     state.playing.set(Some(item));
                     let _ = document::eval(&format!(
