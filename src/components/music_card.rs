@@ -26,7 +26,7 @@ pub fn MusicCard(item: Item, index: usize) -> Element {
                 div { class: "text-xs uppercase font-semibold opacity-60",
                     {item.snippet.channel_title}
                 }
-                p { class: "list-col-wrap text-xs mt-2", {item.snippet.description} }
+                p { class: "list-col-wrap line-clamp-3 text-xs mt-2", {item.snippet.description} }
                 if is_loading() {
                     span { class: "loading loading-dots loading-sm" }
                 }

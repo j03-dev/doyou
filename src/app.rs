@@ -16,8 +16,10 @@ pub fn App() -> Element {
 
     use_effect(move || {
         spawn(async move {
-            let videos = servers::api_suggestion().await.unwrap();
-            playback.playlist.set(videos.items);
+            match servers::api_suggestion().await {
+                Ok(videos) => playback.playlist.set(videos.items),
+                Err(err) => status_msg.set(Some(err.to_string())),
+            };
         });
     });
 

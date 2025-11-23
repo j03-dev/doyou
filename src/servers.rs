@@ -1,6 +1,7 @@
 use crate::types::YouTubeResponse;
 use dioxus::prelude::*;
 
+#[allow(dead_code)]
 const GOOGLE_API: &str = "https://www.googleapis.com/youtube/v3";
 
 #[get("/api/suggestion")]
