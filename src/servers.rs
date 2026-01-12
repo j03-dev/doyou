@@ -36,8 +36,7 @@ pub async fn api_search(name: String) -> Result<YouTubeResponse, ServerFnError> 
         Err(err) => return Err(ServerFnError::new(err.to_string())),
     };
 
-    let query =
-        format!("part=snippet&q={name}&type=video&videoCategoryId=10&maxResults=10&key={key}");
+    let query = format!("part=snippet&q={name}&type=video&maxResults=10&key={key}");
 
     match reqwest::get(format!("{GOOGLE_API}/search?{query}")).await {
         Ok(response) => {

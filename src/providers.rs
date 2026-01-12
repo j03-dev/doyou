@@ -110,14 +110,12 @@ impl Playback {
             let mut eval = document::eval(&format!(
                 r#"
                     const audio = document.getElementById('{id}')
-                    if (audio) dioxus.send({{ currentTime: audio.currentTime }})
+                    if (audio) dioxus.send(audio.currentTime)
                 "#
             ));
 
-            if let Ok(value) = eval.recv::<serde_json::Value>().await {
-                if let Some(time) = value.get("currentTime").and_then(|v| v.as_f64()) {
-                    state.current_time.set(time);
-                }
+            if let Ok(current_time) = eval.recv::<f64>().await {
+                state.current_time.set(current_time);
             }
         });
     }
@@ -129,16 +127,15 @@ impl Playback {
             let mut eval = document::eval(&format!(
                 r#"
                     const audio = document.getElementById('{id}')
-                    if (audio) dioxus.send({{ duration: audio.duration }})
+                    if (audio) dioxus.send(audio.duration)
                 "#
             ));
 
-            if let Ok(value) = eval.recv::<serde_json::Value>().await {
-                if let Some(duration) = value.get("duration").and_then(|v| v.as_f64()) {
-                    if duration.is_finite() && duration > 0.0 {
-                        state.duration.set(duration);
-                    }
-                }
+            if let Ok(duration) = eval.recv::<f64>().await
+                && duration.is_finite()
+                && duration > 0.0
+            {
+                state.duration.set(duration);
             }
         });
     }
