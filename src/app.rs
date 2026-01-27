@@ -16,10 +16,12 @@ pub fn App() -> Element {
 
     use_effect(move || {
         spawn(async move {
+            is_loading.set(true);
             match servers::api_suggestion().await {
                 Ok(videos) => playback.playlist.set(videos.items),
                 Err(err) => status_msg.set(Some(err.to_string())),
             };
+            is_loading.set(false);
         });
     });
 

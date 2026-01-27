@@ -1,5 +1,7 @@
 use crate::types::YouTubeResponse;
 use dioxus::prelude::*;
+#[allow(unused_imports)]
+use yt::YouTubeExtractor;
 
 #[allow(dead_code)]
 const GOOGLE_API: &str = "https://www.googleapis.com/youtube/v3";
@@ -54,15 +56,10 @@ pub async fn api_search(name: String) -> Result<YouTubeResponse, ServerFnError> 
 
 #[get("/api/url?video_id")]
 pub async fn api_get_url(video_id: String) -> Result<String, ServerFnError> {
-    let url = format!("https://www.youtube.com/watch?v={video_id}");
-    match std::process::Command::new("yt-dlp")
-        .args(&["-f", "bestaudio", "--get-url", "--no-playlist", &url])
-        .output()
-    {
-        Ok(output) => {
-            let audio_url = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            Ok(audio_url)
-        }
-        Err(err) => Err(ServerFnError::new(err.to_string())),
-    }
+    let extractor = YouTubeExtractor::new();
+    let url = extractor
+        .get_best_audio_url(&format!("https://www.youtube.com/watch?v={video_id}"))
+        .await
+        .map_err(|err| ServerFnError::new(err.to_string()))?;
+    Ok(url)
 }

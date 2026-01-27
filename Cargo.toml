@@ -5,13 +5,22 @@ authors = ["FITAHIANA Nomeniavo Joe <24nomeniavo@gmail.com>"]
 edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+#
+[workspace]
+members = ["yt"]
+
+[workspace.dependencies]
+serde_json = "1"
+reqwest = { version = "0.12.24", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
 
 [dependencies]
 dioxus = { version = "0.7.2", features = ["fullstack"] }
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-reqwest = { version = "0.12.24", features = ["json"] }
+serde_json.workspace = true
+reqwest.workspace = true
+serde.workspace = true
 dotenv = "0.15.0"
+yt.path = "yt"
 
 [features]
 default = ["web"]
