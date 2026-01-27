@@ -1,0 +1,12 @@
+[package]
+name = "yt"
+version = "0.1.0"
+edition = "2024"
+
+
+[dependencies]
+anyhow = "1.0.100"
+reqwest.workspace = true
+serde_json.workspace = true
+serde.workspace = true
+regex = "1.12.2"
