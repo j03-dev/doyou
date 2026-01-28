@@ -3,15 +3,8 @@ use reqwest;
 use serde::Deserialize;
 use serde_json::json;
 
-// ============================================================================
-// Data Structures
-// ============================================================================
-
 #[derive(Debug, Clone, Deserialize)]
 pub struct Format {
-    #[serde(rename = "itag")]
-    pub itag: i32,
-
     #[serde(rename = "url")]
     pub url: Option<String>,
 
@@ -21,32 +14,14 @@ pub struct Format {
     #[serde(rename = "bitrate")]
     pub bitrate: Option<i64>,
 
-    #[serde(rename = "width")]
-    pub width: Option<i32>,
-
-    #[serde(rename = "height")]
-    pub height: Option<i32>,
-
-    #[serde(rename = "quality")]
-    pub quality: Option<String>,
-
-    #[serde(rename = "qualityLabel")]
-    pub quality_label: Option<String>,
-
     #[serde(rename = "audioQuality")]
     pub audio_quality: Option<String>,
-
-    #[serde(rename = "audioSampleRate")]
-    pub audio_sample_rate: Option<String>,
 
     #[serde(rename = "contentLength")]
     pub content_length: Option<String>,
 
     #[serde(rename = "averageBitrate")]
     pub average_bitrate: Option<i64>,
-
-    #[serde(rename = "audioChannels")]
-    pub audio_channels: Option<i32>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -87,7 +62,6 @@ impl YouTubeExtractor {
         Self { client }
     }
 
-    /// Extract video ID from various YouTube URL formats
     pub fn extract_video_id(url: &str) -> Result<String> {
         use regex::Regex;
 
@@ -155,7 +129,7 @@ impl YouTubeExtractor {
     }
 
     async fn fetch_player_response(&self, video_id: &str) -> Result<PlayerResponse> {
-        let api_key = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8"; // Public API key
+        let api_key = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
 
         let url = format!("https://www.youtube.com/youtubei/v1/player?key={}", api_key);
 
@@ -226,66 +200,6 @@ impl YouTubeExtractor {
             }
         }
 
-        format.audio_quality.is_some() && format.width.is_none() && format.height.is_none()
-    }
-
-    pub async fn get_best_video_url(&self, url: &str) -> Result<String> {
-        let formats = self.get_formats(url).await?;
-
-        let video_formats: Vec<&Format> = formats
-            .iter()
-            .filter(|f| f.width.is_some() && f.height.is_some())
-            .collect();
-
-        if video_formats.is_empty() {
-            anyhow::bail!("No video formats found");
-        }
-
-        let best_video = video_formats
-            .iter()
-            .max_by_key(|f| {
-                let resolution = f.width.unwrap_or(0) * f.height.unwrap_or(0);
-                let bitrate = f.bitrate.or(f.average_bitrate).unwrap_or(0);
-                resolution as i64 * bitrate
-            })
-            .ok_or_else(|| anyhow::anyhow!("Could not determine best video format"))?;
-
-        best_video
-            .url
-            .clone()
-            .ok_or_else(|| anyhow::anyhow!("Selected format has no URL"))
-    }
-
-    pub async fn list_formats(&self, url: &str) -> Result<()> {
-        let formats = self.get_formats(url).await?;
-
-        println!("Available formats:");
-        println!(
-            "{:<6} {:<40} {:<15} {:<10} {:<10}",
-            "itag", "mime_type", "quality", "bitrate", "size"
-        );
-        println!("{}", "-".repeat(90));
-
-        for format in formats {
-            let mime = format.mime_type.as_deref().unwrap_or("unknown");
-            let quality = format
-                .quality_label
-                .as_deref()
-                .or(format.audio_quality.as_deref())
-                .unwrap_or("unknown");
-            let bitrate = format.bitrate.or(format.average_bitrate).unwrap_or(0);
-            let size = format.content_length.as_deref().unwrap_or("?");
-
-            println!(
-                "{:<6} {:<40} {:<15} {:<10} {:<10}",
-                format.itag,
-                &mime[..mime.len().min(40)],
-                quality,
-                bitrate,
-                size
-            );
-        }
-
-        Ok(())
+        format.audio_quality.is_some()
     }
 }
