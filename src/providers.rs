@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
+use yt::data_api::types::Item;
 
 use crate::servers;
-use yt::data_api::types::Item;
 
 #[derive(Clone, Copy)]
 pub struct Playback {

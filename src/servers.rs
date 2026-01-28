@@ -1,9 +1,9 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
-use dioxus::prelude::*;
 use std::sync::LazyLock;
 
+use dioxus::prelude::*;
 use yt::data_api::{YoutubeDataApi, types::YouTubeResponse};
 use yt::extractor::YouTubeExtractor;
 

@@ -1,7 +1,7 @@
-use crate::providers::Playback;
-
 use dioxus::prelude::*;
 use yt::data_api::types::Item;
+
+use crate::providers::Playback;
 
 #[component]
 pub fn MusicCard(item: Item, index: usize) -> Element {
