@@ -8,10 +8,7 @@ use yt::data_api::{YoutubeDataApi, types::YouTubeResponse};
 use yt::extractor::YouTubeExtractor;
 
 const YOUTUBE_DATA_API: LazyLock<YoutubeDataApi> = LazyLock::new(|| YoutubeDataApi::new());
-const YOUTUBE_EXRACTOR: LazyLock<YouTubeExtractor> = LazyLock::new(|| YouTubeExtractor::new());
-
-#[allow(dead_code)]
-const GOOGLE_API: &str = "https://www.googleapis.com/youtube/v3";
+const YOUTUBE_EXTRACTOR: LazyLock<YouTubeExtractor> = LazyLock::new(|| YouTubeExtractor::new());
 
 #[get("/api/suggestion")]
 pub async fn api_suggestion() -> Result<YouTubeResponse, ServerFnError> {
@@ -31,7 +28,7 @@ pub async fn api_search(name: String) -> Result<YouTubeResponse, ServerFnError> 
 
 #[get("/api/url?video_id")]
 pub async fn api_get_url(video_id: String) -> Result<String, ServerFnError> {
-    YOUTUBE_EXRACTOR
+    YOUTUBE_EXTRACTOR
         .get_best_audio_url(&format!("https://www.youtube.com/watch?v={video_id}"))
         .await
         .map_err(|err| ServerFnError::new(err.to_string()))
