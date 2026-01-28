@@ -36,11 +36,6 @@ You will also need a Google API key.
     ```
     This will start the development server and open the application.
 
-## Future Goals
-
-*   Remove the dependency on `yt-dlp` to allow for a more portable application.
-*   Build and deploy the application for Android devices.
-
 ## Development Notes
 
 This project uses [Tailwind CSS](httpss.tailwindcss.com/) for styling. The Dioxus CLI automatically handles the Tailwind CSS build process.
