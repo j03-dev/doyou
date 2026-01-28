@@ -14,7 +14,6 @@ These instructions will get you a copy of the project up and running on your loc
 Before you begin, ensure you have the following installed:
 
 *   [Rust](httpss.www.rust-lang.org/tools/install)
-*   [yt-dlp](httpss.github.com/yt-dlp/yt-dlp)
 *   [Dioxus CLI](httpss.dioxuslabs.com/learn/0.5/getting_started/desktop) (install with `cargo install dioxus-cli`)
 
 You will also need a Google API key.
