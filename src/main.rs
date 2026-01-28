@@ -2,7 +2,6 @@ mod app;
 mod components;
 mod providers;
 mod servers;
-mod types;
 
 fn main() {
     dotenv::dotenv().ok();
