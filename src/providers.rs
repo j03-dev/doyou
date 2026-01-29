@@ -3,7 +3,7 @@ use yt::data_api::types::Item;
 
 use crate::servers;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Playback {
     pub id: &'static str,
     pub is_playing: Signal<bool>,
