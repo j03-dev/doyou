@@ -7,7 +7,8 @@ use crate::{
 };
 
 #[component]
-pub fn FullMusicPlayer(on_close_full_player: EventHandler<()>) -> Element { // Changed prop name
+pub fn FullMusicPlayer(on_close_full_player: EventHandler<()>) -> Element {
+    // Changed prop name
     let playback = use_context::<Playback>();
 
     let thumbnail = playback

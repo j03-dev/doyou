@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 
+use crate::components::icons::UpArrowIcon;
 use crate::components::music_player::{MusicController, ProgressBar};
 use crate::providers::Playback;
-use crate::components::icons::UpArrowIcon;
 
 #[component]
 pub fn MiniMusicPlayer(on_open_full_player: EventHandler<()>) -> Element {
