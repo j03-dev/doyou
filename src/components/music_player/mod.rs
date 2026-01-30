@@ -6,6 +6,25 @@ use crate::providers::Playback;
 pub mod full_music_player;
 pub mod mini_music_player;
 
+// Import the actual components
+use crate::components::music_player::full_music_player::FullMusicPlayer;
+use crate::components::music_player::mini_music_player::MiniMusicPlayer;
+
+#[component]
+pub fn MusicPlayer() -> Element {
+    let mut show_full_player = use_signal(|| true);
+    rsx! {
+        if show_full_player() {
+            FullMusicPlayer { on_close_full_player: move |_| show_full_player.set(false) }
+        } else {
+            div {
+                class: "fixed bottom-0 left-0 w-full bg-base-200 shadow-inner z-50",
+                MiniMusicPlayer { on_open_full_player: move |_| show_full_player.set(true) }
+            }
+        }
+    }
+}
+
 #[component]
 fn MusicController(mut playback: Playback) -> Element {
     rsx! {

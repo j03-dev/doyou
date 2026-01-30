@@ -147,3 +147,22 @@ pub fn MoonIcon() -> Element {
         }
     }
 }
+
+#[component]
+pub fn UpArrowIcon() -> Element {
+    rsx! {
+        svg {
+            xmlns: "http://www.w3.org/2000/svg",
+            class: "h-6 w-6",
+            fill: "none",
+            view_box: "0 0 24 24",
+            stroke: "currentColor",
+            stroke_width: "2",
+            path {
+                stroke_linecap: "round",
+                stroke_linejoin: "round",
+                d: "M5 15l7-7 7 7",
+            }
+        }
+    }
+}

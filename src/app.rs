@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use crate::components::{
     alert_message::AlertMessage,
     music_card::ListRowMusicCard,
-    music_player::{full_music_player::FullMusicPlayer, mini_music_player::MiniMusicPlayer},
+    music_player::MusicPlayer, // Import the new unified MusicPlayer
     search_bar::SearchBar,
     theme_controller::ThemeController,
 };
@@ -18,7 +18,6 @@ pub fn App() -> Element {
     let mut is_loading = use_signal(|| false);
     let mut status_msg = use_signal(|| None::<String>);
     let mut playback = use_context_provider(|| Playback::new("audio"));
-    let mut show_full_player = use_signal(|| true);
 
     use_effect(move || {
         spawn(async move {
@@ -61,7 +60,7 @@ pub fn App() -> Element {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
 
-        div { class: "navbar bg-base-200",
+        div { class: "navbar bg-base-200 sticky top-0 z-50",
             div { class: "navbar-start",
                 p { class: "text-2xl font-bold text-primary", "DoYou" }
             }
@@ -71,7 +70,7 @@ pub fn App() -> Element {
             div { class: "navbar-end", ThemeController {} }
         }
 
-        div { class: "m-2 pb-24",
+        div { class: "m-2 pb-5",
             if let Some(message) = status_msg() {
                 AlertMessage { message }
             }
@@ -97,14 +96,9 @@ pub fn App() -> Element {
             }
         }
 
-        if playback.playing.read().is_some() && !show_full_player() {
-            div { class: "fixed bottom-0 left-0 w-full bg-base-200 shadow-inner",
-                MiniMusicPlayer { on_click: move |_| show_full_player.set(true) }
-            }
+        if playback.playing.read().is_some() {
+            MusicPlayer {}
         }
 
-        if show_full_player() && playback.playing.read().is_some() {
-            FullMusicPlayer { on_close: move |_| show_full_player.set(false) }
-        }
     }
 }

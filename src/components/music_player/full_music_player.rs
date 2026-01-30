@@ -7,7 +7,7 @@ use crate::{
 };
 
 #[component]
-pub fn FullMusicPlayer(on_close: EventHandler<()>) -> Element {
+pub fn FullMusicPlayer(on_close_full_player: EventHandler<()>) -> Element { // Changed prop name
     let playback = use_context::<Playback>();
 
     let thumbnail = playback
@@ -42,7 +42,7 @@ pub fn FullMusicPlayer(on_close: EventHandler<()>) -> Element {
         div { class: "fixed inset-0 z-50 bg-base-100 flex flex-col",
             button {
                 class: "absolute top-4 right-4 z-10 btn btn-circle btn-ghost",
-                onclick: move |_| on_close.call(()),
+                onclick: move |_| on_close_full_player.call(()), // Changed handler call
                 CloseIcon {}
             }
             div { class: "flex-1 flex flex-col px-6 pt-5 pb-8",
