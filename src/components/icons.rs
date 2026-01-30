@@ -124,7 +124,6 @@ pub fn LoadingSpinner() -> Element {
     }
 }
 
-
 #[component]
 pub fn SunIcon() -> Element {
     rsx! {
@@ -136,7 +135,6 @@ pub fn SunIcon() -> Element {
         }
     }
 }
-
 
 #[component]
 pub fn MoonIcon() -> Element {

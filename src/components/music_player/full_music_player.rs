@@ -1,7 +1,10 @@
 use dioxus::prelude::*;
 
 use super::{MusicController, ProgressBar};
-use crate::{components::{ icons::{CloseIcon, FavoriteIcon}}, providers::Playback};
+use crate::{
+    components::icons::{CloseIcon, FavoriteIcon},
+    providers::Playback,
+};
 
 #[component]
 pub fn FullMusicPlayer(on_close: EventHandler<()>) -> Element {

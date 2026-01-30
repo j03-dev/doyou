@@ -4,7 +4,8 @@ use crate::components::{
     alert_message::AlertMessage,
     music_card::ListRowMusicCard,
     music_player::{full_music_player::FullMusicPlayer, mini_music_player::MiniMusicPlayer},
-    search_bar::SearchBar, theme_controller::ThemeController,
+    search_bar::SearchBar,
+    theme_controller::ThemeController,
 };
 use crate::providers::Playback;
 use crate::servers;

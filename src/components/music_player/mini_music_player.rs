@@ -51,7 +51,7 @@ pub fn MiniMusicPlayer(on_click: EventHandler<()>) -> Element {
                             p { class: "text-xs opacity-60 truncate", {artist} }
                         }
                     }
-                    div { class: "flex justify-center flex-1",
+                    div { class: "flex justify-center items-center flex-1",
                         MusicController { playback }
                     }
                     div { class: "flex justify-end flex-1",

@@ -26,22 +26,22 @@ pub fn ListRowMusicCard(item: Item, index: usize) -> Element {
     rsx! {
         li {
             class: format!(
-                "list-row md:list-col-wrap {}",
-                if is_playing_now() { "bg-secondary text-base-content" } else { "" },
+                "list-row{}",
+                if is_playing_now() { " bg-secondary text-base-content" } else { "" },
             ),
-            div { onclick: move |_| playback.start(index),
+            div { class: "flex-shrink-0", onclick: move |_| playback.start(index),
                 img { class: "md:size-20 size-10 rounded-box", src: thumbnail }
             }
-            div {
-                div { class: "truncate text-sm", {title} }
+            div { class: "min-w-0",
+                div { class: "truncate", {title} }
                 div { class: "text-xs uppercase font-semibold opacity-60", {artist} }
                 if is_loading() {
                     span { class: "loading loading-dots loading-sm" }
                 }
             }
-            button { class: "btn btn-ghost", DownloadIcon {} }
+            button { class: "btn btn-square btn-ghost", DownloadIcon {} }
             button {
-                class: "btn btn-ghost",
+                class: "btn btn-square btn-ghost",
                 onclick: move |_| favorite.set(!favorite()),
                 FavoriteIcon { class: if favorite() { "fill-red-500 stroke-current-500" } else { "fill-transparent stroke-current" } }
             }

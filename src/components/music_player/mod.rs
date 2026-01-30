@@ -39,7 +39,7 @@ fn MusicController(mut playback: Playback) -> Element {
 fn ProgressBar(playback: Playback) -> Element {
     let current_time = playback.current_time.read();
     let duration = playback.duration.read();
-    
+
     rsx! {
         div { class: "w-full max-w-xl mx-auto",
             progress {

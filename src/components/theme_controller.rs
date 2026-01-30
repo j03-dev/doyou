@@ -2,7 +2,6 @@ use dioxus::prelude::*;
 
 use crate::components::icons::{MoonIcon, SunIcon};
 
-
 #[component]
 pub fn ThemeController() -> Element {
     let mut theme = use_signal(|| "light".to_string());
@@ -16,7 +15,6 @@ pub fn ThemeController() -> Element {
         ));
     });
 
-    
     rsx! {
         label { class: "swap swap-rotate",
             input {
@@ -31,5 +29,4 @@ pub fn ThemeController() -> Element {
             MoonIcon {}
         }
     }
-   
 }
