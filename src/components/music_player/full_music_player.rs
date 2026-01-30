@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 use super::{MusicController, ProgressBar};
-use crate::{components::icons::CloseIcon, providers::Playback};
+use crate::{components::{ icons::{CloseIcon, FavoriteIcon}}, providers::Playback};
 
 #[component]
 pub fn FullMusicPlayer(on_close: EventHandler<()>) -> Element {
@@ -52,11 +52,14 @@ pub fn FullMusicPlayer(on_close: EventHandler<()>) -> Element {
                             alt: "Album cover",
                         }
                     }
-                    div { class: "text-center mb-6 lg:mb-10",
-                        h2 { class: "text-2xl font-bold mb-2 lg:text-4xl lg:mb-3",
-                            "{title}"
+                    div { class: "flex justify-between",
+                        div { class: "mb-6 lg:mb-10",
+                            h2 { class: "text-xl font-bold mb-2 lg:text-2xl lg:mb-3",
+                                {title}
+                            }
+                            p { class: "text-lg opacity-60 font-medium", {artist} }
                         }
-                        p { class: "text-lg opacity-60 font-medium lg:text-xl", "{artist}" }
+                        button { class: "btn btn-ghost", FavoriteIcon {} }
                     }
                     div { class: "w-full max-w-xl mx-auto",
                         ProgressBar { playback }

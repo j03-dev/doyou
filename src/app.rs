@@ -2,10 +2,9 @@ use dioxus::prelude::*;
 
 use crate::components::{
     alert_message::AlertMessage,
-    music_card::MusicCard,
+    music_card::ListRowMusicCard,
     music_player::{full_music_player::FullMusicPlayer, mini_music_player::MiniMusicPlayer},
-    nav_bar::NavBar,
-    search_bar::SearchBar,
+    search_bar::SearchBar, theme_controller::ThemeController,
 };
 use crate::providers::Playback;
 use crate::servers;
@@ -18,7 +17,7 @@ pub fn App() -> Element {
     let mut is_loading = use_signal(|| false);
     let mut status_msg = use_signal(|| None::<String>);
     let mut playback = use_context_provider(|| Playback::new("audio"));
-    let mut show_full_player = use_signal(|| false);
+    let mut show_full_player = use_signal(|| true);
 
     use_effect(move || {
         spawn(async move {
@@ -60,9 +59,18 @@ pub fn App() -> Element {
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
-        NavBar {}
+
+        div { class: "navbar bg-base-200",
+            div { class: "navbar-start",
+                p { class: "text-2xl font-bold text-primary", "DoYou" }
+            }
+            div { class: "navbar-center",
+                SearchBar { on_search: search }
+            }
+            div { class: "navbar-end", ThemeController {} }
+        }
+
         div { class: "m-2 pb-24",
-            SearchBar { on_search: search }
             if let Some(message) = status_msg() {
                 AlertMessage { message }
             }
@@ -73,7 +81,7 @@ pub fn App() -> Element {
             } else {
                 ul { class: "list bg-base-100 rounded-box shadow-md pt-5",
                     for (index , item) in playback.playlist.read().iter().enumerate() {
-                        MusicCard { item: item.clone(), index }
+                        ListRowMusicCard { item: item.clone(), index }
                     }
                 }
             }
@@ -87,6 +95,7 @@ pub fn App() -> Element {
                 ondurationchange: move |_| playback.update_duration(),
             }
         }
+
         if playback.playing.read().is_some() && !show_full_player() {
             div { class: "fixed bottom-0 left-0 w-full bg-base-200 shadow-inner",
                 MiniMusicPlayer { on_click: move |_| show_full_player.set(true) }

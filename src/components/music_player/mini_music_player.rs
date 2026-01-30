@@ -3,7 +3,6 @@ use dioxus::prelude::*;
 use crate::components::music_player::{MusicController, ProgressBar};
 use crate::providers::Playback;
 
-
 #[component]
 pub fn MiniMusicPlayer(on_click: EventHandler<()>) -> Element {
     let playback = use_context::<Playback>();
@@ -37,10 +36,12 @@ pub fn MiniMusicPlayer(on_click: EventHandler<()>) -> Element {
         .unwrap_or("Unknown artist".to_string());
 
     rsx! {
-        div { class: "bg-base-200", onclick: move |_| on_click.call(()),
+        div { class: "bg-base-200",
             div { class: "p-3",
                 div { class: "flex items-center justify-between gap-4",
-                    div { class: "flex items-center gap-3 flex-1 min-w-0",
+                    div {
+                        class: "flex items-center gap-3 flex-1 min-w-0",
+                        onclick: move |_| on_click.call(()),
                         img {
                             class: "w-12 h-12 rounded-lg flex-shrink-0",
                             src: thumbnail,
@@ -54,7 +55,7 @@ pub fn MiniMusicPlayer(on_click: EventHandler<()>) -> Element {
                         MusicController { playback }
                     }
                     div { class: "flex justify-end flex-1",
-                        div { class: "w-100",
+                        div { class: "w-2/3",
                             ProgressBar { playback }
                         }
                     }

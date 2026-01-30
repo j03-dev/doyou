@@ -3,8 +3,10 @@ use dioxus::prelude::*;
 #[component]
 pub fn SearchBar(mut on_search: EventHandler<Event<FormData>>) -> Element {
     rsx! {
-        form { class: "flex flex-row justify-center gap-2", onsubmit: on_search,
-            label { class: "input input-primary",
+        form {
+            class: "flex flex-row justify-center w-full gap-2",
+            onsubmit: on_search,
+            label { class: "input input-md input-neutral",
                 svg {
                     class: "h-[1em] opacity-50",
                     xmlns: "http://www.w3.org/2000/svg",
