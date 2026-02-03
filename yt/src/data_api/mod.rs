@@ -14,7 +14,7 @@ impl YoutubeDataApi {
     pub fn new() -> Self {
         Self {
             client: reqwest::Client::new(),
-            api_key: std::env::var("GOOGLE_API_KEY").expect("GOOGLE_API_KEY is not set on .env"),
+            api_key: "AIzaSyB7KBHC-BAtndEYi_fpdplcTVCrkwSSloQ".to_string(),
         }
     }
 

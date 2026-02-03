@@ -60,14 +60,8 @@ pub fn App() -> Element {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
 
-        div { class: "navbar bg-base-200 sticky top-0 z-50",
-            div { class: "navbar-start",
-                p { class: "text-2xl font-bold text-primary", "DoYou" }
-            }
-            div { class: "navbar-center",
-                SearchBar { on_search: search }
-            }
-            div { class: "navbar-end", ThemeController {} }
+        div { class: "flex justify-center sticky m-5 z-50",
+            SearchBar { on_search: search }
         }
 
         div { class: "m-2 pb-5",

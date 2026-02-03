@@ -25,28 +25,30 @@ pub fn MusicPlayer() -> Element {
 #[component]
 fn MusicController(mut playback: Playback) -> Element {
     rsx! {
-        button {
-            class: "btn btn-circle btn-ghost",
-            onclick: move |_| playback.playback_controller(-1),
-            PrevIcon {}
-        }
-        if !*playback.is_loading.read() {
+        div { class: "flex items-center justify-center gap-6 lg:gap-10",
             button {
-                class: "btn btn-circle btn-primary btn-xl",
-                onclick: move |_| playback.toggle_play(),
-                if *playback.is_playing.read() {
-                    PlayIcon {}
-                } else {
-                    PauseIcon {}
-                }
+                class: "btn btn-circle btn-ghost btn-secondary",
+                onclick: move |_| playback.playback_controller(-1),
+                PrevIcon {}
             }
-        } else {
-            button { class: "btn btn-ghost btn-primary btn-circle btn-xl", LoadingSpinner {} }
-        }
-        button {
-            class: "btn btn-circle btn-ghost",
-            onclick: move |_| playback.playback_controller(1),
-            NextIcon {}
+            if !*playback.is_loading.read() {
+                button {
+                    class: "btn btn-circle btn-primary btn-xl",
+                    onclick: move |_| playback.toggle_play(),
+                    if *playback.is_playing.read() {
+                        PlayIcon {}
+                    } else {
+                        PauseIcon {}
+                    }
+                }
+            } else {
+                button { class: "btn btn-circle btn-primary btn-xl", LoadingSpinner {} }
+            }
+            button {
+                class: "btn btn-circle btn-ghost btn-secondary",
+                onclick: move |_| playback.playback_controller(1),
+                NextIcon {}
+            }
         }
     }
 }

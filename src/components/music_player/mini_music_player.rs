@@ -40,29 +40,24 @@ pub fn MiniMusicPlayer(on_open_full_player: EventHandler<()>) -> Element {
         div { class: "bg-base-200",
             div { class: "p-3",
                 div { class: "flex items-center justify-between gap-4",
-                    div { class: "flex items-center gap-3 flex-1 min-w-0",
+                    div {
+                        class: "flex items-center gap-3 min-w-0",
+                        onclick: move |_| on_open_full_player.call(()),
                         img {
                             class: "w-12 h-12 rounded-lg flex-shrink-0",
                             src: thumbnail,
                         }
-                        div { class: "min-w-0 flex-1",
+                        div { class: "min-w-0",
                             h3 { class: "font-semibold truncate text-sm", {title} }
                             p { class: "text-xs opacity-60 truncate", {artist} }
                         }
                     }
-                    div { class: "flex justify-center items-center flex-1",
+                    div {
                         MusicController { playback }
                     }
-                    div { class: "flex justify-end items-center flex-1 gap-4",
-                        div { class: "w-2/3",
-                            ProgressBar { playback }
-                        }
-                        button {
-                            class: "btn btn-circle btn-ghost",
-                            onclick: move |_| on_open_full_player.call(()),
-                            UpArrowIcon {}
-                        }
-                    }
+                }
+                div { class: "mt-3 w-full",
+                    ProgressBar { playback }
                 }
             }
         }

@@ -29,7 +29,9 @@ pub fn ListRowMusicCard(item: Item, index: usize) -> Element {
                 "list-row{}",
                 if is_playing_now() { " bg-secondary text-base-content" } else { "" },
             ),
-            div { class: "flex-shrink-0", onclick: move |_| playback.start(index),
+            div {
+                class: "flex-shrink-0",
+                onclick: move |_| playback.start(index),
                 img { class: "md:size-20 size-10 rounded-box", src: thumbnail }
             }
             div { class: "min-w-0",

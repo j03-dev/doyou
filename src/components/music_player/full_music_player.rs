@@ -68,10 +68,8 @@ pub fn FullMusicPlayer(on_close_full_player: EventHandler<()>) -> Element {
                     div { class: "w-full max-w-xl mx-auto",
                         ProgressBar { playback }
                     }
-                    div { class: "mt-10 lg:mt-12",
-                        div { class: "flex items-center justify-center gap-6 mb-8 lg:gap-10",
-                            MusicController { playback }
-                        }
+                    div { class: "mt-10 lg:mt-12 mb-8",
+                        MusicController { playback }
                     }
                 }
             }
