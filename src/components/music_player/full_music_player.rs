@@ -8,7 +8,6 @@ use crate::{
 
 #[component]
 pub fn FullMusicPlayer(on_close_full_player: EventHandler<()>) -> Element {
-    // Changed prop name
     let playback = use_context::<Playback>();
 
     let thumbnail = playback
@@ -58,10 +57,14 @@ pub fn FullMusicPlayer(on_close_full_player: EventHandler<()>) -> Element {
                     }
                     div { class: "flex justify-between",
                         div { class: "mb-6 lg:mb-10",
-                            h2 { class: "text-xl font-bold mb-2 lg:text-2xl lg:mb-3",
-                                {title}
+                            h2 {
+                                class: "text-xl font-bold mb-2 lg:text-2xl lg:mb-3",
+                                dangerous_inner_html: title,
                             }
-                            p { class: "text-lg opacity-60 font-medium", {artist} }
+                            p {
+                                class: "text-lg opacity-60 font-medium",
+                                dangerous_inner_html: artist,
+                            }
                         }
                         button { class: "btn btn-ghost", FavoriteIcon {} }
                     }

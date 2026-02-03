@@ -27,13 +27,13 @@ fn MusicController(mut playback: Playback) -> Element {
     rsx! {
         div { class: "flex items-center justify-center gap-6 lg:gap-10",
             button {
-                class: "btn btn-circle btn-ghost btn-secondary",
+                class: "btn btn-ghost btn-secondary",
                 onclick: move |_| playback.playback_controller(-1),
                 PrevIcon {}
             }
             if !*playback.is_loading.read() {
                 button {
-                    class: "btn btn-circle btn-primary btn-xl",
+                    class: "btn btn-primary btn-xl",
                     onclick: move |_| playback.toggle_play(),
                     if *playback.is_playing.read() {
                         PlayIcon {}
@@ -42,10 +42,10 @@ fn MusicController(mut playback: Playback) -> Element {
                     }
                 }
             } else {
-                button { class: "btn btn-circle btn-primary btn-xl", LoadingSpinner {} }
+                button { class: "btn btn-primary btn-xl", LoadingSpinner {} }
             }
             button {
-                class: "btn btn-circle btn-ghost btn-secondary",
+                class: "btn btn-ghost btn-secondary",
                 onclick: move |_| playback.playback_controller(1),
                 NextIcon {}
             }

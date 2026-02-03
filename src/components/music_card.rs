@@ -35,8 +35,8 @@ pub fn ListRowMusicCard(item: Item, index: usize) -> Element {
                 img { class: "md:size-20 size-10 rounded-box", src: thumbnail }
             }
             div { class: "min-w-0",
-                div { class: "truncate", {title} }
-                div { class: "text-xs uppercase font-semibold opacity-60", {artist} }
+                div { class: "truncate", dangerous_inner_html: title }
+                div { class: "text-xs uppercase font-semibold opacity-60", dangerous_inner_html: artist }
                 if is_loading() {
                     span { class: "loading loading-dots loading-sm" }
                 }
