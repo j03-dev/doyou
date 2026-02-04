@@ -1,10 +1,10 @@
 use dioxus::prelude::*;
+use dioxus_sdk_storage::use_persistent;
 
 use self::dropdown_menu::DropDownMenu;
 use self::music_list::MusicList;
 use self::navbar::{NavBar, NavBarElement, NavBarPosition};
 use self::search_bar::SearchBar;
-use crate::call_api;
 use crate::components::icons::SearchIcon;
 use crate::providers::Playback;
 
@@ -26,13 +26,22 @@ pub fn App() -> Element {
     let mut playback = use_context_provider(|| Playback::new("audio"));
     let mut show_search = use_signal(|| false);
 
+    let first_open_app = use_persistent("first-open-app", || true);
+    let youtube_token = use_persistent("youtube_token", || None::<String>);
+
     use_effect(move || {
+        if first_open_app() {
+            document::eval("token_form.showModal()");
+            return;
+        }
         spawn(async move {
             is_loading.set(true);
-            match call_api::api_suggestion().await {
-                Ok(videos) => playback.playlist.set(videos.items),
-                Err(err) => status_msg.set(Some(err.to_string())),
-            };
+            if let Some(tk) = youtube_token() {
+                match yt::data_api::home(&tk).await {
+                    Ok(videos) => playback.playlist.set(videos.items),
+                    Err(err) => status_msg.set(Some(err.to_string())),
+                };
+            }
             is_loading.set(false);
         });
     });
@@ -56,10 +65,12 @@ pub fn App() -> Element {
         status_msg.set(None);
         is_loading.set(true);
 
-        match call_api::api_search(search_query).await {
-            Ok(videos) => playback.playlist.set(videos.items),
-            Err(err) => status_msg.set(Some(err.to_string())),
-        };
+        if let Some(tk) = youtube_token() {
+            match yt::data_api::search(&search_query, &tk).await {
+                Ok(videos) => playback.playlist.set(videos.items),
+                Err(err) => status_msg.set(Some(err.to_string())),
+            };
+        }
         is_loading.set(false);
         show_search.set(false);
     };
@@ -67,6 +78,8 @@ pub fn App() -> Element {
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
+
+        TokenForm { first_open_app, youtube_token }
 
         NavBar {
             NavBarElement { position: NavBarPosition::Start, DropDownMenu {} }
@@ -112,5 +125,52 @@ pub fn App() -> Element {
             music_player::MusicPlayer {}
         }
 
+    }
+}
+
+#[component]
+fn TokenForm(mut first_open_app: Signal<bool>, mut youtube_token: Signal<Option<String>>) -> Element {
+
+    let submit_token = move |evt: Event<FormData>| async move {
+        evt.prevent_default();
+
+        let token = evt
+            .get_first("token")
+            .and_then(|v| match v {
+                FormValue::Text(value) => Some(value),
+                _ => None,
+            })
+            .unwrap_or_default();
+
+        if !token.is_empty() {
+            first_open_app.set(false);
+            youtube_token.set(Some(token));
+        }
+    };
+
+    rsx! {
+        dialog { id: "token_form", class: "modal",
+            div { class: "modal-box",
+                form { method: "dialog",
+                    button { class: "btn btn-sm btn-circle btn-ghost absolute right-4 top-7",
+                        "x"
+                    }
+                }
+
+                form { onsubmit: submit_token,
+                    legend { class: "fieldset-legend", "Setup youtube token" }
+
+                    label { class: "label", "Token" }
+                    input {
+                        class: "input w-full",
+                        name: "token",
+                        r#type: "password",
+                        placeholder: "Add your name here!",
+                    }
+
+                    button { r#type: "submit", class: "btn btn-primary mt-5", "Save" }
+                }
+            }
+        }
     }
 }

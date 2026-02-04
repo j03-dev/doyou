@@ -1,6 +1,8 @@
 use dioxus::prelude::*;
 
-use crate::components::icons::{CloseIcon, FavoriteIcon, LoadingSpinner, NextIcon, PauseIcon, PlayIcon, PrevIcon};
+use crate::components::icons::{
+    CloseIcon, FavoriteIcon, LoadingSpinner, NextIcon, PauseIcon, PlayIcon, PrevIcon,
+};
 use crate::providers::Playback;
 
 #[component]
@@ -16,7 +18,6 @@ pub fn MusicPlayer() -> Element {
         }
     }
 }
-
 
 #[component]
 fn MiniMusicPlayer(on_open_full_player: EventHandler<()>) -> Element {
@@ -88,7 +89,6 @@ fn MiniMusicPlayer(on_open_full_player: EventHandler<()>) -> Element {
         }
     }
 }
-
 
 #[component]
 fn FullMusicPlayer(on_close_full_player: EventHandler<()>) -> Element {

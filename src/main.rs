@@ -1,4 +1,3 @@
-mod call_api;
 mod components;
 mod providers;
 
