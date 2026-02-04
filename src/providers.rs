@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use yt::data_api::types::Item;
 
-use crate::servers;
+use crate::call_api;
 
 #[derive(Clone, Copy, PartialEq)]
 pub struct Playback {
@@ -41,7 +41,7 @@ impl Playback {
         spawn(async move {
             state.current_index.set(index);
             state.is_loading.set(true);
-            match servers::api_get_url(item.id.as_string().unwrap().clone()).await {
+            match call_api::api_get_url(item.id.as_string().unwrap().clone()).await {
                 Ok(src) => {
                     state.playing.set(Some(item));
                     let _ = document::eval(&format!(
