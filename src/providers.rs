@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
 use yt::data_api::types::Item;
-
-use crate::servers;
+use yt::extractor::YouTubeExtractor;
 
 #[derive(Clone, Copy, PartialEq)]
 pub struct Playback {
@@ -38,10 +37,15 @@ impl Playback {
         let mut state = *self;
         self.is_playing.set(true);
 
+        let youtube_extractor = YouTubeExtractor::new();
+
         spawn(async move {
             state.current_index.set(index);
             state.is_loading.set(true);
-            match servers::api_get_url(item.id.as_string().unwrap().clone()).await {
+            match youtube_extractor
+                .get_best_audio_url(&item.id.as_string().unwrap())
+                .await
+            {
                 Ok(src) => {
                     state.playing.set(Some(item));
                     let _ = document::eval(&format!(

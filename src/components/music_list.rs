@@ -7,7 +7,18 @@ use crate::{
 };
 
 #[component]
-pub fn ListRowMusicCard(item: Item, index: usize) -> Element {
+pub fn MusicList(items: Signal<Vec<Item>>) -> Element {
+    rsx! {
+        ul { class: "list bg-base-100 rounded-box shadow-md",
+            for (index , item) in items.read().iter().enumerate() {
+                MusicCard { item: item.clone(), index }
+            }
+        }
+    }
+}
+
+#[component]
+fn MusicCard(item: Item, index: usize) -> Element {
     let mut favorite = use_signal(|| false);
     let mut playback = use_context::<Playback>();
 
@@ -36,7 +47,10 @@ pub fn ListRowMusicCard(item: Item, index: usize) -> Element {
             }
             div { class: "min-w-0",
                 div { class: "truncate", dangerous_inner_html: title }
-                div { class: "text-xs uppercase font-semibold opacity-60", dangerous_inner_html: artist }
+                div {
+                    class: "text-xs uppercase font-semibold opacity-60",
+                    dangerous_inner_html: artist,
+                }
                 if is_loading() {
                     span { class: "loading loading-dots loading-sm" }
                 }

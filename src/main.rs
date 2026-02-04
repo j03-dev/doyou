@@ -1,13 +1,11 @@
-mod app;
 mod components;
 mod providers;
-mod servers;
 
 fn main() {
     dotenv::dotenv().ok();
 
     #[cfg(not(feature = "desktop"))]
-    dioxus::launch(app::App);
+    dioxus::launch(components::App);
 
     #[cfg(feature = "desktop")]
     {
@@ -17,6 +15,6 @@ fn main() {
                     .with_menu(None)
                     .with_window(dioxus::desktop::WindowBuilder::new().with_title("doyou")),
             )
-            .launch(app::App);
+            .launch(components::App);
     }
 }
