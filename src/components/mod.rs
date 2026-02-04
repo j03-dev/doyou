@@ -27,7 +27,7 @@ pub fn App() -> Element {
     let mut show_search = use_signal(|| false);
 
     let first_open_app = use_persistent("first-open-app", || true);
-    let youtube_token = use_persistent("youtube_token", || None::<String>);
+    let youtube_token = use_persistent("youtube-token", || None::<String>);
 
     use_effect(move || {
         if first_open_app() {
@@ -129,8 +129,10 @@ pub fn App() -> Element {
 }
 
 #[component]
-fn TokenForm(mut first_open_app: Signal<bool>, mut youtube_token: Signal<Option<String>>) -> Element {
-
+fn TokenForm(
+    mut first_open_app: Signal<bool>,
+    mut youtube_token: Signal<Option<String>>,
+) -> Element {
     let submit_token = move |evt: Event<FormData>| async move {
         evt.prevent_default();
 
@@ -151,21 +153,19 @@ fn TokenForm(mut first_open_app: Signal<bool>, mut youtube_token: Signal<Option<
     rsx! {
         dialog { id: "token_form", class: "modal",
             div { class: "modal-box",
-                form { method: "dialog",
+                form { onsubmit: submit_token, method: "dialog",
                     button { class: "btn btn-sm btn-circle btn-ghost absolute right-4 top-7",
                         "x"
                     }
-                }
 
-                form { onsubmit: submit_token,
-                    legend { class: "fieldset-legend", "Setup youtube token" }
+                    legend { class: "fieldset-legend", "youtube data api v3 key" }
 
                     label { class: "label", "Token" }
                     input {
                         class: "input w-full",
                         name: "token",
                         r#type: "password",
-                        placeholder: "Add your name here!",
+                        placeholder: "paste your api key here (e.g. AIzaSy...)",
                     }
 
                     button { r#type: "submit", class: "btn btn-primary mt-5", "Save" }
