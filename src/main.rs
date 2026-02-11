@@ -1,9 +1,8 @@
 mod components;
+mod config;
 mod providers;
 
 fn main() {
-    dotenv::dotenv().ok();
-
     #[cfg(not(feature = "desktop"))]
     dioxus::launch(components::App);
 

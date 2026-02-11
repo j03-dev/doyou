@@ -1,11 +1,11 @@
 use dioxus::prelude::*;
-use dioxus_sdk_storage::use_persistent;
 
 use self::dropdown_menu::DropDownMenu;
 use self::music_list::MusicList;
 use self::navbar::{NavBar, NavBarElement, NavBarPosition};
 use self::search_bar::SearchBar;
 use crate::components::icons::SearchIcon;
+use crate::config::{AppConfig, load_config, save_config};
 use crate::providers::Playback;
 
 mod alert_message;
@@ -26,23 +26,25 @@ pub fn App() -> Element {
     let mut playback = use_context_provider(|| Playback::new("audio"));
     let mut show_search = use_signal(|| false);
 
-    let youtube_token = use_persistent("youtube-token", || None::<String>);
+    let mut youtube_token = use_signal(|| None::<String>);
 
     use_effect(move || {
-        if youtube_token().is_none() {
-            document::eval("token_form.showModal()");
-            return;
+        if let Ok(config) = load_config() {
+            youtube_token.set(Some(config.yt_token));
         }
-        spawn(async move {
-            is_loading.set(true);
-            if let Some(tk) = youtube_token() {
-                match yt::data_api::home(&tk).await {
+        if let Some(token) = youtube_token() {
+            spawn(async move {
+                is_loading.set(true);
+                match yt::data_api::home(&token).await {
                     Ok(videos) => playback.playlist.set(videos.items),
                     Err(err) => status_msg.set(Some(err.to_string())),
                 };
-            }
-            is_loading.set(false);
-        });
+                is_loading.set(false);
+            });
+        } else {
+            document::eval("token_form.showModal()");
+            return;
+        }
     });
 
     let search = move |evt: Event<FormData>| async move {
@@ -64,8 +66,8 @@ pub fn App() -> Element {
         status_msg.set(None);
         is_loading.set(true);
 
-        if let Some(tk) = youtube_token() {
-            match yt::data_api::search(&search_query, &tk).await {
+        if let Some(token) = youtube_token() {
+            match yt::data_api::search(&search_query, &token).await {
                 Ok(videos) => playback.playlist.set(videos.items),
                 Err(err) => status_msg.set(Some(err.to_string())),
             };
@@ -128,9 +130,7 @@ pub fn App() -> Element {
 }
 
 #[component]
-fn TokenForm(
-    mut youtube_token: Signal<Option<String>>,
-) -> Element {
+fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
     let submit_token = move |evt: Event<FormData>| async move {
         evt.prevent_default();
 
@@ -143,18 +143,23 @@ fn TokenForm(
             .unwrap_or_default();
 
         if !token.is_empty() {
-            youtube_token.set(Some(token));
+            let config = AppConfig { yt_token: token };
+            save_config(&config).ok();
+            youtube_token.set(Some(config.yt_token));
+            document::eval("token_form.close()");
         }
     };
 
     rsx! {
         dialog { id: "token_form", class: "modal",
             div { class: "modal-box",
-                form { onsubmit: submit_token, method: "dialog",
+                form { method: "dialog",
                     button { class: "btn btn-sm btn-circle btn-ghost absolute right-4 top-7",
                         "x"
                     }
+                }
 
+                form { onsubmit: submit_token,
                     legend { class: "fieldset-legend", "youtube data api v3 key" }
 
                     label { class: "label", "Token" }

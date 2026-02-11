@@ -20,8 +20,9 @@ dioxus-sdk-storage = "0.7"
 serde_json.workspace = true
 reqwest.workspace = true
 serde.workspace = true
-dotenv = "0.15.0"
 yt.path = "yt"
+ndk-context = "0.1.1"
+jni = "0.21.1"
 
 [features]
 default = ["mobile"]
