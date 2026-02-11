@@ -1,7 +1,21 @@
 # DoYou
 
-![DoYou Application Screenshot - Dark Mode](screen-dark.png)
-![DoYou Application Screenshot - Light Mode](screen-light.png)
+<table>
+  <tr>
+    <td align="center"><h3>Dark mode</h3></td>
+  </tr>
+  <tr>
+    <td><img src="min_player_dark.png" alt="DoYou Minimized Player - Dark Mode"></td>
+    <td><img src="full_player_dark.png" alt="DoYou Full Player - Dark Mode"></td>
+  </tr>
+  <tr>
+    <td align="center"><h3>Light mode</h3></td>
+  </tr>
+  <tr>
+    <td><img src="min_player_light.png" alt="DoYou Minimized Player - Light Mode"></td>
+    <td><img src="full_player_light.png" alt="DoYou Full Player - Light Mode"></td>
+  </tr>
+</table>
 
 DoYou is a simple desktop application for listening to music from YouTube. This project was created as a way to learn frontend development with Rust using the [Dioxus](httpss.dioxuslabs.com/) framework.
 
