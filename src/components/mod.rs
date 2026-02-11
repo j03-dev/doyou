@@ -26,11 +26,10 @@ pub fn App() -> Element {
     let mut playback = use_context_provider(|| Playback::new("audio"));
     let mut show_search = use_signal(|| false);
 
-    let first_open_app = use_persistent("first-open-app", || true);
     let youtube_token = use_persistent("youtube-token", || None::<String>);
 
     use_effect(move || {
-        if first_open_app() {
+        if youtube_token().is_none() {
             document::eval("token_form.showModal()");
             return;
         }
@@ -79,7 +78,7 @@ pub fn App() -> Element {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
 
-        TokenForm { first_open_app, youtube_token }
+        TokenForm { youtube_token }
 
         NavBar {
             NavBarElement { position: NavBarPosition::Start, DropDownMenu {} }
@@ -130,7 +129,6 @@ pub fn App() -> Element {
 
 #[component]
 fn TokenForm(
-    mut first_open_app: Signal<bool>,
     mut youtube_token: Signal<Option<String>>,
 ) -> Element {
     let submit_token = move |evt: Event<FormData>| async move {
@@ -145,7 +143,6 @@ fn TokenForm(
             .unwrap_or_default();
 
         if !token.is_empty() {
-            first_open_app.set(false);
             youtube_token.set(Some(token));
         }
     };
