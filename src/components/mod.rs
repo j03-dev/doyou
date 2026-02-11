@@ -29,9 +29,15 @@ pub fn App() -> Element {
     let mut youtube_token = use_signal(|| None::<String>);
 
     use_effect(move || {
-        if let Ok(config) = load_config() {
-            youtube_token.set(Some(config.yt_token));
-        }
+        match load_config() {
+            Ok(config) => {
+                if let Some(conf) = config {
+                    youtube_token.set(Some(conf.youtube_token));
+                }
+            }
+            Err(err) => status_msg.set(Some(err.to_string())),
+        };
+
         if let Some(token) = youtube_token() {
             spawn(async move {
                 is_loading.set(true);
@@ -43,7 +49,6 @@ pub fn App() -> Element {
             });
         } else {
             document::eval("token_form.showModal()");
-            return;
         }
     });
 
@@ -143,9 +148,11 @@ fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
             .unwrap_or_default();
 
         if !token.is_empty() {
-            let config = AppConfig { yt_token: token };
+            let config = AppConfig {
+                youtube_token: token,
+            };
             save_config(&config).ok();
-            youtube_token.set(Some(config.yt_token));
+            youtube_token.set(Some(config.youtube_token));
             document::eval("token_form.close()");
         }
     };
