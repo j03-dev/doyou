@@ -2,14 +2,8 @@
 
 <table>
   <tr>
-    <td align="center"><h3>Dark mode</h3></td>
-  </tr>
-  <tr>
     <td><img src="min_player_dark.png" alt="DoYou Minimized Player - Dark Mode"></td>
     <td><img src="full_player_dark.png" alt="DoYou Full Player - Dark Mode"></td>
-  </tr>
-  <tr>
-    <td align="center"><h3>Light mode</h3></td>
   </tr>
   <tr>
     <td><img src="min_player_light.png" alt="DoYou Minimized Player - Light Mode"></td>
