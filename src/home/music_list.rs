@@ -53,8 +53,7 @@ fn MusicCard(item: Item, index: usize) -> Element {
                 }
             }
             Button { DownloadIcon {} }
-            Button {
-                on_click: move |_| favorite.set(!favorite()),
+            Button { on_click: move |_| favorite.set(!favorite()),
                 FavoriteIcon { class: if favorite() { "fill-red-500 stroke-current-500" } else { "fill-transparent stroke-current" } }
             }
         }
