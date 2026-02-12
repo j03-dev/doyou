@@ -1,10 +1,9 @@
 use dioxus::prelude::*;
 use yt::data_api::types::Item;
 
-use crate::{
-    components::icons::{DownloadIcon, FavoriteIcon},
-    providers::Playback,
-};
+use crate::common::components::icons::{DownloadIcon, FavoriteIcon};
+use crate::common::components::button::Button;
+use crate::common::providers::Playback;
 
 #[component]
 pub fn MusicList(items: Signal<Vec<Item>>) -> Element {
@@ -29,16 +28,14 @@ fn MusicCard(item: Item, index: usize) -> Element {
         use_memo(move || *playback.current_index.read() == index && *playback.is_playing.read());
 
     let title = item.snippet.title;
-
     let artist = item.snippet.channel_title;
-
-    let thumbnail = item.snippet.thumbnails.unwrap().medium.unwrap().url;
+    let thumbnail = item.snippet.thumbnails.default.url;
 
     rsx! {
         li {
             class: format!(
-                "list-row{}",
-                if is_playing_now() { " bg-secondary text-base-content" } else { "" },
+                "list-row {}",
+                if is_playing_now() { "bg-secondary text-base-content" } else { "" },
             ),
             div {
                 class: "flex-shrink-0",
@@ -55,10 +52,9 @@ fn MusicCard(item: Item, index: usize) -> Element {
                     span { class: "loading loading-dots loading-sm" }
                 }
             }
-            button { class: "btn btn-square btn-ghost", DownloadIcon {} }
-            button {
-                class: "btn btn-square btn-ghost",
-                onclick: move |_| favorite.set(!favorite()),
+            Button { DownloadIcon {} }
+            Button {
+                on_click: move |_| favorite.set(!favorite()),
                 FavoriteIcon { class: if favorite() { "fill-red-500 stroke-current-500" } else { "fill-transparent stroke-current" } }
             }
         }

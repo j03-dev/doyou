@@ -1,6 +1,13 @@
 use dioxus::prelude::*;
 
 #[component]
+pub fn DoYouIcon() -> Element {
+    rsx!(
+        p { class: "btn btn-ghost text-xl", "DoYou" }
+    )
+}
+
+#[component]
 pub fn PrevIcon() -> Element {
     rsx! {
         svg {
@@ -118,13 +125,6 @@ pub fn DownloadIcon() -> Element {
 }
 
 #[component]
-pub fn LoadingSpinner() -> Element {
-    rsx! {
-        span { class: "loading loading-spinner" }
-    }
-}
-
-#[component]
 pub fn SunIcon() -> Element {
     rsx! {
         svg {
@@ -187,11 +187,11 @@ pub fn OptionIcon() -> Element {
 }
 
 #[component]
-pub fn SearchIcon() -> Element {
+pub fn SearchIcon(#[props(default = "h-5 w-5")] class: &'static str) -> Element {
     rsx! {
         svg {
             xmlns: "http://www.w3.org/2000/svg",
-            class: "h-5 w-5",
+            class,
             fill: "none",
             view_box: "0 0 24 24",
             stroke: "currentColor",

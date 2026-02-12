@@ -1,41 +1,37 @@
 use dioxus::prelude::*;
 
-use self::dropdown_menu::DropDownMenu;
-use self::music_list::MusicList;
-use self::navbar::{NavBar, NavBarElement, NavBarPosition};
-use self::search_bar::SearchBar;
-use crate::components::icons::SearchIcon;
-use crate::config::{AppConfig, load_config, save_config};
-use crate::providers::Playback;
+use crate::common::components::alert_message::AlertMessage;
+use crate::common::components::button::Button;
+use crate::common::components::icons::{CloseIcon, DoYouIcon, SearchIcon};
+use crate::common::components::loading::LoadingSpinner;
+use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
+use crate::common::components::text_input::TextInput;
+use crate::common::config::{AppConfig, load_config, save_config};
+use crate::common::providers::Playback;
+use crate::common::utils::get_form_value;
 
-mod alert_message;
-mod dropdown_menu;
-mod icons;
+use self::music_list::MusicList;
+use self::music_player::MusicPlayer;
+use self::theme_controller::ThemeController;
+
 mod music_list;
 mod music_player;
-mod navbar;
-mod search_bar;
-
-const FAVICON: Asset = asset!("/assets/favicon.ico");
-const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
+mod theme_controller;
 
 #[component]
-pub fn App() -> Element {
-    let mut is_loading = use_signal(|| false);
-    let mut status_msg = use_signal(|| None::<String>);
+pub fn Home() -> Element {
     let mut playback = use_context_provider(|| Playback::new("audio"));
-    let mut show_search = use_signal(|| false);
+    let mut status_msg = use_context_provider(|| Signal::new(None::<String>));
 
+    let mut is_loading = use_signal(|| false);
+    let mut show_search = use_signal(|| false);
     let mut youtube_token = use_signal(|| None::<String>);
 
     use_effect(move || {
         match load_config() {
-            Ok(config) => {
-                if let Some(conf) = config {
-                    youtube_token.set(Some(conf.youtube_token));
-                }
-            }
+            Ok(Some(config)) => youtube_token.set(Some(config.youtube_token)),
             Err(err) => status_msg.set(Some(err.to_string())),
+            _ => ()
         };
 
         if let Some(token) = youtube_token() {
@@ -55,14 +51,7 @@ pub fn App() -> Element {
     let search = move |evt: Event<FormData>| async move {
         evt.prevent_default();
 
-        let search_query = evt
-            .get_first("search")
-            .and_then(|v| match v {
-                FormValue::Text(value) => Some(value),
-                _ => None,
-            })
-            .unwrap_or_default();
-
+        let search_query = get_form_value("search", evt);
         if search_query.is_empty() {
             status_msg.set(Some("Please enter a search query.".to_string()));
             return;
@@ -77,46 +66,46 @@ pub fn App() -> Element {
                 Err(err) => status_msg.set(Some(err.to_string())),
             };
         }
+
         is_loading.set(false);
         show_search.set(false);
     };
 
     rsx! {
-        document::Link { rel: "icon", href: FAVICON }
-        document::Link { rel: "stylesheet", href: TAILWIND_CSS }
-
-        TokenForm { youtube_token }
-
         NavBar {
-            NavBarElement { position: NavBarPosition::Start, DropDownMenu {} }
-            NavBarElement { position: NavBarPosition::Center,
+            NavBarItem { position: NavBarPos::Start, ThemeController {} }
+            NavBarItem { position: NavBarPos::Center,
                 if show_search() {
-                    SearchBar { on_search: search }
+                    TextInput {
+                        on_submit: search,
+                        name: "search",
+                        r#type: "search",
+                        placeholder: "Search",
+                        SearchIcon { class: "h-[1em] opacity-50" }
+                    }
                 } else {
-                    p { class: "btn btn-ghost text-xl", "DoYou" }
+                    DoYouIcon {}
                 }
             }
-            NavBarElement { position: NavBarPosition::End,
-                button {
-                    class: "btn btn-ghost btn-circle",
-                    onclick: move |_| show_search.set(!show_search()),
-                    SearchIcon {}
-                }
+            NavBarItem { position: NavBarPos::End,
+                Button { on_click: move |_| show_search.set(!show_search()), SearchIcon {} }
             }
         }
 
         div { class: "m-2 pb-5",
             if let Some(message) = status_msg() {
-                alert_message::AlertMessage { message }
+                AlertMessage { message }
             }
             if is_loading() {
                 div { class: "flex h-screen justify-center items-center",
-                    span { class: "loading loading-spinner text-secondary size-20" }
+                    LoadingSpinner { size: 20 }
                 }
             } else {
                 MusicList { items: playback.playlist }
             }
         }
+
+        TokenForm { youtube_token }
 
         div { class: "hidden",
             audio {
@@ -128,7 +117,7 @@ pub fn App() -> Element {
         }
 
         if playback.playing.read().is_some() {
-            music_player::MusicPlayer {}
+            MusicPlayer {}
         }
 
     }
@@ -136,22 +125,19 @@ pub fn App() -> Element {
 
 #[component]
 fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
+    let mut status_msg = use_context::<Signal<Option<String>>>();
+    
     let submit_token = move |evt: Event<FormData>| async move {
         evt.prevent_default();
 
-        let token = evt
-            .get_first("token")
-            .and_then(|v| match v {
-                FormValue::Text(value) => Some(value),
-                _ => None,
-            })
-            .unwrap_or_default();
-
+        let token = get_form_value("token", evt);
         if !token.is_empty() {
             let config = AppConfig {
                 youtube_token: token,
             };
-            save_config(&config).ok();
+            if let Err(err) = save_config(&config) {
+                status_msg.set(Some(err.to_string()));
+            }
             youtube_token.set(Some(config.youtube_token));
             document::eval("token_form.close()");
         }
@@ -161,23 +147,19 @@ fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
         dialog { id: "token_form", class: "modal",
             div { class: "modal-box",
                 form { method: "dialog",
-                    button { class: "btn btn-sm btn-circle btn-ghost absolute right-4 top-7",
-                        "x"
-                    }
+                    Button { class: "btn-sm absolute right-4 top-7", CloseIcon {} }
                 }
 
                 form { onsubmit: submit_token,
                     legend { class: "fieldset-legend", "youtube data api v3 key" }
 
                     label { class: "label", "Token" }
-                    input {
-                        class: "input w-full",
+                    TextInput {
                         name: "token",
-                        r#type: "password",
+                        r#type: "text",
                         placeholder: "paste your api key here (e.g. AIzaSy...)",
                     }
-
-                    button { r#type: "submit", class: "btn btn-primary mt-5", "Save" }
+                    Button { r#type: "submit", class: "btn-primary mt-5", "Save" }
                 }
             }
         }

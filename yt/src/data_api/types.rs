@@ -34,15 +34,11 @@ impl VideoId {
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 pub struct Thumb {
     pub url: String,
-    pub width: Option<u32>,
-    pub height: Option<u32>,
 }
 
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 pub struct Thumbnails {
-    pub default: Option<Thumb>,
-    pub medium: Option<Thumb>,
-    pub high: Option<Thumb>,
+    pub default: Thumb,
 }
 
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
@@ -50,10 +46,10 @@ pub struct Snippet {
     pub title: String,
     pub description: String,
     #[serde(rename = "publishedAt")]
-    pub published_at: Option<String>,
+    pub published_at: String,
     #[serde(rename = "channelTitle")]
-    pub channel_title: Option<String>,
-    pub thumbnails: Option<Thumbnails>,
+    pub channel_title: String,
+    pub thumbnails: Thumbnails,
 }
 
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
