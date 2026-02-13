@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 use yt::data_api::types::Item;
 
+use crate::common::components::button::IconButton;
 use crate::common::components::icons::{DownloadIcon, FavoriteIcon};
-use crate::common::components::button::Button;
 use crate::common::providers::Playback;
 
 #[component]
@@ -52,8 +52,8 @@ fn MusicCard(item: Item, index: usize) -> Element {
                     span { class: "loading loading-dots loading-sm" }
                 }
             }
-            Button { DownloadIcon {} }
-            Button { on_click: move |_| favorite.set(!favorite()),
+            IconButton { DownloadIcon {} }
+            IconButton { on_click: move |_| favorite.set(!favorite()),
                 FavoriteIcon { class: if favorite() { "fill-red-500 stroke-current-500" } else { "fill-transparent stroke-current" } }
             }
         }

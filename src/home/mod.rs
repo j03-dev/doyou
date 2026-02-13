@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::common::components::alert_message::AlertMessage;
-use crate::common::components::button::Button;
+use crate::common::components::button::{IconButton, Button};
 use crate::common::components::icons::{CloseIcon, DoYouIcon, SearchIcon};
 use crate::common::components::loading::LoadingSpinner;
 use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
@@ -88,7 +88,7 @@ pub fn Home() -> Element {
                 }
             }
             NavBarItem { position: NavBarPos::End,
-                Button { on_click: move |_| show_search.set(!show_search()), SearchIcon {} }
+                IconButton { on_click: move |_| show_search.set(!show_search()), SearchIcon {} }
             }
         }
 
@@ -131,23 +131,26 @@ fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
         evt.prevent_default();
 
         let token = get_value_from(evt, "token");
-        if !token.is_empty() {
-            let config = AppConfig {
-                youtube_token: token,
-            };
-            if let Err(err) = save_config(&config) {
-                status_msg.set(Some(err.to_string()));
-            }
-            youtube_token.set(Some(config.youtube_token));
-            document::eval("token_form.close()");
+        if token.is_empty() {
+            status_msg.set(Some("Please enter your youtube token".to_string()));
+            return;
         }
+
+        let config = AppConfig {
+            youtube_token: token,
+        };
+        if let Err(err) = save_config(&config) {
+            status_msg.set(Some(err.to_string()));
+        }
+        youtube_token.set(Some(config.youtube_token));
+        document::eval("token_form.close()");
     };
 
     rsx! {
         dialog { id: "token_form", class: "modal",
             div { class: "modal-box",
                 form { method: "dialog",
-                    Button { class: "btn-sm absolute right-4 top-7", CloseIcon {} }
+                    IconButton { class: "btn-sm absolute right-4 top-7", CloseIcon {} }
                 }
 
                 form { onsubmit: submit_token,
@@ -159,7 +162,7 @@ fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
                         r#type: "text",
                         placeholder: "paste your api key here (e.g. AIzaSy...)",
                     }
-                    Button { r#type: "submit", class: "btn-primary mt-5", "Save" }
+                    Button { r#type: "submit", class: "w-full btn-primary mt-5", "Save" }
                 }
             }
         }

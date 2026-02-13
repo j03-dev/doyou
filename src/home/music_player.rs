@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::common::components::button::Button;
+use crate::common::components::button::IconButton;
 use crate::common::components::icons::{
     CloseIcon, FavoriteIcon, NextIcon, PauseIcon, PlayIcon, PrevIcon,
 };
@@ -44,7 +44,7 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
 
     rsx! {
         div { class: "fixed inset-0 z-50 bg-base-100 flex flex-col",
-            Button {
+            IconButton {
                 class: "absolute top-4 right-4 z-10t",
                 on_click: on_close_full_player,
                 CloseIcon {}
@@ -70,7 +70,7 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
                                 dangerous_inner_html: artist,
                             }
                         }
-                        Button { FavoriteIcon {} }
+                        IconButton { FavoriteIcon {} }
                     }
                     div { class: "w-full max-w-xl mx-auto",
                         ProgressBar { playback }
@@ -148,13 +148,13 @@ fn MiniMusicPlayer(on_open_full_player: EventHandler<()>) -> Element {
 fn MusicController(mut playback: Playback) -> Element {
     rsx! {
         div { class: "flex items-center justify-center gap-6 lg:gap-10",
-            Button {
+            IconButton {
                 class: "btn-secondary",
                 on_click: move |_| playback.playback_controller(-1),
                 PrevIcon {}
             }
             if !*playback.is_loading.read() {
-                Button {
+                IconButton {
                     class: "btn-primary btn-xl",
                     on_click: move |_| playback.toggle_play(),
                     if *playback.is_playing.read() {
@@ -164,9 +164,9 @@ fn MusicController(mut playback: Playback) -> Element {
                     }
                 }
             } else {
-                Button { class: "btn-primary btn-xl", LoadingSpinner {} }
+                IconButton { class: "btn-primary btn-xl", LoadingSpinner {} }
             }
-            Button {
+            IconButton {
                 class: "btn-secondary",
                 on_click: move |_| playback.playback_controller(1),
                 NextIcon {}
