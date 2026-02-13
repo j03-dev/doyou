@@ -1,5 +1,5 @@
-[[language]]
-name = "rust"
-auto-format = true
-formatter = { command = "dx", args = ["fmt", "-f", "-"] }
+# [[language]]
+# name = "rust"
+# auto-format = true
+# formatter = { command = "dx", args = ["fmt", "-f", "-"] }
 

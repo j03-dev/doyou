@@ -1,6 +1,6 @@
 use dioxus::prelude::{Event, FormData, FormValue};
 
-pub fn get_form_value(key: &'static str, event: Event<FormData>) -> String {
+pub fn get_value_from(event: Event<FormData>, key: &'static str, ) -> String {
     event
         .get_first(key)
         .and_then(|v| match v {

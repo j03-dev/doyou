@@ -8,7 +8,7 @@ use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::common::components::text_input::TextInput;
 use crate::common::config::{AppConfig, load_config, save_config};
 use crate::common::providers::Playback;
-use crate::common::utils::get_form_value;
+use crate::common::utils::get_value_from;
 
 use self::music_list::MusicList;
 use self::music_player::MusicPlayer;
@@ -31,7 +31,7 @@ pub fn Home() -> Element {
         match load_config() {
             Ok(Some(config)) => youtube_token.set(Some(config.youtube_token)),
             Err(err) => status_msg.set(Some(err.to_string())),
-            _ => ()
+            _ => (),
         };
 
         if let Some(token) = youtube_token() {
@@ -51,7 +51,7 @@ pub fn Home() -> Element {
     let search = move |evt: Event<FormData>| async move {
         evt.prevent_default();
 
-        let search_query = get_form_value("search", evt);
+        let search_query = get_value_from(evt, "search");
         if search_query.is_empty() {
             status_msg.set(Some("Please enter a search query.".to_string()));
             return;
@@ -126,11 +126,11 @@ pub fn Home() -> Element {
 #[component]
 fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
     let mut status_msg = use_context::<Signal<Option<String>>>();
-    
+
     let submit_token = move |evt: Event<FormData>| async move {
         evt.prevent_default();
 
-        let token = get_form_value("token", evt);
+        let token = get_value_from(evt, "token");
         if !token.is_empty() {
             let config = AppConfig {
                 youtube_token: token,
