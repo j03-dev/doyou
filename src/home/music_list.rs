@@ -3,7 +3,7 @@ use yt::data_api::types::Item;
 
 use crate::common::components::button::IconButton;
 use crate::common::components::icons::{DownloadIcon, FavoriteIcon};
-use crate::common::providers::Playback;
+use crate::core::playback::Playback;
 
 #[component]
 pub fn MusicList(items: Signal<Vec<Item>>) -> Element {

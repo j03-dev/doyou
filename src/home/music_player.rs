@@ -5,7 +5,7 @@ use crate::common::components::icons::{
     CloseIcon, FavoriteIcon, NextIcon, PauseIcon, PlayIcon, PrevIcon,
 };
 use crate::common::components::loading::LoadingSpinner;
-use crate::common::providers::Playback;
+use crate::core::playback::Playback;
 
 #[component]
 pub fn MusicPlayer() -> Element {

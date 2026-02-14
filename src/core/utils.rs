@@ -1,41 +1,22 @@
-use serde::{Deserialize, Serialize};
-use std::fs;
+use dioxus::prelude::{Event, FormData, FormValue};
 
-type Error = Box<dyn std::error::Error>;
+use crate::core::error::Error;
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct AppConfig {
-    pub youtube_token: String,
+pub fn get_value_from(event: Event<FormData>, key: &'static str) -> String {
+    event
+        .get_first(key)
+        .and_then(|v| match v {
+            FormValue::Text(value) => Some(value),
+            _ => None,
+        })
+        .unwrap_or_default()
 }
 
-pub fn load_config() -> Result<Option<AppConfig>, Error> {
-    let path = get_config_path()?;
-    if let Ok(content) = fs::read_to_string(&path) {
-        let config = serde_json::from_str(&content)?;
-        return Ok(Some(config));
-    }
-    Ok(None)
-}
-
-pub fn save_config(config: &AppConfig) -> Result<(), Error> {
-    let path = get_config_path()?;
-
-    if let Some(parent) = std::path::Path::new(&path).parent() {
-        fs::create_dir_all(parent)?;
-    }
-
-    let json = serde_json::to_string(config)?;
-    fs::write(&path, json)?;
-    Ok(())
-}
-
-fn get_config_path() -> Result<String, Error> {
+pub fn get_config_path() -> Result<String, Error> {
     let base_dir = get_android_files_dir()?;
     Ok(format!("{base_dir}/config.json"))
 }
 
-/// Gets the Android application's files directory path.
-/// This is typically `/data/data/<package_name>/files/`
 fn get_android_files_dir() -> Result<String, Error> {
     let android_context = ndk_context::android_context();
     let java_vm = unsafe { jni::JavaVM::from_raw(android_context.vm().cast()) }?;

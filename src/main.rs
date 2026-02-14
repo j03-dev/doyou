@@ -5,6 +5,7 @@ const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 mod common;
 mod home;
+mod core;
 
 fn main() {
     #[cfg(not(feature = "desktop"))]

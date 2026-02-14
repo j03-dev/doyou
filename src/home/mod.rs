@@ -1,22 +1,24 @@
 use dioxus::prelude::*;
 
 use crate::common::components::alert_message::AlertMessage;
-use crate::common::components::button::{IconButton, Button};
+use crate::common::components::button::{Button, IconButton};
 use crate::common::components::icons::{CloseIcon, DoYouIcon, SearchIcon};
 use crate::common::components::loading::LoadingSpinner;
 use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::common::components::text_input::TextInput;
-use crate::common::config::{AppConfig, load_config, save_config};
-use crate::common::providers::Playback;
-use crate::common::utils::get_value_from;
+use crate::core::config::AppConfig;
+use crate::core::playback::Playback;
+use crate::core::utils::get_value_from;
 
 use self::music_list::MusicList;
 use self::music_player::MusicPlayer;
 use self::theme_controller::ThemeController;
+use self::token_from::TokenForm;
 
 mod music_list;
 mod music_player;
 mod theme_controller;
+mod token_from;
 
 #[component]
 pub fn Home() -> Element {
@@ -28,7 +30,7 @@ pub fn Home() -> Element {
     let mut youtube_token = use_signal(|| None::<String>);
 
     use_effect(move || {
-        match load_config() {
+        match AppConfig::load() {
             Ok(Some(config)) => youtube_token.set(Some(config.youtube_token)),
             Err(err) => status_msg.set(Some(err.to_string())),
             _ => (),
@@ -105,7 +107,7 @@ pub fn Home() -> Element {
             }
         }
 
-        TokenForm { youtube_token }
+        TokeForm { youtube_token }
 
         div { class: "hidden",
             audio {
@@ -120,51 +122,5 @@ pub fn Home() -> Element {
             MusicPlayer {}
         }
 
-    }
-}
-
-#[component]
-fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
-    let mut status_msg = use_context::<Signal<Option<String>>>();
-
-    let submit_token = move |evt: Event<FormData>| async move {
-        evt.prevent_default();
-
-        let token = get_value_from(evt, "token");
-        if token.is_empty() {
-            status_msg.set(Some("Please enter your youtube token".to_string()));
-            return;
-        }
-
-        let config = AppConfig {
-            youtube_token: token,
-        };
-        if let Err(err) = save_config(&config) {
-            status_msg.set(Some(err.to_string()));
-        }
-        youtube_token.set(Some(config.youtube_token));
-        document::eval("token_form.close()");
-    };
-
-    rsx! {
-        dialog { id: "token_form", class: "modal",
-            div { class: "modal-box",
-                form { method: "dialog",
-                    IconButton { class: "btn-sm absolute right-4 top-7", CloseIcon {} }
-                }
-
-                form { onsubmit: submit_token,
-                    legend { class: "fieldset-legend", "youtube data api v3 key" }
-
-                    label { class: "label", "Token" }
-                    TextInput {
-                        name: "token",
-                        r#type: "text",
-                        placeholder: "paste your api key here (e.g. AIzaSy...)",
-                    }
-                    Button { r#type: "submit", class: "w-full btn-primary mt-5", "Save" }
-                }
-            }
-        }
     }
 }
