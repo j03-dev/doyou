@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 
 use crate::common::components::alert_message::AlertMessage;
-use crate::common::components::button::{Button, IconButton};
-use crate::common::components::icons::{CloseIcon, DoYouIcon, SearchIcon};
+use crate::common::components::button::IconButton;
+use crate::common::components::icons::{DoYouIcon, SearchIcon};
 use crate::common::components::loading::LoadingSpinner;
 use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::common::components::text_input::TextInput;
@@ -107,7 +107,7 @@ pub fn Home() -> Element {
             }
         }
 
-        TokeForm { youtube_token }
+        TokenForm { youtube_token }
 
         div { class: "hidden",
             audio {
