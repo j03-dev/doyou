@@ -2,19 +2,24 @@ use dioxus::prelude::{Event, FormData, FormValue};
 
 use crate::core::error::Error;
 
-pub fn get_value_from(event: Event<FormData>, key: &'static str) -> String {
-    event
-        .get_first(key)
-        .and_then(|v| match v {
-            FormValue::Text(value) => Some(value),
-            _ => None,
-        })
-        .unwrap_or_default()
+pub fn get_value_from(event: Event<FormData>, key: &'static str) -> Option<String> {
+    event.get_first(key).and_then(|v| match v {
+        FormValue::Text(value) => Some(value),
+        _ => None,
+    })
 }
 
 pub fn get_config_path() -> Result<String, Error> {
-    let base_dir = get_android_files_dir()?;
-    Ok(format!("{base_dir}/config.json"))
+    #[cfg(feature = "mobile")]
+    {
+        let base_dir = get_android_files_dir()?;
+        Ok(format!("{base_dir}/config.json"))
+    }
+
+    #[cfg(not(feature = "mobile"))]
+    {
+        Ok(String::from("/home/manohy/.config/doyou/.config.json"))
+    }
 }
 
 fn get_android_files_dir() -> Result<String, Error> {

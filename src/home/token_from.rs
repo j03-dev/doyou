@@ -14,12 +14,13 @@ pub fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
         evt.prevent_default();
 
         let token = get_value_from(evt, "token");
-        if token.is_empty() {
+        if token.is_none() {
+            dbg!(token);
             status_msg.set(Some("Please enter your youtube token".to_string()));
             return;
         }
 
-        let config = AppConfig::new(token);
+        let config = AppConfig::new(token.unwrap());
         if let Err(err) = config.save() {
             status_msg.set(Some(err.to_string()));
             return;
@@ -30,18 +31,16 @@ pub fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
 
     rsx! {
         dialog { id: "token_form", class: "modal",
-            div { class: "modal-box",
+            div { class: "modal-box w-96",
                 form { method: "dialog",
                     IconButton { class: "btn-sm absolute right-4 top-7", CloseIcon {} }
                 }
-
+                br {}
                 form { onsubmit: submit_token,
-                    legend { class: "fieldset-legend", "youtube data api v3 key" }
-
-                    label { class: "label", "Token" }
+                    legend { class: "fieldset-legend", "Youtube Token" }
                     TextInput {
                         name: "token",
-                        r#type: "text",
+                        r#type: "password",
                         placeholder: "paste your api key here (e.g. AIzaSy...)",
                     }
                     Button { r#type: "submit", class: "w-full btn-primary mt-5", "Save" }

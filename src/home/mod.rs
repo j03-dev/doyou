@@ -53,20 +53,23 @@ pub fn Home() -> Element {
     let search = move |evt: Event<FormData>| async move {
         evt.prevent_default();
 
+        status_msg.set(None);
+
         let search_query = get_value_from(evt, "search");
-        if search_query.is_empty() {
+        if search_query.is_none() {
             status_msg.set(Some("Please enter a search query.".to_string()));
             return;
         }
 
-        status_msg.set(None);
         is_loading.set(true);
 
         if let Some(token) = youtube_token() {
-            match yt::data_api::search(&search_query, &token).await {
+            match yt::data_api::search(&search_query.unwrap(), &token).await {
                 Ok(videos) => playback.playlist.set(videos.items),
                 Err(err) => status_msg.set(Some(err.to_string())),
             };
+        } else {
+            status_msg.set(Some("Token is not none".to_string()));
         }
 
         is_loading.set(false);
@@ -78,12 +81,13 @@ pub fn Home() -> Element {
             NavBarItem { position: NavBarPos::Start, ThemeController {} }
             NavBarItem { position: NavBarPos::Center,
                 if show_search() {
-                    TextInput {
-                        on_submit: search,
-                        name: "search",
-                        r#type: "search",
-                        placeholder: "Search",
-                        SearchIcon { class: "h-[1em] opacity-50" }
+                    form { onsubmit: search,
+                        TextInput {
+                            name: "search",
+                            r#type: "search",
+                            placeholder: "Search",
+                            SearchIcon { class: "h-[1em] opacity-50" }
+                        }
                     }
                 } else {
                     DoYouIcon {}

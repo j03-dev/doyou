@@ -4,8 +4,8 @@ const FAVICON: Asset = asset!("/assets/favicon.ico");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 mod common;
-mod home;
 mod core;
+mod home;
 
 fn main() {
     #[cfg(not(feature = "desktop"))]
