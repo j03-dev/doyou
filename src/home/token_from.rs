@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use crate::common::components::button::{Button, IconButton};
 use crate::common::components::icons::CloseIcon;
 use crate::common::components::text_input::TextInput;
-use crate::core::config::AppConfig;
+use crate::core::db;
 use crate::core::utils::get_value_from;
 
 #[component]
@@ -20,12 +20,13 @@ pub fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
             return;
         }
 
-        let config = AppConfig::new(token.unwrap());
-        if let Err(err) = config.save() {
+        let token = token.unwrap();
+
+        if let Err(err) = db::save_token(&token).await {
             status_msg.set(Some(err.to_string()));
             return;
         }
-        youtube_token.set(Some(config.youtube_token));
+        youtube_token.set(Some(token));
         document::eval("token_form.close()");
     };
 

@@ -4,7 +4,7 @@ use crate::common::components::icons::BurgerIcon;
 
 #[component]
 pub fn ThemeController() -> Element {
-    let themes = &["Nord", "Black"];
+    let themes = &["Lemonade", "Black"];
     rsx! {
         div { class: "dropdown",
             div {

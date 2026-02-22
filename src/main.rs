@@ -1,11 +1,18 @@
 use dioxus::prelude::*;
 
-const FAVICON: Asset = asset!("/assets/favicon.ico");
-const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
+use crate::common::components::dock::Dock;
+use crate::favorite::Favorite;
+use crate::home::Home;
+use crate::setting::Setting;
 
 mod common;
 mod core;
+mod favorite;
 mod home;
+mod setting;
+
+const FAVICON: Asset = asset!("/assets/favicon.ico");
+const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 fn main() {
     #[cfg(not(feature = "desktop"))]
@@ -28,6 +35,19 @@ pub fn App() -> Element {
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
-        home::Home {}
+        Router::<Route> {}
     }
+}
+
+#[derive(Routable, Clone, PartialEq)]
+enum Route {
+    #[layout(Dock)]
+    #[route("/")]
+    Home {},
+
+    #[route("/favorite")]
+    Favorite {},
+
+    #[route("/setting")]
+    Setting {},
 }

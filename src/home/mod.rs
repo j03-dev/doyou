@@ -6,7 +6,7 @@ use crate::common::components::icons::{DoYouIcon, SearchIcon};
 use crate::common::components::loading::LoadingSpinner;
 use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::common::components::text_input::TextInput;
-use crate::core::config::AppConfig;
+use crate::core::db;
 use crate::core::playback::Playback;
 use crate::core::utils::get_value_from;
 
@@ -30,24 +30,27 @@ pub fn Home() -> Element {
     let mut youtube_token = use_signal(|| None::<String>);
 
     use_effect(move || {
-        match AppConfig::load() {
-            Ok(Some(config)) => youtube_token.set(Some(config.youtube_token)),
-            Err(err) => status_msg.set(Some(err.to_string())),
-            _ => (),
-        };
+        spawn(async move {
+            match db::get_settings().await {
+                Ok(settings) => {
+                    if !settings.youtube_token.is_empty() {
+                        youtube_token.set(Some(settings.youtube_token));
+                    }
+                }
+                Err(err) => status_msg.set(Some(err.to_string())),
+            };
 
-        if let Some(token) = youtube_token() {
-            spawn(async move {
+            if let Some(token) = youtube_token() {
                 is_loading.set(true);
                 match yt::data_api::home(&token).await {
                     Ok(videos) => playback.playlist.set(videos.items),
                     Err(err) => status_msg.set(Some(err.to_string())),
                 };
                 is_loading.set(false);
-            });
-        } else {
-            document::eval("token_form.showModal()");
-        }
+            } else {
+                document::eval("token_form.showModal()");
+            }
+        });
     });
 
     let search = move |evt: Event<FormData>| async move {

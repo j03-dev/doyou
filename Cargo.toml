@@ -15,14 +15,15 @@ reqwest = { version = "0.12.24", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
 
 [dependencies]
-dioxus = "0.7.3" 
-dioxus-sdk-storage = "0.7"
+dioxus = {version ="0.7.3", features = ["router"]}
 serde_json.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 yt.path = "yt"
 ndk-context = "0.1.1"
 jni = "0.21.1"
+rusql-alchemy = {path = "../rusql-alchemy/rusql-alchemy", features=["turso"]}
+tokio = "1.49.0"
 
 [features]
 default = ["mobile"]

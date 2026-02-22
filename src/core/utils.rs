@@ -13,12 +13,12 @@ pub fn get_config_path() -> Result<String, Error> {
     #[cfg(feature = "mobile")]
     {
         let base_dir = get_android_files_dir()?;
-        Ok(format!("{base_dir}/config.json"))
+        Ok(format!("{base_dir}/config.db"))
     }
 
     #[cfg(not(feature = "mobile"))]
     {
-        Ok(String::from("/home/manohy/.config/doyou/.config.json"))
+        Ok(String::from("/home/manohy/.config/doyou/config.db"))
     }
 }
 

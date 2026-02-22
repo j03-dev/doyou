@@ -45,8 +45,6 @@ pub struct Thumbnails {
 pub struct Snippet {
     pub title: String,
     pub description: String,
-    #[serde(rename = "publishedAt")]
-    pub published_at: String,
     #[serde(rename = "channelTitle")]
     pub channel_title: String,
     pub thumbnails: Thumbnails,
