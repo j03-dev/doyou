@@ -61,16 +61,21 @@ async fn get_favorite_by(
     Ok(Favorite::get(kwargs!(youtube_track_id = youtube_track_id), conn).await?)
 }
 
-pub async fn get_all_favorites() -> Result<Vec<Favorite>, Error> {
+pub async fn get_all_favorites() -> Result<Vec<YoutubeTrack>, rusql_alchemy::Error> {
     let conn = conn().await;
-    Favorite::all(conn).await
+    let results: Vec<YoutubeTrack> = select!(YoutubeTrack, Favorite)
+        .inner_join::<YoutubeTrack, Favorite>(kwargs!(YoutubeTrack.id == Favorite.youtube_track_id))
+        .fetch_all(conn)
+        .await?;
+
+    Ok(results)
 }
 
 pub async fn save_token(token: &str) -> Result<(), Error> {
     let conn = conn().await;
     let mut settings = get_settings().await?;
     settings.youtube_token = token.to_string();
-    settings.save(conn).await?;
+    settings.update(conn).await?;
     Ok(())
 }
 

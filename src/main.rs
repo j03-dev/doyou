@@ -4,6 +4,7 @@ use crate::common::components::dock::Dock;
 use crate::favorite::Favorite;
 use crate::home::Home;
 use crate::setting::Setting;
+use crate::core::playback::Playback;
 
 mod common;
 mod core;
@@ -32,6 +33,8 @@ fn main() {
 
 #[component]
 pub fn App() -> Element {
+    use_context_provider(|| Playback::new("audio"));
+
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }

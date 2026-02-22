@@ -22,33 +22,37 @@ mod token_from;
 
 #[component]
 pub fn Home() -> Element {
-    let mut playback = use_context_provider(|| Playback::new("audio"));
     let mut status_msg = use_context_provider(|| Signal::new(None::<String>));
 
+    let mut playback = use_context::<Playback>();
     let mut is_loading = use_signal(|| false);
     let mut show_search = use_signal(|| false);
     let mut youtube_token = use_signal(|| None::<String>);
 
     use_effect(move || {
         spawn(async move {
-            match db::get_settings().await {
-                Ok(settings) => {
-                    if !settings.youtube_token.is_empty() {
-                        youtube_token.set(Some(settings.youtube_token));
+            if youtube_token().is_none() {
+                match db::get_settings().await {
+                    Ok(settings) => {
+                        if !settings.youtube_token.is_empty() {
+                            youtube_token.set(Some(settings.youtube_token));
+                        }
                     }
-                }
-                Err(err) => status_msg.set(Some(err.to_string())),
-            };
-
-            if let Some(token) = youtube_token() {
-                is_loading.set(true);
-                match yt::data_api::home(&token).await {
-                    Ok(videos) => playback.playlist.set(videos.items),
                     Err(err) => status_msg.set(Some(err.to_string())),
                 };
-                is_loading.set(false);
-            } else {
-                document::eval("token_form.showModal()");
+            }
+
+            if playback.playlist.is_empty() {
+                if let Some(token) = youtube_token() {
+                    is_loading.set(true);
+                    match yt::data_api::home(&token).await {
+                        Ok(videos) => playback.playlist.set(videos.items),
+                        Err(err) => status_msg.set(Some(err.to_string())),
+                    };
+                    is_loading.set(false);
+                } else {
+                    document::eval("token_form.showModal()");
+                }
             }
         });
     });

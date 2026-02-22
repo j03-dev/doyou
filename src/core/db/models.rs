@@ -15,7 +15,7 @@ pub struct YoutubeTrack {
 #[derive(Debug, Clone, Model, serde::Deserialize)]
 pub struct Favorite {
     #[field(primary_key = true, auto = true)]
-    pub id: Option<Integer>,
+    pub fav_id: Option<Integer>,
     #[field(foreign_key = YoutubeTrack.id, on_delete = "cascade",unique = true, size = 11)]
     pub youtube_track_id: String,
 }

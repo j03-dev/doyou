@@ -7,49 +7,21 @@ use crate::{
 
 #[component]
 pub fn Dock() -> Element {
-    let current_active = use_signal(|| 0);
-
-    let dock_item_props = &[
-        (Route::Home {}, rsx!(
-            HomeIcon {}
-        )),
-        (Route::Favorite {}, rsx!(
-            FavoriteIcon {}
-        )),
-        (Route::Setting {}, rsx!(
-            SettingIcon {}
-        )),
-    ];
-
     rsx! {
         div { class: "dock dock-lg",
-            for (i , props) in dock_item_props.into_iter().enumerate() {
-                DockItem {
-                    index: i as i32,
-                    current_active,
-                    route: props.0.clone(),
-                    {props.1.clone()}
-                }
+            DockItem { route: Route::Home {}, HomeIcon {} }
+            DockItem { route: Route::Favorite {},
+                FavoriteIcon { class: "fill-transparent stroke-current" }
             }
+            DockItem { route: Route::Setting {}, SettingIcon {} }
         }
         Outlet::<Route> {}
     }
 }
 
 #[component]
-fn DockItem(
-    route: Route,
-    index: i32,
-    mut current_active: Signal<i32>,
-    children: Element,
-) -> Element {
+fn DockItem(route: Route, children: Element) -> Element {
     rsx! {
-        Link {
-            to: route,
-            onclick: move |_| {
-                current_active.set(index);
-            },
-            button { class: if index == current_active() { "dock-active" } else { "" }, {children} }
-        }
+        Link { to: route, active_class: "dock-active", {children} }
     }
 }

@@ -60,7 +60,7 @@ impl Playback {
                     ));
                 }
                 Err(e) => {
-                    let _ = document::eval(&format!("console.log({e})"));
+                    dbg!(e);
                     state.is_playing.set(false);
                 }
             };

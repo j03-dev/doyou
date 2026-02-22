@@ -57,12 +57,14 @@ fn MusicCard(item: Item, index: usize) -> Element {
                 };
                 if let Err(err) = db::add_to_favorite(track).await {
                     status_msg.set(Some(err.to_string()));
+                } else {
                     favorite.set(true);
                 }
             } else {
                 if let Err(err) = db::remove_from_favorite(&youtube_video_id()).await {
                     status_msg.set(Some(err.to_string()));
-                    favorite.set(true);
+                } else {
+                    favorite.set(false);
                 }
             }
         }
