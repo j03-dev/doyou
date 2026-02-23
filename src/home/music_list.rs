@@ -91,7 +91,7 @@ fn MusicCard(item: Item, index: usize) -> Element {
             }
             IconButton { DownloadIcon {} }
             IconButton { on_click: set_favorite,
-                FavoriteIcon { class: if is_favorite() { "fill-red-500 stroke-current-500" } else { "fill-transparent stroke-current" } }
+                FavoriteIcon { class: if is_favorite() { "fill-error stroke-error" } else { "fill-transparent stroke-current" } }
             }
         }
     }
