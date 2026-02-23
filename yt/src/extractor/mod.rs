@@ -8,16 +8,17 @@ pub struct YouTubeExtractor {
     client: reqwest::Client,
 }
 
-impl YouTubeExtractor {
-    pub fn new() -> Self {
+impl Default for YouTubeExtractor {
+    fn default() -> Self {
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
             .build()
             .expect("Failed to build HTTP client");
-
         Self { client }
     }
+}
 
+impl YouTubeExtractor {
     pub fn extract_video_id(url: &str) -> Result<String> {
         use regex::Regex;
 

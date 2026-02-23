@@ -37,7 +37,7 @@ impl Playback {
         let mut state = *self;
         self.is_playing.set(true);
 
-        let youtube_extractor = YouTubeExtractor::new();
+        let youtube_extractor = YouTubeExtractor::default();
 
         spawn(async move {
             state.current_index.set(index);
