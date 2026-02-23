@@ -12,21 +12,18 @@ pub mod models;
 
 static CONN: OnceCell<Connection> = OnceCell::const_new();
 
-async fn conn() -> &'static Connection {
-    CONN.get_or_init(|| async move {
-        let path = get_config_path().unwrap();
-        if let Some(parent) = std::path::Path::new(&path).parent() {
-            std::fs::create_dir_all(parent).unwrap();
-        }
-        let database = Database::new_local(&path).await.unwrap();
-        database.up().await.unwrap();
-        database.conn
+async fn conn() -> Result<&'static Connection, Error> {
+    CONN.get_or_try_init(|| async move {
+        let path = get_config_path()?;
+        let database = Database::new_local(&path.to_str().unwrap()).await?;
+        database.up().await?;
+        Ok(database.conn)
     })
     .await
 }
 
 pub async fn add_to_favorite(track: YoutubeTrack) -> Result<(), Error> {
-    let conn = conn().await;
+    let conn = conn().await?;
 
     if get_favorite_by(&track.id, conn).await?.is_some() {
         return Ok(());
@@ -42,7 +39,7 @@ pub async fn add_to_favorite(track: YoutubeTrack) -> Result<(), Error> {
 }
 
 pub async fn remove_from_favorite(youtube_track_id: &str) -> Result<(), Error> {
-    let conn = conn().await;
+    let conn = conn().await?;
     if let Some(favorite) = get_favorite_by(youtube_track_id, conn).await? {
         favorite.delete(conn).await?;
     }
@@ -50,7 +47,7 @@ pub async fn remove_from_favorite(youtube_track_id: &str) -> Result<(), Error> {
 }
 
 pub async fn is_favorite(youtube_track_id: &str) -> Result<bool, Error> {
-    let conn = conn().await;
+    let conn = conn().await?;
     Ok(get_favorite_by(youtube_track_id, conn).await?.is_some())
 }
 
@@ -62,7 +59,7 @@ async fn get_favorite_by(
 }
 
 pub async fn get_all_favorites() -> Result<Vec<YoutubeTrack>, rusql_alchemy::Error> {
-    let conn = conn().await;
+    let conn = conn().await?;
     let results: Vec<YoutubeTrack> = select!(YoutubeTrack, Favorite)
         .inner_join::<YoutubeTrack, Favorite>(kwargs!(YoutubeTrack.id == Favorite.youtube_track_id))
         .fetch_all(conn)
@@ -72,7 +69,7 @@ pub async fn get_all_favorites() -> Result<Vec<YoutubeTrack>, rusql_alchemy::Err
 }
 
 pub async fn save_token(token: &str) -> Result<(), Error> {
-    let conn = conn().await;
+    let conn = conn().await?;
     let mut settings = get_settings().await?;
     settings.youtube_token = token.to_string();
     settings.update(conn).await?;
@@ -80,7 +77,7 @@ pub async fn save_token(token: &str) -> Result<(), Error> {
 }
 
 pub async fn get_settings() -> Result<AppSettings, Error> {
-    let conn = conn().await;
+    let conn = conn().await?;
     let get_app_setting = || async { AppSettings::get(kwargs!(id = 0), conn).await };
     if let Some(app_setting) = get_app_setting().await? {
         return Ok(app_setting);

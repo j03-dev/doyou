@@ -16,7 +16,9 @@ pub fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
 
         let token = get_value_from(evt, "token");
         if token.is_none() {
-            alert.message.set(Some("Please enter your youtube token".to_string()));
+            alert
+                .message
+                .set(Some("Please enter your youtube token".to_string()));
             return;
         }
 

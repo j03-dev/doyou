@@ -3,11 +3,14 @@ use dioxus::prelude::*;
 use crate::common::components::alert_message::AlertMessage;
 use crate::common::components::button::IconButton;
 use crate::common::components::icons::FavoriteIcon;
+use crate::common::components::icons::PlayIcon;
+use crate::common::components::button::Button;
 use crate::common::context::{use_alert, use_favorites};
 use crate::core::db;
+use crate::core::db::models::YoutubeTrack;
 
 #[component]
-pub fn Favorite() -> Element {
+pub fn FavoriteList() -> Element {
     let mut alert = use_alert();
     let mut favorites = use_favorites();
 
@@ -37,26 +40,44 @@ pub fn Favorite() -> Element {
         if let Some(message) = &*alert.message.read() {
             AlertMessage { message: message.clone() }
         }
-        div { class: "grid grid-cols-1 md:grid-cols-4 gap-6 p-4 justify-items-center",
+        div { class: "grid grid-cols-1 md:grid-cols-4 gap-4 p-4",
             for track in favorites.tracks.read().iter() {
-                {
-                    let track_id = track.id.clone();
-                    let thumbnail = track.thumbnail_url.clone();
-                    rsx! {
-                        div { class: "card card-sm bg-base-100 w-full max-w-sm shadow-sm",
-                            figure { class: "px-5 pt-5",
-                                img { src: thumbnail, class: "rounded-xl size-full" }
-                            }
-                            div { class: "card-body items-start text-left",
-                                div {
-                                    h2 { class: "card-title text-sm", "{track.title}" }
-                                    p { class: "text-xs opacity-70", "{track.channel_name}" }
-                                }
-                                IconButton {
-                                    on_click: move |_| remove_track(track_id.clone()),
-                                    FavoriteIcon { class: "fill-red-500 stroke-current-500" }
-                                }
-                            }
+                FavoriteCard { track: track.clone(), on_remove: remove_track }
+            }
+        }
+    }
+}
+
+#[component]
+pub fn FavoriteCard(track: YoutubeTrack, on_remove: Callback<String>) -> Element {
+    let track_id = track.id.clone();
+
+    rsx! {
+        div { class: "card bg-base-200 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden",
+            figure { class: "w-full h-40",
+                img {
+                    src: track.thumbnail_url,
+                    class: "w-full h-full object-cover",
+                    alt: "{track.title}",
+                }
+            }
+            div { class: "card-body p-3",
+                div { class: "flex items-start justify-between gap-2",
+                    div { class: "flex-1 min-w-0",
+                        h2 { class: "card-title text-sm truncate text-base-content",
+                            "{track.title}"
+                        }
+                        p { class: "text-xs text-base-content/70 truncate", "{track.channel_name}" }
+                    }
+                    div { class: "flex gap-1",
+                        IconButton { on_click: move |_| on_remove.call(track_id.clone()),
+                            FavoriteIcon { class: "w-5 h-5 fill-error stroke-error" }
+                        }
+                        Button {
+                            on_click: move |_| {},
+                            class: "btn-primary rounded rounded-xl",
+                            "play"
+                            PlayIcon { class: "w-5 h-5" }
                         }
                     }
                 }

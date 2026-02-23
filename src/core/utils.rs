@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use dioxus::prelude::{Event, FormData, FormValue};
 
 use crate::core::error::Error;
@@ -9,20 +11,33 @@ pub fn get_value_from(event: Event<FormData>, key: &'static str) -> Option<Strin
     })
 }
 
-pub fn get_config_path() -> Result<String, Error> {
-    #[cfg(feature = "mobile")]
-    {
-        let base_dir = get_android_files_dir()?;
-        Ok(format!("{base_dir}/config.db"))
+pub fn get_config_path() -> Result<PathBuf, Error> {
+    let config_dir = get_config_dir()?;
+    let path = config_dir.join("config.db");
+    if let Some(parent) = std::path::Path::new(&path).parent() {
+        std::fs::create_dir_all(parent)?;
     }
-
-    #[cfg(not(feature = "mobile"))]
-    {
-        Ok(String::from("/home/manohy/.config/doyou/config.db"))
-    }
+    Ok(path)
 }
 
-fn get_android_files_dir() -> Result<String, Error> {
+#[cfg(not(feature = "mobile"))]
+pub fn get_config_dir() -> Result<PathBuf, Error> {
+    let config_dir = directories::ProjectDirs::from("com", "doyou", "doyou")
+        .ok_or("Failed to get config directory")?
+        .config_dir()
+        .to_path_buf();
+    Ok(config_dir)
+}
+
+#[cfg(feature = "mobile")]
+#[allow(dead_code)]
+pub fn get_config_dir() -> Result<PathBuf, Error> {
+    let base_dir = get_android_files_dir()?;
+    Ok(base_dir)
+}
+
+#[cfg(feature = "mobile")]
+fn get_android_files_dir() -> Result<PathBuf, Error> {
     let android_context = ndk_context::android_context();
     let java_vm = unsafe { jni::JavaVM::from_raw(android_context.vm().cast()) }?;
     let mut jni_env = java_vm.attach_current_thread()?;
@@ -46,5 +61,5 @@ fn get_android_files_dir() -> Result<String, Error> {
 
     let path_as_java_str = jni_env.get_string(&path_as_jstring)?;
 
-    Ok(path_as_java_str.to_str()?.to_string())
+    Ok(PathBuf::from(path_as_java_str.to_str()?))
 }

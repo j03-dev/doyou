@@ -38,7 +38,7 @@ pub fn NextIcon(props: IconProps) -> Element {
     }
 }
 
-pub fn PlayIcon(props: IconProps) -> Element {
+pub fn PauseIcon(props: IconProps) -> Element {
     rsx! {
         svg {
             xmlns: "http://www.w3.org/2000/svg",
@@ -50,7 +50,7 @@ pub fn PlayIcon(props: IconProps) -> Element {
     }
 }
 
-pub fn PauseIcon(props: IconProps) -> Element {
+pub fn PlayIcon(props: IconProps) -> Element {
     rsx! {
         svg {
             xmlns: "http://www.w3.org/2000/svg",

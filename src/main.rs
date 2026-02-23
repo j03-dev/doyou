@@ -2,7 +2,7 @@ use dioxus::prelude::*;
 
 use crate::common::components::dock::Dock;
 use crate::common::context::{AlertProvider, FavoritesProvider, PlaybackProvider};
-use crate::favorite::Favorite;
+use crate::favorite::FavoriteList;
 use crate::home::Home;
 use crate::setting::Setting;
 
@@ -38,9 +38,7 @@ pub fn App() -> Element {
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
         AlertProvider {
             PlaybackProvider {
-                FavoritesProvider {
-                    Router::<Route> {}
-                }
+                FavoritesProvider { Router::<Route> {} }
             }
         }
     }
@@ -53,7 +51,7 @@ enum Route {
     Home {},
 
     #[route("/favorite")]
-    Favorite {},
+    FavoriteList {},
 
     #[route("/setting")]
     Setting {},

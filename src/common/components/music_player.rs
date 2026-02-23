@@ -161,9 +161,9 @@ fn MusicController(mut playback: Playback) -> Element {
                     class: "btn-primary btn-circle btn-xl",
                     on_click: move |_| playback.toggle_play(),
                     if *playback.is_playing.read() {
-                        PlayIcon {}
-                    } else {
                         PauseIcon {}
+                    } else {
+                        PlayIcon {}
                     }
                 }
             } else {
