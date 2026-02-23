@@ -6,6 +6,7 @@ use crate::common::components::icons::{DoYouIcon, SearchIcon};
 use crate::common::components::loading::LoadingSpinner;
 use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::common::components::text_input::TextInput;
+use crate::common::context::use_alert;
 use crate::core::db;
 use crate::core::playback::Playback;
 use crate::core::utils::get_value_from;
@@ -20,32 +21,37 @@ mod token_from;
 
 #[component]
 pub fn Home() -> Element {
-    let mut status_msg = use_context_provider(|| Signal::new(None::<String>));
+    let alert = use_alert();
+    let alert_message = alert.message;
 
-    let mut playback = use_context::<Playback>();
+    let playback = use_context::<Playback>();
     let mut is_loading = use_signal(|| false);
     let mut show_search = use_signal(|| false);
-    let mut youtube_token = use_signal(|| None::<String>);
+    let youtube_token = use_signal(|| None::<String>);
 
     use_effect(move || {
+        let mut token_signal = youtube_token;
+        let mut playlist = playback.playlist;
+        let mut msg_signal = alert_message;
+
         spawn(async move {
-            if youtube_token().is_none() {
+            if token_signal().is_none() {
                 match db::get_settings().await {
                     Ok(settings) => {
                         if !settings.youtube_token.is_empty() {
-                            youtube_token.set(Some(settings.youtube_token));
+                            token_signal.set(Some(settings.youtube_token));
                         }
                     }
-                    Err(err) => status_msg.set(Some(err.to_string())),
+                    Err(err) => msg_signal.set(Some(err.to_string())),
                 };
             }
 
-            if playback.playlist.is_empty() {
-                if let Some(token) = youtube_token() {
+            if playlist.is_empty() {
+                if let Some(tok) = token_signal() {
                     is_loading.set(true);
-                    match yt::data_api::home(&token).await {
-                        Ok(videos) => playback.playlist.set(videos.items),
-                        Err(err) => status_msg.set(Some(err.to_string())),
+                    match yt::data_api::home(&tok).await {
+                        Ok(videos) => playlist.set(videos.items),
+                        Err(err) => msg_signal.set(Some(err.to_string())),
                     };
                     is_loading.set(false);
                 } else {
@@ -55,30 +61,33 @@ pub fn Home() -> Element {
         });
     });
 
-    let search = move |evt: Event<FormData>| async move {
-        evt.prevent_default();
-
-        status_msg.set(None);
+    let search = move |evt: Event<FormData>| {
+        let mut msg = alert_message;
+        msg.set(None);
 
         let search_query = get_value_from(evt, "search");
         if search_query.is_none() {
-            status_msg.set(Some("Please enter a search query.".to_string()));
+            msg.set(Some("Please enter a search query.".to_string()));
             return;
         }
 
-        is_loading.set(true);
+        let token = youtube_token();
+        let mut playlist = playback.playlist;
+        let mut msg_async = alert_message;
 
-        if let Some(token) = youtube_token() {
-            match yt::data_api::search(&search_query.unwrap(), &token).await {
-                Ok(videos) => playback.playlist.set(videos.items),
-                Err(err) => status_msg.set(Some(err.to_string())),
-            };
-        } else {
-            status_msg.set(Some("Token is not none".to_string()));
-        }
-
-        is_loading.set(false);
-        show_search.set(false);
+        spawn(async move {
+            is_loading.set(true);
+            if let Some(t) = token {
+                match yt::data_api::search(&search_query.unwrap(), &t).await {
+                    Ok(videos) => playlist.set(videos.items),
+                    Err(err) => msg_async.set(Some(err.to_string())),
+                };
+            } else {
+                msg_async.set(Some("Token is not none".to_string()));
+            }
+            is_loading.set(false);
+            show_search.set(false);
+        });
     };
 
     rsx! {
@@ -104,8 +113,8 @@ pub fn Home() -> Element {
         }
 
         div { class: "m-2 pb-5",
-            if let Some(message) = status_msg() {
-                AlertMessage { message }
+            if let Some(message) = &*alert.message.read() {
+                AlertMessage { message: message.clone() }
             }
             if is_loading() {
                 div { class: "flex h-screen justify-center items-center",
