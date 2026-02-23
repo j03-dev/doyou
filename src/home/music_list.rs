@@ -21,20 +21,18 @@ pub fn MusicList(items: Signal<Vec<Item>>) -> Element {
 #[component]
 fn MusicCard(item: Item, index: usize) -> Element {
     let mut playback = use_playback();
-    let alert = use_alert();
-    let favorites = use_favorites();
-
-    let is_loading =
-        use_memo(move || *playback.current_index.read() == index && *playback.is_loading.read());
+    let mut alert = use_alert();
+    let mut favorites = use_favorites();
 
     let is_playing_now =
         use_memo(move || *playback.current_index.read() == index && *playback.is_playing.read());
 
-    let fav_tracks = favorites.tracks;
+    let is_loading =
+        use_memo(move || *playback.current_index.read() == index && *playback.is_loading.read());
+
     let is_favorite = use_memo({
-        let tracks = fav_tracks;
         let item_id = item.id.as_string().unwrap();
-        move || tracks.read().iter().any(|t| t.id == item_id)
+        move || favorites.tracks.read().iter().any(|t| t.id == item_id)
     });
 
     let title = Signal::new(item.snippet.title);
@@ -42,18 +40,14 @@ fn MusicCard(item: Item, index: usize) -> Element {
     let thumbnail = Signal::new(item.snippet.thumbnails.default.url);
     let youtube_video_id = Signal::new(item.id.as_string().unwrap());
 
-    let fav_tracks_handler = favorites.tracks;
-    let alert_handler = alert.message;
     let set_favorite = move |_: Event<MouseData>| {
         let title = title();
         let channel_name = artist();
         let thumbnail_url = thumbnail();
         let video_id = youtube_video_id();
-        let mut tracks = fav_tracks_handler;
-        let mut msg = alert_handler;
 
         spawn(async move {
-            let is_fav = tracks.read().iter().any(|t| t.id == video_id);
+            let is_fav = favorites.tracks.read().iter().any(|t| t.id == video_id);
             if !is_fav {
                 let track = YoutubeTrack {
                     id: video_id,
@@ -62,14 +56,14 @@ fn MusicCard(item: Item, index: usize) -> Element {
                     thumbnail_url,
                 };
                 if let Err(err) = db::add_to_favorite(track.clone()).await {
-                    msg.set(Some(err.to_string()));
+                    alert.message.set(Some(err.to_string()));
                 } else {
-                    tracks.write().push(track);
+                    favorites.tracks.write().push(track);
                 }
             } else if let Err(err) = db::remove_from_favorite(&video_id).await {
-                msg.set(Some(err.to_string()));
+                alert.message.set(Some(err.to_string()));
             } else {
-                tracks.write().retain(|t| t.id != video_id);
+                favorites.tracks.write().retain(|t| t.id != video_id);
             }
         });
     };

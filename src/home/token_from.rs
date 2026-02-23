@@ -9,28 +9,24 @@ use crate::core::utils::get_value_from;
 
 #[component]
 pub fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
-    let alert = use_alert();
-    let alert_message = alert.message.clone();
+    let mut alert = use_alert();
 
     let submit_token = move |evt: Event<FormData>| {
-        let mut msg = alert_message.clone();
-        
         evt.prevent_default();
 
         let token = get_value_from(evt, "token");
         if token.is_none() {
-            msg.set(Some("Please enter your youtube token".to_string()));
+            alert.message.set(Some("Please enter your youtube token".to_string()));
             return;
         }
 
         let token = token.unwrap();
-        let mut token_signal = youtube_token.clone();
-        
+
         spawn(async move {
             if let Err(err) = db::save_token(&token).await {
-                msg.set(Some(err.to_string()));
+                alert.message.set(Some(err.to_string()));
             } else {
-                token_signal.set(Some(token));
+                youtube_token.set(Some(token));
                 document::eval("token_form.close()");
             }
         });

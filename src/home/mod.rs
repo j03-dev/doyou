@@ -20,38 +20,32 @@ mod token_from;
 
 #[component]
 pub fn Home() -> Element {
-    let alert = use_alert();
-    let playback = use_playback();
-
-    let alert_message = alert.message;
+    let mut alert = use_alert();
+    let mut playback = use_playback();
 
     let mut is_loading = use_signal(|| false);
     let mut show_search = use_signal(|| false);
-    let youtube_token = use_signal(|| None::<String>);
+    let mut youtube_token = use_signal(|| None::<String>);
 
     use_effect(move || {
-        let mut token_signal = youtube_token;
-        let mut playlist = playback.playlist;
-        let mut msg_signal = alert_message;
-
         spawn(async move {
-            if token_signal().is_none() {
+            if youtube_token().is_none() {
                 match db::get_settings().await {
                     Ok(settings) => {
                         if !settings.youtube_token.is_empty() {
-                            token_signal.set(Some(settings.youtube_token));
+                            youtube_token.set(Some(settings.youtube_token));
                         }
                     }
-                    Err(err) => msg_signal.set(Some(err.to_string())),
+                    Err(err) => alert.message.set(Some(err.to_string())),
                 };
             }
 
-            if playlist.is_empty() {
-                if let Some(tok) = token_signal() {
+            if playback.playlist.is_empty() {
+                if let Some(tok) = youtube_token() {
                     is_loading.set(true);
                     match yt::data_api::home(&tok).await {
-                        Ok(videos) => playlist.set(videos.items),
-                        Err(err) => msg_signal.set(Some(err.to_string())),
+                        Ok(videos) => playback.playlist.set(videos.items),
+                        Err(err) => alert.message.set(Some(err.to_string())),
                     };
                     is_loading.set(false);
                 } else {
@@ -62,28 +56,25 @@ pub fn Home() -> Element {
     });
 
     let search = move |evt: Event<FormData>| {
-        let mut msg = alert_message;
-        msg.set(None);
+        alert.message.set(None);
 
         let search_query = get_value_from(evt, "search");
         if search_query.is_none() {
-            msg.set(Some("Please enter a search query.".to_string()));
+            alert.message.set(Some("Please enter a search query.".to_string()));
             return;
         }
 
         let token = youtube_token();
-        let mut playlist = playback.playlist;
-        let mut msg_async = alert_message;
 
         spawn(async move {
             is_loading.set(true);
             if let Some(t) = token {
                 match yt::data_api::search(&search_query.unwrap(), &t).await {
-                    Ok(videos) => playlist.set(videos.items),
-                    Err(err) => msg_async.set(Some(err.to_string())),
+                    Ok(videos) => playback.playlist.set(videos.items),
+                    Err(err) => alert.message.set(Some(err.to_string())),
                 };
             } else {
-                msg_async.set(Some("Token is not none".to_string()));
+                alert.message.set(Some("Token is not none".to_string()));
             }
             is_loading.set(false);
             show_search.set(false);

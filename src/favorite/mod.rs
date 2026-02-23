@@ -8,39 +8,27 @@ use crate::core::db;
 
 #[component]
 pub fn Favorite() -> Element {
-    let alert = use_alert();
-    let alert_message = alert.message;
-
-    let favorites = use_favorites();
-    let fav_tracks = favorites.tracks;
-    let fav_loading = favorites.is_loading;
+    let mut alert = use_alert();
+    let mut favorites = use_favorites();
 
     use_effect(move || {
-        let mut tracks = fav_tracks;
-        let mut loading = fav_loading;
-
         spawn(async move {
-            loading.set(true);
+            favorites.is_loading.set(true);
             match db::get_all_favorites().await {
-                Ok(favs) => tracks.set(favs),
+                Ok(favs) => favorites.tracks.set(favs),
                 Err(e) => {
                     dbg!(e);
                 }
             }
-            loading.set(false);
+            favorites.is_loading.set(false);
         });
     });
 
     let remove_track = move |track_id: String| {
-        let mut tracks = fav_tracks;
-        let mut msg = alert_message;
-
         spawn(async move {
             match db::remove_from_favorite(&track_id).await {
-                Ok(()) => {
-                    tracks.write().retain(|t| t.id != track_id);
-                }
-                Err(e) => msg.set(Some(e.to_string())),
+                Ok(()) => favorites.tracks.write().retain(|t| t.id != track_id),
+                Err(e) => alert.message.set(Some(e.to_string())),
             }
         });
     };
@@ -53,10 +41,11 @@ pub fn Favorite() -> Element {
             for track in favorites.tracks.read().iter() {
                 {
                     let track_id = track.id.clone();
+                    let thumbnail = track.thumbnail_url.clone();
                     rsx! {
                         div { class: "card card-sm bg-base-100 w-full max-w-sm shadow-sm",
                             figure { class: "px-5 pt-5",
-                                img { src: track.thumbnail_url.clone(), class: "rounded-xl size-full" }
+                                img { src: thumbnail, class: "rounded-xl size-full" }
                             }
                             div { class: "card-body items-start text-left",
                                 div {
