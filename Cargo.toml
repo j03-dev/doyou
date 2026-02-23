@@ -24,6 +24,7 @@ ndk-context = "0.1.1"
 jni = "0.21.1"
 rusql-alchemy = {path = "../rusql-alchemy/rusql-alchemy", features=["turso"]}
 tokio = "1.49.0"
+directories = "5"
 
 [features]
 default = ["mobile"]
