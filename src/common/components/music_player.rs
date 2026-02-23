@@ -14,7 +14,9 @@ pub fn MusicPlayer() -> Element {
         if show_full_player() {
             FullMusicPlayer { on_close_full_player: move |_| show_full_player.set(false) }
         } else {
+            div { class: "fixed bottom-10 left-0 w-full bg-base-200 shadow-inner z-50",
                 MiniMusicPlayer { on_open_full_player: move |_| show_full_player.set(true) }
+            }
         }
     }
 }
@@ -43,7 +45,7 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
     rsx! {
         div { class: "fixed inset-0 z-50 bg-base-100 flex flex-col",
             IconButton {
-                class: "absolute top-4 right-4 z-10t",
+                class: "absolute top-4 right-4 z-10",
                 on_click: on_close_full_player,
                 CloseIcon {}
             }
