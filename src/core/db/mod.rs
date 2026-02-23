@@ -19,7 +19,7 @@ async fn conn() -> &'static Connection {
             std::fs::create_dir_all(parent).unwrap();
         }
         let database = Database::new_local(&path).await.unwrap();
-        database.migrate().await.unwrap();
+        database.up().await.unwrap();
         database.conn
     })
     .await
@@ -58,7 +58,7 @@ async fn get_favorite_by(
     youtube_track_id: &str,
     conn: &Connection,
 ) -> Result<Option<Favorite>, Error> {
-    Ok(Favorite::get(kwargs!(youtube_track_id = youtube_track_id), conn).await?)
+    Favorite::get(kwargs!(youtube_track_id = youtube_track_id), conn).await
 }
 
 pub async fn get_all_favorites() -> Result<Vec<YoutubeTrack>, rusql_alchemy::Error> {

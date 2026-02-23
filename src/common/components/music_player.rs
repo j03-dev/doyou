@@ -1,20 +1,21 @@
 use dioxus::prelude::*;
 
-use crate::common::components::button::IconButton;
+use crate::common::components::button::{Button, IconButton};
 use crate::common::components::icons::{
     CloseIcon, FavoriteIcon, NextIcon, PauseIcon, PlayIcon, PrevIcon,
 };
 use crate::common::components::loading::LoadingSpinner;
+use crate::common::context::use_playback;
 use crate::core::playback::Playback;
 
 #[component]
 pub fn MusicPlayer() -> Element {
-    let mut show_full_player = use_signal(|| true);
+    let mut show_full_player = use_signal(|| false);
     rsx! {
         if show_full_player() {
             FullMusicPlayer { on_close_full_player: move |_| show_full_player.set(false) }
         } else {
-            div { class: "fixed bottom-0 left-0 w-full bg-base-200 shadow-inner z-50",
+            div { class: "fixed bottom-16 left-0 w-full bg-base-200 shadow-inner z-50",
                 MiniMusicPlayer { on_open_full_player: move |_| show_full_player.set(true) }
             }
         }
@@ -23,7 +24,7 @@ pub fn MusicPlayer() -> Element {
 
 #[component]
 fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
-    let playback = use_context::<Playback>();
+    let playback = use_playback();
 
     let playing = playback.playing.read();
 
@@ -45,7 +46,7 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
     rsx! {
         div { class: "fixed inset-0 z-50 bg-base-100 flex flex-col",
             IconButton {
-                class: "absolute top-4 right-4 z-10t",
+                class: "absolute top-4 right-4 z-10",
                 on_click: on_close_full_player,
                 CloseIcon {}
             }
@@ -70,7 +71,9 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
                                 dangerous_inner_html: artist,
                             }
                         }
-                        IconButton { FavoriteIcon {} }
+                        IconButton {
+                            FavoriteIcon { class: "fill-transparent stroke-current" }
+                        }
                     }
                     div { class: "w-full max-w-xl mx-auto",
                         ProgressBar { playback }
@@ -86,7 +89,7 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
 
 #[component]
 fn MiniMusicPlayer(on_open_full_player: EventHandler<()>) -> Element {
-    let playback = use_context::<Playback>();
+    let playback = use_playback();
 
     let playing = playback.playing.read();
 
@@ -154,8 +157,8 @@ fn MusicController(mut playback: Playback) -> Element {
                 PrevIcon {}
             }
             if !*playback.is_loading.read() {
-                IconButton {
-                    class: "btn-primary btn-xl",
+                Button {
+                    class: "btn-primary btn-circle btn-xl",
                     on_click: move |_| playback.toggle_play(),
                     if *playback.is_playing.read() {
                         PlayIcon {}
@@ -164,7 +167,7 @@ fn MusicController(mut playback: Playback) -> Element {
                     }
                 }
             } else {
-                IconButton { class: "btn-primary btn-xl", LoadingSpinner {} }
+                Button { class: "btn-primary btn-circle btn-xl", LoadingSpinner {} }
             }
             IconButton {
                 class: "btn-secondary",

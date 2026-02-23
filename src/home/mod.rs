@@ -6,25 +6,23 @@ use crate::common::components::icons::{DoYouIcon, SearchIcon};
 use crate::common::components::loading::LoadingSpinner;
 use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::common::components::text_input::TextInput;
+use crate::common::context::{use_alert, use_playback};
 use crate::core::db;
-use crate::core::playback::Playback;
 use crate::core::utils::get_value_from;
 
 use self::music_list::MusicList;
-use self::music_player::MusicPlayer;
 use self::theme_controller::ThemeController;
 use self::token_from::TokenForm;
 
 mod music_list;
-mod music_player;
 mod theme_controller;
 mod token_from;
 
 #[component]
 pub fn Home() -> Element {
-    let mut status_msg = use_context_provider(|| Signal::new(None::<String>));
+    let mut alert = use_alert();
+    let mut playback = use_playback();
 
-    let mut playback = use_context::<Playback>();
     let mut is_loading = use_signal(|| false);
     let mut show_search = use_signal(|| false);
     let mut youtube_token = use_signal(|| None::<String>);
@@ -38,16 +36,16 @@ pub fn Home() -> Element {
                             youtube_token.set(Some(settings.youtube_token));
                         }
                     }
-                    Err(err) => status_msg.set(Some(err.to_string())),
+                    Err(err) => alert.message.set(Some(err.to_string())),
                 };
             }
 
             if playback.playlist.is_empty() {
-                if let Some(token) = youtube_token() {
+                if let Some(tok) = youtube_token() {
                     is_loading.set(true);
-                    match yt::data_api::home(&token).await {
+                    match yt::data_api::home(&tok).await {
                         Ok(videos) => playback.playlist.set(videos.items),
-                        Err(err) => status_msg.set(Some(err.to_string())),
+                        Err(err) => alert.message.set(Some(err.to_string())),
                     };
                     is_loading.set(false);
                 } else {
@@ -57,30 +55,30 @@ pub fn Home() -> Element {
         });
     });
 
-    let search = move |evt: Event<FormData>| async move {
-        evt.prevent_default();
-
-        status_msg.set(None);
+    let search = move |evt: Event<FormData>| {
+        alert.message.set(None);
 
         let search_query = get_value_from(evt, "search");
         if search_query.is_none() {
-            status_msg.set(Some("Please enter a search query.".to_string()));
+            alert.message.set(Some("Please enter a search query.".to_string()));
             return;
         }
 
-        is_loading.set(true);
+        let token = youtube_token();
 
-        if let Some(token) = youtube_token() {
-            match yt::data_api::search(&search_query.unwrap(), &token).await {
-                Ok(videos) => playback.playlist.set(videos.items),
-                Err(err) => status_msg.set(Some(err.to_string())),
-            };
-        } else {
-            status_msg.set(Some("Token is not none".to_string()));
-        }
-
-        is_loading.set(false);
-        show_search.set(false);
+        spawn(async move {
+            is_loading.set(true);
+            if let Some(t) = token {
+                match yt::data_api::search(&search_query.unwrap(), &t).await {
+                    Ok(videos) => playback.playlist.set(videos.items),
+                    Err(err) => alert.message.set(Some(err.to_string())),
+                };
+            } else {
+                alert.message.set(Some("Token is not none".to_string()));
+            }
+            is_loading.set(false);
+            show_search.set(false);
+        });
     };
 
     rsx! {
@@ -106,8 +104,8 @@ pub fn Home() -> Element {
         }
 
         div { class: "m-2 pb-5",
-            if let Some(message) = status_msg() {
-                AlertMessage { message }
+            if let Some(message) = &*alert.message.read() {
+                AlertMessage { message: message.clone() }
             }
             if is_loading() {
                 div { class: "flex h-screen justify-center items-center",
@@ -119,19 +117,6 @@ pub fn Home() -> Element {
         }
 
         TokenForm { youtube_token }
-
-        div { class: "hidden",
-            audio {
-                id: playback.id,
-                onended: move |_| playback.playback_controller(1),
-                ontimeupdate: move |_| playback.update_current_time(),
-                ondurationchange: move |_| playback.update_duration(),
-            }
-        }
-
-        if playback.playing.read().is_some() {
-            MusicPlayer {}
-        }
 
     }
 }

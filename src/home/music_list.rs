@@ -3,8 +3,9 @@ use yt::data_api::types::Item;
 
 use crate::common::components::button::IconButton;
 use crate::common::components::icons::{DownloadIcon, FavoriteIcon};
-use crate::core::db::{self, models::YoutubeTrack};
-use crate::core::playback::Playback;
+use crate::common::context::{use_alert, use_favorites, use_playback};
+use crate::core::db;
+use crate::core::db::models::YoutubeTrack;
 
 #[component]
 pub fn MusicList(items: Signal<Vec<Item>>) -> Element {
@@ -19,55 +20,52 @@ pub fn MusicList(items: Signal<Vec<Item>>) -> Element {
 
 #[component]
 fn MusicCard(item: Item, index: usize) -> Element {
-    let mut favorite = use_signal(|| false);
-    let mut playback = use_context::<Playback>();
-    let mut status_msg = use_context::<Signal<Option<String>>>();
+    let mut playback = use_playback();
+    let mut alert = use_alert();
+    let mut favorites = use_favorites();
+
+    let is_playing_now =
+        use_memo(move || *playback.current_index.read() == index && *playback.is_playing.read());
 
     let is_loading =
         use_memo(move || *playback.current_index.read() == index && *playback.is_loading.read());
 
-    let is_playing_now =
-        use_memo(move || *playback.current_index.read() == index && *playback.is_playing.read());
+    let is_favorite = use_memo({
+        let item_id = item.id.as_string().unwrap();
+        move || favorites.tracks.read().iter().any(|t| t.id == item_id)
+    });
 
     let title = Signal::new(item.snippet.title);
     let artist = Signal::new(item.snippet.channel_title);
     let thumbnail = Signal::new(item.snippet.thumbnails.default.url);
     let youtube_video_id = Signal::new(item.id.as_string().unwrap());
 
-    use_effect(move || {
-        spawn(async move {
-            match db::is_favorite(&youtube_video_id()).await {
-                Ok(b) => favorite.set(b),
-                Err(err) => status_msg.set(Some(err.to_string())),
-            }
-        });
-    });
-
     let set_favorite = move |_: Event<MouseData>| {
         let title = title();
         let channel_name = artist();
         let thumbnail_url = thumbnail();
-        async move {
-            if !favorite() {
+        let video_id = youtube_video_id();
+
+        spawn(async move {
+            let is_fav = favorites.tracks.read().iter().any(|t| t.id == video_id);
+            if !is_fav {
                 let track = YoutubeTrack {
-                    id: youtube_video_id(),
+                    id: video_id,
                     title,
                     channel_name,
                     thumbnail_url,
                 };
-                if let Err(err) = db::add_to_favorite(track).await {
-                    status_msg.set(Some(err.to_string()));
+                if let Err(err) = db::add_to_favorite(track.clone()).await {
+                    alert.message.set(Some(err.to_string()));
                 } else {
-                    favorite.set(true);
+                    favorites.tracks.write().push(track);
                 }
+            } else if let Err(err) = db::remove_from_favorite(&video_id).await {
+                alert.message.set(Some(err.to_string()));
             } else {
-                if let Err(err) = db::remove_from_favorite(&youtube_video_id()).await {
-                    status_msg.set(Some(err.to_string()));
-                } else {
-                    favorite.set(false);
-                }
+                favorites.tracks.write().retain(|t| t.id != video_id);
             }
-        }
+        });
     };
 
     rsx! {
@@ -93,7 +91,7 @@ fn MusicCard(item: Item, index: usize) -> Element {
             }
             IconButton { DownloadIcon {} }
             IconButton { on_click: set_favorite,
-                FavoriteIcon { class: if favorite() { "fill-red-500 stroke-current-500" } else { "fill-transparent stroke-current" } }
+                FavoriteIcon { class: if is_favorite() { "fill-red-500 stroke-current-500" } else { "fill-transparent stroke-current" } }
             }
         }
     }
