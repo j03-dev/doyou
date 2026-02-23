@@ -57,7 +57,7 @@ pub fn FavoriteCard(track: YoutubeTrack, on_remove: Callback<String>) -> Element
             figure { class: "w-full h-40",
                 img {
                     src: track.thumbnail_url,
-                    class: "w-full h-full object-cover",
+                    class: "w-full h-full px-5 py-5 object-cover",
                     alt: "{track.title}",
                 }
             }

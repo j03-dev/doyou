@@ -1,5 +1,5 @@
 @import "tailwindcss";
 
 @plugin "daisyui" {
-  themes: black --default, lemonade --prefersdark;
+  themes: lofi --default, black --prefersdark;
 }
