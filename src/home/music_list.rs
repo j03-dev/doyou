@@ -3,10 +3,9 @@ use yt::data_api::types::Item;
 
 use crate::common::components::button::IconButton;
 use crate::common::components::icons::{DownloadIcon, FavoriteIcon};
-use crate::common::context::{use_alert, use_favorites};
+use crate::common::context::{use_alert, use_favorites, use_playback};
 use crate::core::db;
 use crate::core::db::models::YoutubeTrack;
-use crate::core::playback::Playback;
 
 #[component]
 pub fn MusicList(items: Signal<Vec<Item>>) -> Element {
@@ -21,7 +20,7 @@ pub fn MusicList(items: Signal<Vec<Item>>) -> Element {
 
 #[component]
 fn MusicCard(item: Item, index: usize) -> Element {
-    let mut playback = use_context::<Playback>();
+    let mut playback = use_playback();
     let alert = use_alert();
     let favorites = use_favorites();
 

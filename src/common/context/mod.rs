@@ -8,3 +8,4 @@ pub use playback::PlaybackProvider;
 
 pub use alert::use_alert;
 pub use favorites::use_favorites;
+pub use playback::use_playback;

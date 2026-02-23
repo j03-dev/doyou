@@ -6,9 +6,8 @@ use crate::common::components::icons::{DoYouIcon, SearchIcon};
 use crate::common::components::loading::LoadingSpinner;
 use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::common::components::text_input::TextInput;
-use crate::common::context::use_alert;
+use crate::common::context::{use_alert, use_playback};
 use crate::core::db;
-use crate::core::playback::Playback;
 use crate::core::utils::get_value_from;
 
 use self::music_list::MusicList;
@@ -22,9 +21,10 @@ mod token_from;
 #[component]
 pub fn Home() -> Element {
     let alert = use_alert();
+    let playback = use_playback();
+
     let alert_message = alert.message;
 
-    let playback = use_context::<Playback>();
     let mut is_loading = use_signal(|| false);
     let mut show_search = use_signal(|| false);
     let youtube_token = use_signal(|| None::<String>);

@@ -5,6 +5,7 @@ use crate::common::components::icons::{
     CloseIcon, FavoriteIcon, NextIcon, PauseIcon, PlayIcon, PrevIcon,
 };
 use crate::common::components::loading::LoadingSpinner;
+use crate::common::context::use_playback;
 use crate::core::playback::Playback;
 
 #[component]
@@ -23,7 +24,7 @@ pub fn MusicPlayer() -> Element {
 
 #[component]
 fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
-    let playback = use_context::<Playback>();
+    let playback = use_playback();
 
     let playing = playback.playing.read();
 
@@ -88,7 +89,7 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
 
 #[component]
 fn MiniMusicPlayer(on_open_full_player: EventHandler<()>) -> Element {
-    let playback = use_context::<Playback>();
+    let playback = use_playback();
 
     let playing = playback.playing.read();
 
