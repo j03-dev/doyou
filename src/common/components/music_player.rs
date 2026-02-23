@@ -15,7 +15,7 @@ pub fn MusicPlayer() -> Element {
         if show_full_player() {
             FullMusicPlayer { on_close_full_player: move |_| show_full_player.set(false) }
         } else {
-            div { class: "fixed bottom-10 left-0 w-full bg-base-200 shadow-inner z-50",
+            div { class: "fixed bottom-16 left-0 w-full bg-base-200 shadow-inner z-50",
                 MiniMusicPlayer { on_open_full_player: move |_| show_full_player.set(true) }
             }
         }
