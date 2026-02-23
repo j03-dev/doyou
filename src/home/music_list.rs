@@ -20,7 +20,7 @@ pub fn MusicList(items: Signal<Vec<Item>>) -> Element {
 
 #[component]
 fn MusicCard(item: Item, index: usize) -> Element {
-    let mut playback = use_playback();
+    let playback = use_playback();
     let mut alert = use_alert();
     let mut favorites = use_favorites();
 

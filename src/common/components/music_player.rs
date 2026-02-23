@@ -5,8 +5,8 @@ use crate::common::components::icons::{
     CloseIcon, FavoriteIcon, NextIcon, PauseIcon, PlayIcon, PrevIcon,
 };
 use crate::common::components::loading::LoadingSpinner;
+use crate::common::context::playback::PlaybackContext;
 use crate::common::context::use_playback;
-use crate::core::playback::Playback;
 
 #[component]
 pub fn MusicPlayer() -> Element {
@@ -148,7 +148,7 @@ fn MiniMusicPlayer(on_open_full_player: EventHandler<()>) -> Element {
 }
 
 #[component]
-fn MusicController(mut playback: Playback) -> Element {
+fn MusicController(playback: PlaybackContext) -> Element {
     rsx! {
         div { class: "flex items-center justify-center gap-6 lg:gap-10",
             IconButton {
@@ -179,7 +179,7 @@ fn MusicController(mut playback: Playback) -> Element {
 }
 
 #[component]
-fn ProgressBar(playback: Playback) -> Element {
+fn ProgressBar(playback: PlaybackContext) -> Element {
     let current_time = playback.current_time.read();
     let duration = playback.duration.read();
 

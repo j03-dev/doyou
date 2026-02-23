@@ -1,10 +1,10 @@
 use dioxus::prelude::*;
 
 use crate::common::components::alert_message::AlertMessage;
+use crate::common::components::button::Button;
 use crate::common::components::button::IconButton;
 use crate::common::components::icons::FavoriteIcon;
 use crate::common::components::icons::PlayIcon;
-use crate::common::components::button::Button;
 use crate::common::context::{use_alert, use_favorites};
 use crate::core::db;
 use crate::core::db::models::YoutubeTrack;

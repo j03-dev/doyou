@@ -6,12 +6,12 @@ use crate::{
         icons::{FavoriteIcon, HomeIcon, SettingIcon},
         music_player::MusicPlayer,
     },
-    core::playback::Playback,
+    common::context::use_playback,
 };
 
 #[component]
 pub fn Dock() -> Element {
-    let mut playback = use_context::<Playback>();
+    let playback = use_playback();
 
     rsx! {
         Outlet::<Route> {}
