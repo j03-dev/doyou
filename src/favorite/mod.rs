@@ -30,10 +30,7 @@ pub fn Favorite() -> Element {
                     rsx! {
                         div { class: "card card-sm bg-base-100 w-full max-w-sm shadow-sm",
                             figure { class: "px-5 pt-5",
-                                img {
-                                    src: track.thumbnail_url.clone(),
-                                    class: "rounded-xl size-full",
-                                }
+                                img { src: track.thumbnail_url.clone(), class: "rounded-xl size-full" }
                             }
                             div { class: "card-body items-start text-left",
                                 div {

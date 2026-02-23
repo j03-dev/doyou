@@ -11,12 +11,10 @@ use crate::core::playback::Playback;
 use crate::core::utils::get_value_from;
 
 use self::music_list::MusicList;
-use self::music_player::MusicPlayer;
 use self::theme_controller::ThemeController;
 use self::token_from::TokenForm;
 
 mod music_list;
-mod music_player;
 mod theme_controller;
 mod token_from;
 
@@ -119,19 +117,6 @@ pub fn Home() -> Element {
         }
 
         TokenForm { youtube_token }
-
-        div { class: "hidden",
-            audio {
-                id: playback.id,
-                onended: move |_| playback.playback_controller(1),
-                ontimeupdate: move |_| playback.update_current_time(),
-                ondurationchange: move |_| playback.update_duration(),
-            }
-        }
-
-        if playback.playing.read().is_some() {
-            MusicPlayer {}
-        }
 
     }
 }

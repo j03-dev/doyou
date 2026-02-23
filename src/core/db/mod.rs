@@ -19,7 +19,7 @@ async fn conn() -> &'static Connection {
             std::fs::create_dir_all(parent).unwrap();
         }
         let database = Database::new_local(&path).await.unwrap();
-        database.migrate().await.unwrap();
+        database.up().await.unwrap();
         database.conn
     })
     .await
