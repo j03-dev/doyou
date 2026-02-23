@@ -1,6 +1,6 @@
 use rusql_alchemy::prelude::*;
 
-#[derive(Debug, Clone, Model, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Model, serde::Deserialize)]
 pub struct YoutubeTrack {
     #[field(primary_key = true, size = 11)]
     pub id: String,

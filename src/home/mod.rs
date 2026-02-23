@@ -60,7 +60,9 @@ pub fn Home() -> Element {
 
         let search_query = get_value_from(evt, "search");
         if search_query.is_none() {
-            alert.message.set(Some("Please enter a search query.".to_string()));
+            alert
+                .message
+                .set(Some("Please enter a search query.".to_string()));
             return;
         }
 

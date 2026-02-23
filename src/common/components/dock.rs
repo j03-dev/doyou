@@ -24,11 +24,11 @@ pub fn Dock() -> Element {
             }
         }
         if playback.playing.read().is_some() {
-             MusicPlayer {}
+            MusicPlayer {}
         }
         div { class: "dock dock-lg",
             DockItem { route: Route::Home {}, HomeIcon {} }
-            DockItem { route: Route::Favorite {},
+            DockItem { route: Route::FavoriteList {},
                 FavoriteIcon { class: "fill-transparent stroke-current" }
             }
             DockItem { route: Route::Setting {}, SettingIcon {} }

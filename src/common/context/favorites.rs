@@ -24,5 +24,7 @@ pub fn use_favorites() -> FavoritesContext {
 #[component]
 pub fn FavoritesProvider(children: Element) -> Element {
     let _favorites = use_context_provider(FavoritesContext::new);
-    rsx! { {children} }
+    rsx! {
+        {children}
+    }
 }

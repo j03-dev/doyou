@@ -20,5 +20,7 @@ pub fn use_alert() -> AlertContext {
 #[component]
 pub fn AlertProvider(children: Element) -> Element {
     let _alert = use_context_provider(AlertContext::new);
-    rsx! { {children} }
+    rsx! {
+        {children}
+    }
 }
