@@ -4,7 +4,6 @@ use yt::data_api::types::Item;
 use crate::common::components::button::IconButton;
 use crate::common::components::icons::{DownloadIcon, FavoriteIcon};
 use crate::common::context::{use_alert, use_favorites, use_playback};
-use crate::core::db;
 use crate::core::db::models::YoutubeTrack;
 
 #[component]
@@ -22,7 +21,13 @@ pub fn MusicList(items: Signal<Vec<Item>>) -> Element {
 fn MusicCard(item: Item, index: usize) -> Element {
     let playback = use_playback();
     let mut alert = use_alert();
-    let mut favorites = use_favorites();
+    let favorites = use_favorites();
+
+    use_effect(move || {
+        if let Some(err_msg) = favorites.error.read().as_ref() {
+            alert.message.set(Some(err_msg.clone()));
+        }
+    });
 
     let is_playing_now =
         use_memo(move || *playback.current_index.read() == index && *playback.is_playing.read());
@@ -46,26 +51,18 @@ fn MusicCard(item: Item, index: usize) -> Element {
         let thumbnail_url = thumbnail();
         let video_id = youtube_video_id();
 
-        spawn(async move {
-            let is_fav = favorites.tracks.read().iter().any(|t| t.id == video_id);
-            if !is_fav {
-                let track = YoutubeTrack {
-                    id: video_id,
-                    title,
-                    channel_name,
-                    thumbnail_url,
-                };
-                if let Err(err) = db::add_to_favorite(track.clone()).await {
-                    alert.message.set(Some(err.to_string()));
-                } else {
-                    favorites.tracks.write().push(track);
-                }
-            } else if let Err(err) = db::remove_from_favorite(&video_id).await {
-                alert.message.set(Some(err.to_string()));
-            } else {
-                favorites.tracks.write().retain(|t| t.id != video_id);
-            }
-        });
+        let is_fav = favorites.tracks.read().iter().any(|t| t.id == video_id);
+        if !is_fav {
+            let track = YoutubeTrack {
+                id: video_id,
+                title,
+                channel_name,
+                thumbnail_url,
+            };
+            favorites.add(track);
+        } else {
+            favorites.remove(&video_id);
+        }
     };
 
     rsx! {

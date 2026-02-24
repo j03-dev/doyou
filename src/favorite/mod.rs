@@ -10,27 +10,23 @@ use crate::core::db::models::YoutubeTrack;
 
 #[component]
 pub fn FavoriteList() -> Element {
-    let mut alert = use_alert();
     let favorites = use_favorites();
+    let mut alert = use_alert();
 
     use_effect(move || {
-        spawn(async move {
-            let mut favorites = use_favorites();
-            favorites.is_loading.set(true);
-            if let Err(err) = favorites.fetch_all().await {
-                alert.message.set(Some(err.to_string()));
-            }
-            favorites.is_loading.set(false);
-        });
+        favorites.fetch_all();
+    });
+
+    let favorites_error = favorites.error;
+    use_effect(move || {
+        if let Some(err_msg) = favorites_error.read().as_ref() {
+            alert.message.set(Some(err_msg.clone()));
+        }
     });
 
     let remove_track = move |track_id: String| {
-        spawn(async move {
-            let mut favorites = use_favorites();
-            if let Err(err) = favorites.remove(&track_id).await {
-                alert.message.set(Some(err.to_string()));
-            }
-        });
+        let favorites = use_favorites();
+        favorites.remove(&track_id);
     };
 
     rsx! {
