@@ -3,12 +3,12 @@ use dioxus::prelude::*;
 use crate::common::components::button::{Button, IconButton};
 use crate::common::components::icons::CloseIcon;
 use crate::common::components::text_input::TextInput;
-use crate::common::context::use_alert;
-use crate::core::db;
+use crate::common::context::{use_alert, use_settings};
 use crate::core::utils::get_value_from;
 
 #[component]
-pub fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
+pub fn TokenForm() -> Element {
+    let settings = use_settings();
     let mut alert = use_alert();
 
     let submit_token = move |evt: Event<FormData>| {
@@ -22,16 +22,15 @@ pub fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
             return;
         }
 
-        let token = token.unwrap();
-
-        spawn(async move {
-            if let Err(err) = db::save_token(&token).await {
-                alert.message.set(Some(err.to_string()));
-            } else {
-                youtube_token.set(Some(token));
+        settings.save_token(token.unwrap());
+        match settings.error.read().as_ref() {
+            Some(err) => {
+                alert.message.set(Some(err.clone()));
+            }
+            None => {
                 document::eval("token_form.close()");
             }
-        });
+        }
     };
 
     rsx! {

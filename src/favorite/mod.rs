@@ -17,9 +17,8 @@ pub fn FavoriteList() -> Element {
         favorites.fetch_all();
     });
 
-    let favorites_error = favorites.error;
     use_effect(move || {
-        if let Some(err_msg) = favorites_error.read().as_ref() {
+        if let Some(err_msg) = favorites.error.read().as_ref() {
             alert.message.set(Some(err_msg.clone()));
         }
     });

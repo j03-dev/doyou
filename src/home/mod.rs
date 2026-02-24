@@ -6,8 +6,7 @@ use crate::common::components::icons::{DoYouIcon, SearchIcon};
 use crate::common::components::loading::LoadingSpinner;
 use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::common::components::text_input::TextInput;
-use crate::common::context::{use_alert, use_playback};
-use crate::core::db;
+use crate::common::context::{use_alert, use_playback, use_settings};
 use crate::core::utils::get_value_from;
 
 use self::music_list::MusicList;
@@ -22,28 +21,23 @@ mod token_from;
 pub fn Home() -> Element {
     let mut alert = use_alert();
     let mut playback = use_playback();
+    let settings = use_settings();
 
     let mut is_loading = use_signal(|| false);
     let mut show_search = use_signal(|| false);
-    let mut youtube_token = use_signal(|| None::<String>);
+
+    let youtube_token = use_memo(move || settings.general.read().youtube_token.clone());
+
+    use_effect(move || {
+        settings.load();
+    });
 
     use_effect(move || {
         spawn(async move {
-            if youtube_token().is_none() {
-                match db::get_settings().await {
-                    Ok(settings) => {
-                        if !settings.youtube_token.is_empty() {
-                            youtube_token.set(Some(settings.youtube_token));
-                        }
-                    }
-                    Err(err) => alert.message.set(Some(err.to_string())),
-                };
-            }
-
             if playback.playlist.is_empty() {
-                if let Some(tok) = youtube_token() {
+                if let Some(token) = youtube_token.as_ref() {
                     is_loading.set(true);
-                    match yt::data_api::home(&tok).await {
+                    match yt::data_api::home(&token).await {
                         Ok(videos) => playback.playlist.set(videos.items),
                         Err(err) => alert.message.set(Some(err.to_string())),
                     };
@@ -66,12 +60,10 @@ pub fn Home() -> Element {
             return;
         }
 
-        let token = youtube_token();
-
         spawn(async move {
             is_loading.set(true);
-            if let Some(t) = token {
-                match yt::data_api::search(&search_query.unwrap(), &t).await {
+            if let Some(token) = youtube_token.as_ref() {
+                match yt::data_api::search(&search_query.unwrap(), &token).await {
                     Ok(videos) => playback.playlist.set(videos.items),
                     Err(err) => alert.message.set(Some(err.to_string())),
                 };
@@ -118,7 +110,7 @@ pub fn Home() -> Element {
             }
         }
 
-        TokenForm { youtube_token }
+        TokenForm {}
 
     }
 }
