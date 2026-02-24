@@ -6,22 +6,19 @@ use crate::common::components::button::IconButton;
 use crate::common::components::icons::FavoriteIcon;
 use crate::common::components::icons::PlayIcon;
 use crate::common::context::{use_alert, use_favorites};
-use crate::core::db;
 use crate::core::db::models::YoutubeTrack;
 
 #[component]
 pub fn FavoriteList() -> Element {
     let mut alert = use_alert();
-    let mut favorites = use_favorites();
+    let favorites = use_favorites();
 
     use_effect(move || {
         spawn(async move {
+            let mut favorites = use_favorites();
             favorites.is_loading.set(true);
-            match db::get_all_favorites().await {
-                Ok(favs) => favorites.tracks.set(favs),
-                Err(e) => {
-                    dbg!(e);
-                }
+            if let Err(err) = favorites.fetch_all().await {
+                alert.message.set(Some(err.to_string()));
             }
             favorites.is_loading.set(false);
         });
@@ -29,9 +26,9 @@ pub fn FavoriteList() -> Element {
 
     let remove_track = move |track_id: String| {
         spawn(async move {
-            match db::remove_from_favorite(&track_id).await {
-                Ok(()) => favorites.tracks.write().retain(|t| t.id != track_id),
-                Err(e) => alert.message.set(Some(e.to_string())),
+            let mut favorites = use_favorites();
+            if let Err(err) = favorites.remove(&track_id).await {
+                alert.message.set(Some(err.to_string()));
             }
         });
     };
