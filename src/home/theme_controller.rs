@@ -10,15 +10,7 @@ pub fn ThemeController() -> Element {
     let settings = use_settings();
     let mut alert = use_alert();
 
-    let themes = &[
-        "Lofi",
-        "Black",
-        "Night",
-        "Halloween",
-        "Lemonade",
-        "Forest",
-        "Dracula",
-    ];
+    let themes = &["Lofi", "Black", "Night", "Forest", "Dracula"];
 
     use_effect(move || {
         if let Some(err) = settings.error.read().as_ref() {
