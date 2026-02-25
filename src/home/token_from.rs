@@ -12,9 +12,8 @@ pub fn TokenForm() -> Element {
     let mut alert = use_alert();
     let mut show_success = use_signal(|| false);
 
-    let settings_error = settings.error;
     use_effect(move || {
-        if let Some(err_msg) = settings_error.read().as_ref() {
+        if let Some(err_msg) = settings.error.read().as_ref() {
             alert.message.set(Some(err_msg.clone()));
         }
     });
