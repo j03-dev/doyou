@@ -27,31 +27,27 @@ pub fn Home() -> Element {
     let mut show_search = use_signal(|| false);
 
     use_effect(move || {
-        settings.load();
-    });
-
-    use_effect(move || {
         if let Some(err_msg) = settings.error.read().as_ref() {
             alert.message.set(Some(err_msg.clone()));
         }
     });
 
     use_effect(move || {
-        let token = settings.general.read().youtube_token.clone();
-        spawn(async move {
-            if let Some(tok) = token.as_ref() {
-                if playback.playlist.is_empty() {
-                    is_loading.set(true);
-                    match yt::data_api::home(tok).await {
+        if let Some(token) = settings.general.read().youtube_token.clone() {
+            document::eval("token_form.close()");
+            if playback.playlist.is_empty() {
+                is_loading.set(true);
+                spawn(async move {
+                    match yt::data_api::home(&token).await {
                         Ok(videos) => playback.playlist.set(videos.items),
                         Err(err) => alert.message.set(Some(err.to_string())),
                     };
-                    is_loading.set(false);
-                }
-            } else {
-                document::eval("token_form.showModal()");
+                });
+                is_loading.set(false);
             }
-        });
+        } else {
+            document::eval("token_form.showModal()");
+        }
     });
 
     let search = move |evt: Event<FormData>| {

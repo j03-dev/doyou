@@ -4,6 +4,7 @@ use dioxus::prelude::*;
 pub fn TextInput(
     #[props(default)] name: &'static str,
     #[props(default)] r#type: &'static str,
+    #[props[default]] value: String,
     #[props(default)] placeholder: &'static str,
     #[props[default]] children: Element,
 ) -> Element {
@@ -14,6 +15,7 @@ pub fn TextInput(
                 input {
                     name,
                     r#type,
+                    value,
                     class: "grow",
                     placeholder,
                 }

@@ -86,7 +86,19 @@ pub fn use_settings() -> AppSettingsContext {
 
 #[component]
 pub fn AppSettingsProvider(children: Element) -> Element {
-    use_context_provider(|| AppSettingsContext::new());
+    let settings = use_context_provider(|| AppSettingsContext::new());
+
+    use_effect(move || {
+        settings.load();
+    });
+
+    use_effect(move || {
+        document::eval(&format!(
+            "document.documentElement.setAttribute('data-theme', '{}')",
+            settings.general.read().theme,
+        ));
+    });
+
     rsx! {
         {children}
     }

@@ -10,18 +10,10 @@ use crate::core::utils::get_value_from;
 pub fn TokenForm() -> Element {
     let settings = use_settings();
     let mut alert = use_alert();
-    let mut show_success = use_signal(|| false);
 
     use_effect(move || {
         if let Some(err_msg) = settings.error.read().as_ref() {
             alert.message.set(Some(err_msg.clone()));
-        }
-    });
-
-    use_effect(move || {
-        if show_success() {
-            document::eval("token_form.close()");
-            show_success.set(false);
         }
     });
 
@@ -38,12 +30,6 @@ pub fn TokenForm() -> Element {
 
         settings.save_token(token.unwrap());
     };
-
-    use_effect(move || {
-        if settings.general.read().youtube_token.is_some() {
-            show_success.set(true);
-        }
-    });
 
     rsx! {
         dialog { id: "token_form", class: "modal",

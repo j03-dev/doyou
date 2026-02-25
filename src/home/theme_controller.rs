@@ -10,24 +10,21 @@ pub fn ThemeController() -> Element {
     let settings = use_settings();
     let mut alert = use_alert();
 
-    let themes = &["Lofi", "Black", "Night"];
+    let themes = &[
+        "Lofi",
+        "Black",
+        "Night",
+        "Halloween",
+        "Lemonade",
+        "Forest",
+        "Dracula",
+    ];
 
     use_effect(move || {
         if let Some(err) = settings.error.read().as_ref() {
             alert.message.set(Some(err.clone()));
         }
     });
-
-    use_effect(move || {
-        document::eval(&format!(
-            "document.documentElement.setAttribute('data-theme', '{}')",
-            settings.general.read().theme,
-        ));
-    });
-
-    let on_save = move |theme: String| {
-        settings.save_theme(theme);
-    };
 
     rsx! {
         div { class: "dropdown",
@@ -41,7 +38,12 @@ pub fn ThemeController() -> Element {
                 tabindex: -1,
                 class: "dropdown-content bg-base-300 rounded-box z-1 w-52 p-2 shadow-2xl",
                 for theme in themes {
-                    ThemeItem { name: theme, callback: on_save }
+                    ThemeItem {
+                        name: theme,
+                        callback: move |theme| {
+                            settings.save_theme(theme);
+                        },
+                    }
                 }
             }
         }
