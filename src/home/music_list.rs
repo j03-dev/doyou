@@ -42,7 +42,7 @@ fn MusicCard(item: Item, index: usize) -> Element {
 
     let title = item.snippet.title.clone();
     let artist = item.snippet.channel_title.clone();
-    let thumbnail = item.snippet.thumbnails.default.url.clone();
+    let thumbnail = item.snippet.thumbnails.high.url.clone();
     let video_id = item.id.as_string().unwrap();
 
     let set_favorite_title = title.clone();

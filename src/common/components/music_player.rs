@@ -30,7 +30,7 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
 
     let thumbnail = playing
         .as_ref()
-        .map(|i| i.snippet.thumbnails.default.url.clone())
+        .map(|i| i.snippet.thumbnails.high.url.clone())
         .unwrap_or_default();
 
     let title = playing
@@ -95,7 +95,7 @@ fn MiniMusicPlayer(on_open_full_player: EventHandler<()>) -> Element {
 
     let thumbnail = playing
         .as_ref()
-        .map(|i| i.snippet.thumbnails.default.url.clone())
+        .map(|i| i.snippet.thumbnails.high.url.clone())
         .unwrap_or_default();
 
     let title = playing

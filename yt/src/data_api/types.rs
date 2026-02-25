@@ -38,7 +38,7 @@ pub struct Thumb {
 
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 pub struct Thumbnails {
-    pub default: Thumb,
+    pub high: Thumb,
 }
 
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
