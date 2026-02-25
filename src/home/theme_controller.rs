@@ -20,7 +20,7 @@ pub fn ThemeController() -> Element {
 
     use_effect(move || {
         document::eval(&format!(
-            "document.documentElement.setAttribute({})",
+            "document.documentElement.setAttribute('data-theme', '{}')",
             settings.general.read().theme,
         ));
     });
