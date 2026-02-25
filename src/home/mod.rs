@@ -26,8 +26,6 @@ pub fn Home() -> Element {
     let mut is_loading = use_signal(|| false);
     let mut show_search = use_signal(|| false);
 
-    let youtube_token = use_memo(move || settings.general.read().youtube_token.clone());
-
     use_effect(move || {
         settings.load();
     });
@@ -39,18 +37,19 @@ pub fn Home() -> Element {
     });
 
     use_effect(move || {
+        let token = settings.general.read().youtube_token.clone();
         spawn(async move {
-            if playback.playlist.is_empty() {
-                if let Some(token) = youtube_token.as_ref() {
+            if let Some(tok) = token.as_ref() {
+                if playback.playlist.is_empty() {
                     is_loading.set(true);
-                    match yt::data_api::home(&token).await {
+                    match yt::data_api::home(tok).await {
                         Ok(videos) => playback.playlist.set(videos.items),
                         Err(err) => alert.message.set(Some(err.to_string())),
                     };
                     is_loading.set(false);
-                } else {
-                    document::eval("token_form.showModal()");
                 }
+            } else {
+                document::eval("token_form.showModal()");
             }
         });
     });
@@ -68,13 +67,13 @@ pub fn Home() -> Element {
 
         spawn(async move {
             is_loading.set(true);
-            if let Some(token) = youtube_token.as_ref() {
-                match yt::data_api::search(&search_query.unwrap(), &token).await {
+            if let Some(token) = settings.general.read().youtube_token.as_ref() {
+                match yt::data_api::search(&search_query.unwrap(), token).await {
                     Ok(videos) => playback.playlist.set(videos.items),
                     Err(err) => alert.message.set(Some(err.to_string())),
                 };
             } else {
-                alert.message.set(Some("Token is not none".to_string()));
+                alert.message.set(Some("Token is not set".to_string()));
             }
             is_loading.set(false);
             show_search.set(false);

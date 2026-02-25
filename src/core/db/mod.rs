@@ -76,6 +76,14 @@ pub async fn save_token(token: &str) -> Result<(), Error> {
     Ok(())
 }
 
+pub async fn save_theme(theme: &str) -> Result<(), Error> {
+    let conn = conn().await?;
+    let mut settings = get_settings().await?;
+    settings.theme = theme.to_string();
+    settings.update(conn).await?;
+    Ok(())
+}
+
 pub async fn get_settings() -> Result<AppSettings, Error> {
     let conn = conn().await?;
     let get_app_setting = || async { AppSettings::get(kwargs!(id = 0), conn).await };

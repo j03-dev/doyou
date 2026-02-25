@@ -19,6 +19,24 @@ impl AppSettingsContext {
         }
     }
 
+    pub fn save_theme(&self, theme: String) {
+        let mut is_loading = self.is_loading;
+        let mut error = self.error;
+        let mut general = self.general;
+
+        is_loading.set(true);
+        error.set(None);
+
+        spawn(async move {
+            match db::save_theme(&theme).await {
+                Ok(()) => {
+                    general.write().theme = theme;
+                }
+                Err(err) => error.set(Some(err.to_string())),
+            }
+        });
+    }
+
     pub fn load(&self) {
         let mut is_loading = self.is_loading;
         let mut error = self.error;
