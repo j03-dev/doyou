@@ -29,11 +29,33 @@ fn MusicCard(item: Item, index: usize) -> Element {
         }
     });
 
-    let is_playing_now =
-        use_memo(move || *playback.current_index.read() == index && *playback.is_playing.read());
+    let item_id = item.id.as_string().unwrap();
 
-    let is_loading =
-        use_memo(move || *playback.current_index.read() == index && *playback.is_loading.read());
+    let is_playing_now = use_memo({
+        let item_id = item_id.clone();
+        move || {
+            playback
+                .playing
+                .read()
+                .as_ref()
+                .map(|i| i.id.as_string().unwrap())
+                == Some(item_id.clone())
+                && *playback.is_playing.read()
+        }
+    });
+
+    let is_loading = use_memo({
+        let item_id = item_id.clone();
+        move || {
+            playback
+                .playing
+                .read()
+                .as_ref()
+                .map(|i| i.id.as_string().unwrap())
+                == Some(item_id.clone())
+                && *playback.is_loading.read()
+        }
+    });
 
     let is_favorite = use_memo({
         let item_id = item.id.as_string().unwrap();

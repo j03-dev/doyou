@@ -9,6 +9,7 @@ pub struct PlaybackContext {
     pub is_playing: Signal<bool>,
     pub playing: Signal<Option<Item>>,
     pub playlist: Signal<Vec<Item>>,
+    pub queue: Signal<Vec<Item>>,
     pub current_index: Signal<usize>,
     pub is_loading: Signal<bool>,
     pub current_time: Signal<f64>,
@@ -23,6 +24,7 @@ impl PlaybackContext {
             is_playing: Signal::new(false),
             playing: Signal::new(None),
             playlist: Signal::new(Vec::new()),
+            queue: Signal::new(Vec::new()),
             current_index: Signal::new(0),
             is_loading: Signal::new(false),
             current_time: Signal::new(0.0),
@@ -32,10 +34,13 @@ impl PlaybackContext {
     }
 
     pub fn start(&self, index: usize) {
-        let item = match self.playlist.read().get(index).cloned() {
+        let queue = self.queue.read();
+        let item = match queue.get(index).cloned() {
             Some(item) => item,
             _ => return,
         };
+
+        drop(queue);
 
         let id = self.id;
         let mut is_playing = self.is_playing;
@@ -118,7 +123,7 @@ impl PlaybackContext {
     }
 
     pub fn playback_controller(&self, delta: isize) {
-        let len = self.playlist.read().len();
+        let len = self.queue.read().len();
         if len == 0 {
             return;
         }
