@@ -25,6 +25,7 @@ pub fn Home() -> Element {
 
     let mut is_loading = use_signal(|| false);
     let mut show_search = use_signal(|| false);
+    let mut music_list = use_signal(|| Vec::new());
 
     use_effect(move || {
         if let Some(err_msg) = settings.error.read().as_ref() {
@@ -35,11 +36,14 @@ pub fn Home() -> Element {
     use_effect(move || {
         if let Some(token) = settings.general.read().youtube_token.clone() {
             document::eval("token_form.close()");
-            if playback.playlist.is_empty() {
+            if music_list.is_empty() {
                 is_loading.set(true);
                 spawn(async move {
                     match yt::data_api::home(&token).await {
-                        Ok(videos) => playback.playlist.set(videos.items),
+                        Ok(videos) => {
+                            music_list.set(videos.items.clone());
+                            playback.playlist.set(videos.items);
+                        }
                         Err(err) => alert.message.set(Some(err.to_string())),
                     };
                 });
@@ -107,7 +111,7 @@ pub fn Home() -> Element {
                     LoadingSpinner { size: 20 }
                 }
             } else {
-                MusicList { items: playback.playlist }
+                MusicList { items: music_list }
             }
         }
 
