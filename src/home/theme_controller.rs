@@ -41,7 +41,7 @@ pub fn ThemeController() -> Element {
                 tabindex: -1,
                 class: "dropdown-content bg-base-300 rounded-box z-1 w-52 p-2 shadow-2xl",
                 for theme in themes {
-                    ThemeItem { name: theme , callback: on_save}
+                    ThemeItem { name: theme, callback: on_save }
                 }
             }
         }

@@ -10,7 +10,7 @@ use crate::core::db::models::YoutubeTrack;
 pub fn MusicList(items: Signal<Vec<Item>>) -> Element {
     rsx! {
         ul { class: "list bg-base-100 rounded-box shadow-md",
-            for (index, item) in items.read().iter().enumerate() {
+            for (index , item) in items.read().iter().enumerate() {
                 MusicCard { item: item.clone(), index }
             }
         }
