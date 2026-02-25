@@ -71,7 +71,15 @@ pub async fn get_all_favorites() -> Result<Vec<YoutubeTrack>, rusql_alchemy::Err
 pub async fn save_token(token: &str) -> Result<(), Error> {
     let conn = conn().await?;
     let mut settings = get_settings().await?;
-    settings.youtube_token = token.to_string();
+    settings.youtube_token = Some(token.to_string());
+    settings.update(conn).await?;
+    Ok(())
+}
+
+pub async fn save_theme(theme: &str) -> Result<(), Error> {
+    let conn = conn().await?;
+    let mut settings = get_settings().await?;
+    settings.theme = theme.to_string();
     settings.update(conn).await?;
     Ok(())
 }

@@ -3,13 +3,28 @@ use dioxus::prelude::*;
 use crate::common::components::button::{Button, IconButton};
 use crate::common::components::icons::CloseIcon;
 use crate::common::components::text_input::TextInput;
-use crate::common::context::use_alert;
-use crate::core::db;
+use crate::common::context::{use_alert, use_settings};
 use crate::core::utils::get_value_from;
 
 #[component]
-pub fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
+pub fn TokenForm() -> Element {
+    let settings = use_settings();
     let mut alert = use_alert();
+    let mut show_success = use_signal(|| false);
+
+    let settings_error = settings.error;
+    use_effect(move || {
+        if let Some(err_msg) = settings_error.read().as_ref() {
+            alert.message.set(Some(err_msg.clone()));
+        }
+    });
+
+    use_effect(move || {
+        if show_success() {
+            document::eval("token_form.close()");
+            show_success.set(false);
+        }
+    });
 
     let submit_token = move |evt: Event<FormData>| {
         evt.prevent_default();
@@ -22,17 +37,14 @@ pub fn TokenForm(mut youtube_token: Signal<Option<String>>) -> Element {
             return;
         }
 
-        let token = token.unwrap();
-
-        spawn(async move {
-            if let Err(err) = db::save_token(&token).await {
-                alert.message.set(Some(err.to_string()));
-            } else {
-                youtube_token.set(Some(token));
-                document::eval("token_form.close()");
-            }
-        });
+        settings.save_token(token.unwrap());
     };
+
+    use_effect(move || {
+        if settings.general.read().youtube_token.is_some() {
+            show_success.set(true);
+        }
+    });
 
     rsx! {
         dialog { id: "token_form", class: "modal",

@@ -25,5 +25,7 @@ pub struct AppSettings {
     #[field(primary_key = true)]
     pub id: Integer, // always = 0
     #[field(size = 255)]
-    pub youtube_token: String,
+    pub youtube_token: Option<String>,
+    #[field(size = 50, default = "Lofi")]
+    pub theme: String,
 }
