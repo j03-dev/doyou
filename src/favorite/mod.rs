@@ -62,8 +62,13 @@ pub fn FavoriteList() -> Element {
             AlertMessage { message: message.clone() }
         }
         div { class: "grid grid-cols-1 md:grid-cols-4 gap-4 p-4",
-            for (index, track) in favorites.tracks.read().iter().enumerate() {
-                FavoriteCard { track: track.clone(), on_remove: remove_track, index, on_play: play_track }
+            for (index , track) in favorites.tracks.read().iter().enumerate() {
+                FavoriteCard {
+                    track: track.clone(),
+                    on_remove: remove_track,
+                    index,
+                    on_play: play_track,
+                }
             }
         }
     }
@@ -134,8 +139,7 @@ pub fn FavoriteCard(
                         IconButton { on_click: move |_| on_remove.call(track_id.clone()),
                             FavoriteIcon { class: "w-5 h-5 fill-error stroke-error" }
                         }
-                        IconButton {
-                            on_click: move |_| on_play.call(index),
+                        IconButton { on_click: move |_| on_play.call(index),
                             if is_playing_now() {
                                 PauseIcon { class: "w-5 h-5" }
                             } else {
