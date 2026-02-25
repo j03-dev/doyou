@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use crate::core::db;
 use crate::core::db::models::AppSettings;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct AppSettingsContext {
     pub general: Signal<AppSettings>,
     pub error: Signal<Option<String>>,

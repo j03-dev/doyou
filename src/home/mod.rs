@@ -33,6 +33,12 @@ pub fn Home() -> Element {
     });
 
     use_effect(move || {
+        if let Some(err_msg) = settings.error.read().as_ref() {
+            alert.message.set(Some(err_msg.clone()));
+        }
+    });
+
+    use_effect(move || {
         spawn(async move {
             if playback.playlist.is_empty() {
                 if let Some(token) = youtube_token.as_ref() {

@@ -13,6 +13,7 @@ pub struct PlaybackContext {
     pub is_loading: Signal<bool>,
     pub current_time: Signal<f64>,
     pub duration: Signal<f64>,
+    pub error: Signal<Option<String>>,
 }
 
 impl PlaybackContext {
@@ -26,6 +27,7 @@ impl PlaybackContext {
             is_loading: Signal::new(false),
             current_time: Signal::new(0.0),
             duration: Signal::new(0.0),
+            error: Signal::new(None),
         }
     }
 
@@ -40,8 +42,10 @@ impl PlaybackContext {
         let mut playing = self.playing;
         let mut current_index = self.current_index;
         let mut is_loading = self.is_loading;
+        let mut error = self.error;
 
         is_playing.set(true);
+        error.set(None);
 
         spawn(async move {
             current_index.set(index);
@@ -63,7 +67,8 @@ impl PlaybackContext {
                         id, src
                     ));
                 }
-                Err(_e) => {
+                Err(e) => {
+                    error.set(Some(format!("Failed to get audio: {}", e)));
                     is_playing.set(false);
                     let _ = document::eval(&format!(
                         r#"
