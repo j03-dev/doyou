@@ -44,7 +44,6 @@ pub struct Thumbnails {
 #[derive(Deserialize, Serialize, PartialEq, Clone, Debug)]
 pub struct Snippet {
     pub title: String,
-    pub description: String,
     #[serde(rename = "channelTitle")]
     pub channel_title: String,
     pub thumbnails: Thumbnails,
