@@ -18,6 +18,7 @@ use crate::core::db::models::YoutubeTrack;
 pub fn FavoriteList() -> Element {
     let favorites = use_favorites();
     let mut alert = use_alert();
+    let mut playback = use_playback();
 
     use_effect(move || {
         favorites.fetch_all();
@@ -30,14 +31,10 @@ pub fn FavoriteList() -> Element {
     });
 
     let remove_track = move |track_id: String| {
-        let favorites = use_favorites();
         favorites.remove(&track_id);
     };
 
     let play_track = move |index: usize| {
-        let favorites = use_favorites();
-        let mut playback = use_playback();
-
         let items: Vec<Item> = favorites
             .tracks
             .read()
@@ -46,7 +43,6 @@ pub fn FavoriteList() -> Element {
                 id: VideoId::Literal(t.id.clone()),
                 snippet: Snippet {
                     title: t.title.clone(),
-                    description: String::new(),
                     channel_title: t.channel_name.clone(),
                     thumbnails: Thumbnails {
                         high: Thumb {
