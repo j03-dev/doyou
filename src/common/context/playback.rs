@@ -74,6 +74,7 @@ impl PlaybackContext {
             current_index.set(index);
             error.set(None);
             playing.set(Some(item.clone()));
+            is_playing.set(true);
             is_loading.set(true);
 
             match YouTubeExtractor::default()
