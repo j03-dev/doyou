@@ -2,12 +2,12 @@
 
 <table>
   <tr>
-    <td><img src="min_player_dark.png" alt="DoYou Minimized Player - Dark Mode"></td>
-    <td><img src="full_player_dark.png" alt="DoYou Full Player - Dark Mode"></td>
+    <td><img src="images/min_player_dark.png" alt="DoYou Minimized Player - Dark Mode"></td>
+    <td><img src="images/full_player_dark.png" alt="DoYou Full Player - Dark Mode"></td>
   </tr>
   <tr>
-    <td><img src="min_player_light.png" alt="DoYou Minimized Player - Light Mode"></td>
-    <td><img src="full_player_light.png" alt="DoYou Full Player - Light Mode"></td>
+    <td><img src="images/min_player_light.png" alt="DoYou Minimized Player - Light Mode"></td>
+    <td><img src="images/full_player_light.png" alt="DoYou Full Player - Light Mode"></td>
   </tr>
 </table>
 
