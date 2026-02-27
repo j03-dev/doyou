@@ -4,27 +4,26 @@ use crate::common::components::alert_message::AlertMessage;
 use crate::common::components::button::IconButton;
 use crate::common::components::icons::{DoYouIcon, SearchIcon};
 use crate::common::components::loading::LoadingSpinner;
+use crate::common::components::music_list::MusicList;
 use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::common::components::text_input::TextInput;
 use crate::common::context::{use_alert, use_playback, use_settings};
 use crate::core::utils::get_value_from;
 
-use self::music_list::MusicList;
 use self::theme_controller::ThemeController;
 use self::token_from::TokenForm;
 
-mod music_list;
 mod theme_controller;
 mod token_from;
 
 #[component]
 pub fn Home() -> Element {
     let mut alert = use_alert();
-    let mut playback = use_playback();
     let settings = use_settings();
 
     let mut is_loading = use_signal(|| false);
     let mut show_search = use_signal(|| false);
+    let mut music_list = use_signal(|| Vec::new());
 
     use_effect(move || {
         if let Some(err_msg) = settings.error.read().as_ref() {
@@ -41,7 +40,7 @@ pub fn Home() -> Element {
             }
         };
 
-        if !playback.playlist.read().is_empty() {
+        if !music_list().is_empty() {
             return;
         }
 
@@ -50,10 +49,7 @@ pub fn Home() -> Element {
 
         spawn(async move {
             match yt::data_api::home(&token).await {
-                Ok(videos) => {
-                    playback.playlist.set(videos.items.clone());
-                    playback.queue.set(videos.items);
-                }
+                Ok(videos) => music_list.set(videos.items),
                 Err(err) => alert.message.set(Some(err.to_string())),
             }
             is_loading.set(false);
@@ -77,7 +73,7 @@ pub fn Home() -> Element {
             if let Some(token) = settings.general.read().youtube_token.as_ref() {
                 match yt::data_api::search(&search_query.unwrap(), token).await {
                     Ok(videos) => {
-                        playback.playlist.set(videos.items.clone());
+                        playback.queue.set(videos.items.clone());
                         playback.queue.set(videos.items);
                     }
                     Err(err) => alert.message.set(Some(err.to_string())),
@@ -121,7 +117,7 @@ pub fn Home() -> Element {
                     LoadingSpinner { size: 20 }
                 }
             } else {
-                MusicList { items: playback.playlist }
+                MusicList { items: music_list() }
             }
         }
 
