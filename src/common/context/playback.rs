@@ -3,12 +3,37 @@ use dioxus::prelude::*;
 use yt::data_api::types::Item;
 use yt::extractor::YouTubeExtractor;
 
+use crate::common::components::music_player::MusicPlayer;
+
+#[component]
+pub fn PlaybackProvider(children: Element) -> Element {
+    let playback = use_context_provider(|| PlaybackContext::new("audio"));
+
+    rsx! {
+        {children}
+        div { class: "hidden",
+            audio {
+                id: playback.id,
+                onended: move |_| playback.playback_controller(1),
+                ontimeupdate: move |_| playback.update_current_time(),
+                ondurationchange: move |_| playback.update_duration(),
+            }
+        }
+        if playback.playing.read().is_some() {
+            MusicPlayer {}
+        }
+    }
+}
+
+pub fn use_playback() -> PlaybackContext {
+    use_context::<PlaybackContext>()
+}
+
 #[derive(Clone, Copy, PartialEq)]
 pub struct PlaybackContext {
     pub id: &'static str,
     pub is_playing: Signal<bool>,
     pub playing: Signal<Option<Item>>,
-    pub playlist: Signal<Vec<Item>>,
     pub queue: Signal<Vec<Item>>,
     pub current_index: Signal<usize>,
     pub is_loading: Signal<bool>,
@@ -23,7 +48,6 @@ impl PlaybackContext {
             id,
             is_playing: Signal::new(false),
             playing: Signal::new(None),
-            playlist: Signal::new(Vec::new()),
             queue: Signal::new(Vec::new()),
             current_index: Signal::new(0),
             is_loading: Signal::new(false),
@@ -34,13 +58,10 @@ impl PlaybackContext {
     }
 
     pub fn start(&self, index: usize) {
-        let queue = self.queue.read();
-        let item = match queue.get(index).cloned() {
+        let item = match self.queue.read().get(index).cloned() {
             Some(item) => item,
             _ => return,
         };
-
-        drop(queue);
 
         let id = self.id;
         let mut is_playing = self.is_playing;
@@ -49,18 +70,17 @@ impl PlaybackContext {
         let mut is_loading = self.is_loading;
         let mut error = self.error;
 
-        is_playing.set(true);
-        error.set(None);
-
         spawn(async move {
             current_index.set(index);
+            error.set(None);
+            playing.set(Some(item.clone()));
             is_loading.set(true);
+
             match YouTubeExtractor::default()
                 .get_best_audio_url(&item.id.as_string().unwrap())
                 .await
             {
                 Ok(src) => {
-                    playing.set(Some(item));
                     let _ = document::eval(&format!(
                         r#"
                            let audio = document.getElementById('{}')
@@ -169,17 +189,5 @@ impl PlaybackContext {
                 duration.set(len);
             }
         });
-    }
-}
-
-pub fn use_playback() -> PlaybackContext {
-    use_context::<PlaybackContext>()
-}
-
-#[component]
-pub fn PlaybackProvider(children: Element) -> Element {
-    let _playback = use_context_provider(|| PlaybackContext::new("audio"));
-    rsx! {
-        {children}
     }
 }
