@@ -3,6 +3,30 @@ use dioxus::prelude::*;
 use crate::core::db;
 use crate::core::db::models::AppSettings;
 
+#[component]
+pub fn AppSettingsProvider(children: Element) -> Element {
+    let settings = use_context_provider(|| AppSettingsContext::new());
+
+    use_effect(move || {
+        settings.load();
+    });
+
+    use_effect(move || {
+        document::eval(&format!(
+            "document.documentElement.setAttribute('data-theme', '{}')",
+            settings.general.read().theme,
+        ));
+    });
+
+    rsx! {
+        {children}
+    }
+}
+
+pub fn use_settings() -> AppSettingsContext {
+    use_context::<AppSettingsContext>()
+}
+
 #[derive(Clone, Copy)]
 pub struct AppSettingsContext {
     pub general: Signal<AppSettings>,
@@ -77,29 +101,5 @@ impl AppSettingsContext {
             }
             is_loading.set(false);
         });
-    }
-}
-
-pub fn use_settings() -> AppSettingsContext {
-    use_context::<AppSettingsContext>()
-}
-
-#[component]
-pub fn AppSettingsProvider(children: Element) -> Element {
-    let settings = use_context_provider(|| AppSettingsContext::new());
-
-    use_effect(move || {
-        settings.load();
-    });
-
-    use_effect(move || {
-        document::eval(&format!(
-            "document.documentElement.setAttribute('data-theme', '{}')",
-            settings.general.read().theme,
-        ));
-    });
-
-    rsx! {
-        {children}
     }
 }

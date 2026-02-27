@@ -3,6 +3,18 @@ use dioxus::prelude::*;
 use crate::core::db;
 use crate::core::db::models::YoutubeTrack;
 
+#[component]
+pub fn FavoritesProvider(children: Element) -> Element {
+    use_context_provider(FavoritesContext::new);
+    rsx! {
+        {children}
+    }
+}
+
+pub fn use_favorites() -> FavoritesContext {
+    use_context::<FavoritesContext>()
+}
+
 #[derive(Clone, Copy)]
 pub struct FavoritesContext {
     pub tracks: Signal<Vec<YoutubeTrack>>,
@@ -81,17 +93,5 @@ impl FavoritesContext {
             };
             is_loading.set(false);
         });
-    }
-}
-
-pub fn use_favorites() -> FavoritesContext {
-    use_context::<FavoritesContext>()
-}
-
-#[component]
-pub fn FavoritesProvider(children: Element) -> Element {
-    let _favorites = use_context_provider(FavoritesContext::new);
-    rsx! {
-        {children}
     }
 }
