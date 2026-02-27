@@ -7,10 +7,13 @@ use crate::common::context::{use_alert, use_favorites, use_playback};
 use crate::core::db::models::YoutubeTrack;
 
 #[component]
-pub fn MusicList(items: Signal<Vec<Item>>) -> Element {
+pub fn MusicList(items: Vec<Item>) -> Element {
+    let mut playback = use_playback();
+    playback.queue.set(items.clone());
+
     rsx! {
         ul { class: "list bg-base-100 rounded-box shadow-md",
-            for (index , item) in items.read().iter().enumerate() {
+            for (index , item) in items.iter().enumerate() {
                 MusicCard { item: item.clone(), index }
             }
         }
@@ -58,37 +61,34 @@ fn MusicCard(item: Item, index: usize) -> Element {
     });
 
     let is_favorite = use_memo({
-        let item_id = item.id.as_string().unwrap();
+        let item_id = item_id.clone();
         move || favorites.tracks.read().iter().any(|t| t.id == item_id)
     });
 
+    let item_id = item_id.clone();
     let title = item.snippet.title.clone();
     let artist = item.snippet.channel_title.clone();
     let thumbnail = item.snippet.thumbnails.high.url.clone();
-    let video_id = item.id.as_string().unwrap();
 
-    let set_favorite_title = title.clone();
-    let set_favorite_artist = artist.clone();
-    let set_favorite_thumbnail = thumbnail.clone();
-    let set_favorite_video_id = video_id.clone();
-
-    let set_favorite = move |_: Event<MouseData>| {
-        let favorites = use_favorites();
-        let is_fav = favorites
-            .tracks
-            .read()
-            .iter()
-            .any(|t| t.id == set_favorite_video_id);
-        if !is_fav {
-            let track = YoutubeTrack {
-                id: set_favorite_video_id.clone(),
-                title: set_favorite_title.clone(),
-                channel_name: set_favorite_artist.clone(),
-                thumbnail_url: set_favorite_thumbnail.clone(),
-            };
-            favorites.add(track);
-        } else {
-            favorites.remove(&set_favorite_video_id);
+    let set_favorite = {
+        let title = title.clone();
+        let artist = artist.clone();
+        let thumbnail = thumbnail.clone();
+        let video_id = item_id.clone();
+        move |_: Event<MouseData>| {
+            let favorites = use_favorites();
+            let is_fav = favorites.tracks.read().iter().any(|t| t.id == video_id);
+            if !is_fav {
+                let track = YoutubeTrack {
+                    id: video_id.clone(),
+                    title: title.clone(),
+                    channel_name: artist.clone(),
+                    thumbnail_url: thumbnail.clone(),
+                };
+                favorites.add(track);
+            } else {
+                favorites.remove(&video_id);
+            }
         }
     };
 
