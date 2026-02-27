@@ -4,7 +4,7 @@ use crate::common::components::dock::Dock;
 use crate::common::context::{
     AlertProvider, AppSettingsProvider, FavoritesProvider, PlaybackProvider,
 };
-use crate::favorite::FavoriteList;
+use crate::favorite::Favorite;
 use crate::home::Home;
 use crate::setting::Setting;
 
@@ -48,14 +48,14 @@ pub fn App() -> Element {
     }
 }
 
-#[derive(Routable, Clone, PartialEq)]
-enum Route {
+#[derive(Routable, PartialEq, Clone)]
+pub enum Route {
     #[layout(Dock)]
     #[route("/")]
     Home {},
 
     #[route("/favorite")]
-    FavoriteList {},
+    Favorite {},
 
     #[route("/setting")]
     Setting {},
