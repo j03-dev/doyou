@@ -5,28 +5,19 @@ use yt::data_api::types::Thumb;
 use yt::data_api::types::Thumbnails;
 use yt::data_api::types::VideoId;
 
-use crate::common::components::alert_message::AlertMessage;
 use crate::common::components::music_list::MusicList;
-use crate::common::context::{use_alert, use_favorites};
+use crate::common::context::use_favorites;
 
 #[component]
 pub fn Favorite() -> Element {
     let favorites = use_favorites();
-    let mut alert = use_alert();
-    let mut favorite_list = use_signal(|| Vec::new());
 
     use_effect(move || {
         favorites.fetch_all();
     });
 
-    use_effect(move || {
-        if let Some(err_msg) = favorites.error.read().as_ref() {
-            alert.message.set(Some(err_msg.clone()));
-        }
-    });
-
-    use_effect(move || {
-        let items: Vec<Item> = favorites
+    let items = use_memo(move || {
+        favorites
             .tracks
             .read()
             .iter()
@@ -42,16 +33,12 @@ pub fn Favorite() -> Element {
                     },
                 },
             })
-            .collect();
-        favorite_list.set(items);
+            .collect::<Vec<Item>>()
     });
 
     rsx! {
         div { class: "m-5",
-            if let Some(message) = &*alert.message.read() {
-                AlertMessage { message: message.clone() }
-            }
-            MusicList { items: favorite_list() }
+            MusicList { items: items.read().clone()}
         }
     }
 }

@@ -1,4 +1,3 @@
-pub mod alert_message;
 pub mod button;
 pub mod dock;
 pub mod icons;

@@ -3,31 +3,16 @@ use dioxus::prelude::*;
 use crate::common::components::button::{Button, IconButton};
 use crate::common::components::icons::CloseIcon;
 use crate::common::components::text_input::TextInput;
-use crate::common::context::{use_alert, use_settings};
+use crate::common::context::use_settings;
 use crate::core::utils::get_value_from;
 
 #[component]
 pub fn TokenForm() -> Element {
     let settings = use_settings();
-    let mut alert = use_alert();
-
-    use_effect(move || {
-        if let Some(err_msg) = settings.error.read().as_ref() {
-            alert.message.set(Some(err_msg.clone()));
-        }
-    });
 
     let submit_token = move |evt: Event<FormData>| {
         evt.prevent_default();
-
         let token = get_value_from(evt, "token");
-        if token.is_none() {
-            alert
-                .message
-                .set(Some("Please enter your youtube token".to_string()));
-            return;
-        }
-
         settings.save_token(token.unwrap());
     };
 

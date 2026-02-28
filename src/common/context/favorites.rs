@@ -15,7 +15,7 @@ pub fn use_favorites() -> FavoritesContext {
     use_context::<FavoritesContext>()
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct FavoritesContext {
     pub tracks: Signal<Vec<YoutubeTrack>>,
     pub is_loading: Signal<bool>,

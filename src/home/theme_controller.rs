@@ -1,22 +1,11 @@
 use dioxus::prelude::*;
 
-use crate::common::{
-    components::icons::BurgerIcon,
-    context::{use_alert, use_settings},
-};
+use crate::common::{components::icons::BurgerIcon, context::use_settings};
 
 #[component]
 pub fn ThemeController() -> Element {
     let settings = use_settings();
-    let mut alert = use_alert();
-
     let themes = &["Lofi", "Black", "Night", "Forest", "Dracula"];
-
-    use_effect(move || {
-        if let Some(err) = settings.error.read().as_ref() {
-            alert.message.set(Some(err.clone()));
-        }
-    });
 
     rsx! {
         div { class: "dropdown",
