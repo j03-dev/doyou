@@ -151,8 +151,8 @@ fn MiniMusicPlayer(on_open_full_player: EventHandler<()>) -> Element {
 fn MusicController(playback: PlaybackContext) -> Element {
     rsx! {
         div { class: "flex items-center justify-center gap-6 lg:gap-10",
-            ButtonGhost {
-                class: "btn-secondary",
+            button {
+                class: "btn btn-ghosty btn-circle btn-secondary",
                 onclick: move |_| playback.playback_controller(-1),
                 PrevIcon {}
             }
@@ -169,8 +169,8 @@ fn MusicController(playback: PlaybackContext) -> Element {
             } else {
                 button { class: "btn btn-primary btn-circle btn-xl", LoadingSpinner {} }
             }
-            ButtonGhost {
-                class: "btn-secondary",
+            button {
+                class: "btn btn-ghosty btn-circle btn-secondary",
                 onclick: move |_| playback.playback_controller(1),
                 NextIcon {}
             }

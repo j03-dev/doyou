@@ -1,4 +1,5 @@
 use dioxus::prelude::*;
+use yt::data_api::types::Item;
 
 use crate::common::components::alert::{Alert, AlertLevel, AlertProps};
 use crate::common::components::button::ButtonGhost;
@@ -10,11 +11,7 @@ use crate::common::components::text_input::TextInput;
 use crate::common::context::use_settings;
 use crate::core::utils::get_value_from;
 
-#[derive(Clone, PartialEq)]
-enum SearchMode {
-    Home,
-    Search(String),
-}
+static ITEMS: GlobalSignal<Vec<Item>> = Signal::global(|| Vec::new());
 
 #[component]
 pub fn Home() -> Element {
@@ -22,13 +19,32 @@ pub fn Home() -> Element {
 
     let mut is_loading = use_signal(|| false);
     let mut show_search = use_signal(|| false);
-    let mut search_mode = use_signal(|| SearchMode::Home);
     let mut alert = use_signal(|| None::<AlertProps>);
+
+    let youtube_token = use_memo(move || settings.general.read().youtube_token.clone());
 
     use_effect(move || {
         if settings.general.read().youtube_token.is_none() {
             document::eval("token_form.showDialog()");
             return;
+        }
+    });
+
+    use_effect(move || {
+        if ITEMS.read().is_empty()
+            && let Some(token) = youtube_token.read().clone()
+        {
+            spawn(async move {
+                match yt::data_api::home(&token).await {
+                    Ok(videos) => *ITEMS.write() = videos.items,
+                    Err(err) => {
+                        alert.set(Some(AlertProps {
+                            level: AlertLevel::Error,
+                            message: err.to_string(),
+                        }));
+                    }
+                }
+            });
         }
     });
 
@@ -43,32 +59,29 @@ pub fn Home() -> Element {
             }));
             return;
         }
-        search_mode.set(SearchMode::Search(search_query));
-    };
 
-    let items = use_resource(move || async move {
-        let mut videos_items = Vec::new();
-        if let Some(key) = settings.general.read().youtube_token.clone() {
-            alert.set(None);
-            is_loading.set(true);
-            let result = match search_mode() {
-                SearchMode::Home => yt::data_api::home(&key).await,
-                SearchMode::Search(q) => yt::data_api::search(&q, &key).await,
-            };
-            is_loading.set(false);
-
-            match result {
-                Ok(videos) => videos_items = videos.items,
-                Err(err) => {
-                    alert.set(Some(AlertProps {
-                        level: AlertLevel::Error,
-                        message: err.to_string(),
-                    }));
-                }
-            };
+        match youtube_token() {
+            Some(token) => {
+                spawn(async move {
+                    is_loading.set(true);
+                    match yt::data_api::search(&search_query, &token).await {
+                        Ok(videos) => *ITEMS.write() = videos.items,
+                        Err(err) => alert.set(Some(AlertProps {
+                            level: AlertLevel::Error,
+                            message: err.to_string(),
+                        })),
+                    }
+                    is_loading.set(false);
+                });
+            }
+            None => {
+                alert.set(Some(AlertProps {
+                    level: AlertLevel::Info,
+                    message: "Pls setup you token first".to_string(),
+                }));
+            }
         }
-        videos_items
-    });
+    };
 
     let submit_token = move |evt: Event<FormData>| {
         evt.prevent_default();
@@ -107,9 +120,7 @@ pub fn Home() -> Element {
                     LoadingSpinner { size: 20 }
                 }
             } else {
-                if let Some(i) = items() {
-                    MusicList { items: i }
-                }
+                    MusicList { items: ITEMS() }
             }
         }
 
