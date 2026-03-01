@@ -1,19 +1,10 @@
-use dioxus::prelude::*;
+use app::App;
 
-use crate::common::components::dock::Dock;
-use crate::common::context::{AppSettingsProvider, FavoritesProvider, PlaybackProvider};
-use crate::favorite::Favorite;
-use crate::home::Home;
-use crate::setting::Setting;
-
+mod app;
 mod common;
 mod core;
-mod favorite;
-mod home;
-mod setting;
-
-const FAVICON: Asset = asset!("/assets/favicon.ico");
-const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
+mod pages;
+mod route;
 
 fn main() {
     #[cfg(not(feature = "desktop"))]
@@ -29,30 +20,4 @@ fn main() {
             )
             .launch(App);
     }
-}
-
-#[component]
-pub fn App() -> Element {
-    rsx! {
-        document::Link { rel: "icon", href: FAVICON }
-        document::Link { rel: "stylesheet", href: TAILWIND_CSS }
-        AppSettingsProvider {
-            PlaybackProvider {
-                FavoritesProvider { Router::<Route> {} }
-            }
-        }
-    }
-}
-
-#[derive(Routable, PartialEq, Clone)]
-pub enum Route {
-    #[layout(Dock)]
-    #[route("/")]
-    Home {},
-
-    #[route("/favorite")]
-    Favorite {},
-
-    #[route("/setting")]
-    Setting {},
 }

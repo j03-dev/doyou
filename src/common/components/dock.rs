@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
-use crate::Route;
 use crate::common::components::icons::{FavoriteIcon, HomeIcon, SettingIcon};
+use crate::route::Route;
 
 #[component]
 pub fn Dock() -> Element {
