@@ -66,6 +66,7 @@ impl FavoritesContext {
                     tracks.write().push(track);
                 }
                 Err(e) => {
+                    dbg!(&e);
                     error.set(Some(e.to_string()));
                 }
             };
@@ -88,6 +89,7 @@ impl FavoritesContext {
                     tracks.write().retain(|t| t.id != track_id);
                 }
                 Err(e) => {
+                    dbg!(&e);
                     error.set(Some(e.to_string()));
                 }
             };

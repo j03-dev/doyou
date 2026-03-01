@@ -1,3 +1,4 @@
+pub mod alert;
 pub mod button;
 pub mod dock;
 pub mod icons;

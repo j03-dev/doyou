@@ -3,3 +3,5 @@
 @plugin "daisyui" {
   themes: all;
 }
+
+@source inline("alert-error alert-warning alert-info");

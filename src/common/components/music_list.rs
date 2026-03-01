@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use yt::data_api::types::Item;
 
-use crate::common::components::button::IconButton;
+use crate::common::components::button::ButtonGhost;
 use crate::common::components::icons::{DownloadIcon, FavoriteIcon};
 use crate::common::context::{use_favorites, use_playback};
 use crate::core::db::models::YoutubeTrack;
@@ -106,8 +106,8 @@ fn MusicCard(item: Item, index: usize) -> Element {
                     span { class: "loading loading-dots loading-sm" }
                 }
             }
-            IconButton { DownloadIcon {} }
-            IconButton { on_click: set_favorite,
+            ButtonGhost { DownloadIcon {} }
+            ButtonGhost { onclick: set_favorite,
                 FavoriteIcon { class: if is_favorite() { "fill-error stroke-error" } else { "fill-transparent stroke-current" } }
             }
         }

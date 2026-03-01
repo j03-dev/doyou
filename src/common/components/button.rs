@@ -4,33 +4,21 @@ use dioxus::prelude::*;
 
 #[derive(Props, PartialEq, Clone)]
 pub struct ButtonProps {
+    #[props(extends = GlobalAttributes, extends=input)]
+    pub attributes: Vec<Attribute>,
     #[props(default)]
-    r#type: &'static str,
+    pub onclick: EventHandler<MouseEvent>,
     #[props(default)]
-    pub class: &'static str,
-    #[props(default)]
-    pub on_click: EventHandler<MouseEvent>,
     pub children: Element,
 }
 
-pub fn IconButton(pros: ButtonProps) -> Element {
+pub fn ButtonGhost(props: ButtonProps) -> Element {
     rsx! {
         button {
-            r#type: pros.r#type,
-            class: "btn btn-ghost btn-circle {pros.class}",
-            onclick: pros.on_click,
-            {pros.children}
-        }
-    }
-}
-
-pub fn Button(pros: ButtonProps) -> Element {
-    rsx! {
-        button {
-            r#type: pros.r#type,
-            class: "btn {pros.class}",
-            onclick: pros.on_click,
-            {pros.children}
+            class: "btn btn-ghost btn-circle",
+            onclick: props.onclick,
+            ..props.attributes,
+            {props.children}
         }
     }
 }

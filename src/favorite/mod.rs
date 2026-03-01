@@ -1,9 +1,5 @@
 use dioxus::prelude::*;
-use yt::data_api::types::Item;
-use yt::data_api::types::Snippet;
-use yt::data_api::types::Thumb;
-use yt::data_api::types::Thumbnails;
-use yt::data_api::types::VideoId;
+use yt::data_api::types::{Item, Snippet, Thumb, Thumbnails, VideoId};
 
 use crate::common::components::music_list::MusicList;
 use crate::common::context::use_favorites;
@@ -16,7 +12,7 @@ pub fn Favorite() -> Element {
         favorites.fetch_all();
     });
 
-    let items = use_memo(move || {
+    let items: Memo<Vec<Item>> = use_memo(move || {
         favorites
             .tracks
             .read()
@@ -33,12 +29,12 @@ pub fn Favorite() -> Element {
                     },
                 },
             })
-            .collect::<Vec<Item>>()
+            .collect()
     });
 
     rsx! {
         div { class: "m-5",
-            MusicList { items: items.read().clone()}
+            MusicList { items: items() }
         }
     }
 }

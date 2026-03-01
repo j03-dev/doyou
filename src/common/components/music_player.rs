@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::common::components::button::{Button, IconButton};
+use crate::common::components::button::ButtonGhost;
 use crate::common::components::icons::{
     CloseIcon, FavoriteIcon, NextIcon, PauseIcon, PlayIcon, PrevIcon,
 };
@@ -45,9 +45,9 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
 
     rsx! {
         div { class: "fixed inset-0 z-50 bg-base-100 flex flex-col",
-            IconButton {
+            ButtonGhost {
                 class: "absolute top-4 right-4 z-10",
-                on_click: on_close_full_player,
+                onclick: on_close_full_player,
                 CloseIcon {}
             }
             div { class: "flex-1 flex flex-col px-6 pt-5 pb-8",
@@ -71,7 +71,7 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
                                 dangerous_inner_html: artist,
                             }
                         }
-                        IconButton {
+                        ButtonGhost {
                             FavoriteIcon { class: "fill-transparent stroke-current" }
                         }
                     }
@@ -151,15 +151,15 @@ fn MiniMusicPlayer(on_open_full_player: EventHandler<()>) -> Element {
 fn MusicController(playback: PlaybackContext) -> Element {
     rsx! {
         div { class: "flex items-center justify-center gap-6 lg:gap-10",
-            IconButton {
+            ButtonGhost {
                 class: "btn-secondary",
-                on_click: move |_| playback.playback_controller(-1),
+                onclick: move |_| playback.playback_controller(-1),
                 PrevIcon {}
             }
             if !*playback.is_loading.read() {
-                Button {
-                    class: "btn-primary btn-circle btn-xl",
-                    on_click: move |_| playback.toggle_play(),
+                button {
+                    class: "btn btn-primary btn-circle btn-xl",
+                    onclick: move |_| playback.toggle_play(),
                     if *playback.is_playing.read() {
                         PauseIcon {}
                     } else {
@@ -167,11 +167,11 @@ fn MusicController(playback: PlaybackContext) -> Element {
                     }
                 }
             } else {
-                Button { class: "btn-primary btn-circle btn-xl", LoadingSpinner {} }
+                button { class: "btn btn-primary btn-circle btn-xl", LoadingSpinner {} }
             }
-            IconButton {
+            ButtonGhost {
                 class: "btn-secondary",
-                on_click: move |_| playback.playback_controller(1),
+                onclick: move |_| playback.playback_controller(1),
                 NextIcon {}
             }
         }
