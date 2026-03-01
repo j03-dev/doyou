@@ -234,17 +234,17 @@ pub fn SettingIcon(props: IconProps) -> Element {
 pub fn KeyIcon(props: IconProps) -> Element {
     rsx! {
         svg {
+            class: "size-[1.2em] opacity-70 {props.class}",
             xmlns: "http://www.w3.org/2000/svg",
-            class: "h-[1em] w-[1em] opacity-70 {props.class}",
-            fill: "none",
             view_box: "0 0 24 24",
-            stroke: "currentColor",
-
-            path {
-                stroke_linecap: "round",
+            g {
                 stroke_linejoin: "round",
-                stroke_width: "2",
-                d: "M15 7a3 3 0 11-5.83 1H5v4h4v-2h2v-2h.17A3 3 0 1115 7z",
+                stroke_linecap: "round",
+                stroke_width: "2.5",
+                fill: "none",
+                stroke: "currentColor",
+                path { d: "M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z" }
+                circle { cx:"16.5",  cy: "7.5", r: ".5", fill: "currentColor" }
             }
         }
     }

@@ -33,8 +33,8 @@ pub fn Home() -> Element {
     });
 
     let search = move |evt: Event<FormData>| {
-        alert.set(None);
         evt.prevent_default();
+        alert.set(None);
         let search_query = get_value_from(evt, "search").unwrap_or_default();
         if search_query.is_empty() {
             alert.set(Some(AlertProps {
@@ -47,6 +47,7 @@ pub fn Home() -> Element {
     };
 
     let items = use_resource(move || async move {
+        let mut videos_items = Vec::new();
         if let Some(key) = settings.general.read().youtube_token.clone() {
             alert.set(None);
             is_loading.set(true);
@@ -56,17 +57,17 @@ pub fn Home() -> Element {
             };
             is_loading.set(false);
 
-            if let Err(err) = result {
-                alert.set(Some(AlertProps {
-                    level: AlertLevel::Error,
-                    message: err.to_string(),
-                }));
-                return Vec::new();
-            }
-
-            return result.unwrap().items;
+            match result {
+                Ok(videos) => videos_items = videos.items,
+                Err(err) => {
+                    alert.set(Some(AlertProps {
+                        level: AlertLevel::Error,
+                        message: err.to_string(),
+                    }));
+                }
+            };
         }
-        Vec::new()
+        videos_items
     });
 
     let submit_token = move |evt: Event<FormData>| {
