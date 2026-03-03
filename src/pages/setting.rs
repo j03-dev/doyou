@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::common::components::alert::{Alert, AlertLevel, AlertProps};
+use crate::common::components::alert::{Alert, AlertProps};
 use crate::common::components::icons::KeyIcon;
 use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::common::components::text_input::TextInput;
@@ -16,10 +16,9 @@ pub fn Setting() -> Element {
         evt.prevent_default();
         let token = get_value_from(evt, "token").unwrap_or_default();
         if token.is_empty() {
-            alert.set(Some(AlertProps {
-                level: AlertLevel::Warning,
-                message: "The token should not empty".to_string(),
-            }));
+            alert.set(Some(AlertProps::warning(
+                "The token should not empty".to_string(),
+            )));
         }
         settings.save_token(token);
     };

@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use yt::data_api::types::Item;
 
-use crate::common::components::alert::{Alert, AlertLevel, AlertProps};
+use crate::common::components::alert::{Alert, AlertProps};
 use crate::common::components::button::ButtonGhost;
 use crate::common::components::icons::{BurgerIcon, CloseIcon, DoYouIcon, SearchIcon};
 use crate::common::components::loading::LoadingSpinner;
@@ -37,12 +37,7 @@ pub fn Home() -> Element {
             spawn(async move {
                 match yt::data_api::home(&token).await {
                     Ok(videos) => *ITEMS.write() = videos.items,
-                    Err(err) => {
-                        alert.set(Some(AlertProps {
-                            level: AlertLevel::Error,
-                            message: err.to_string(),
-                        }));
-                    }
+                    Err(err) => alert.set(Some(AlertProps::error(err.to_string()))),
                 }
             });
         }
@@ -53,10 +48,9 @@ pub fn Home() -> Element {
         alert.set(None);
         let search_query = get_value_from(evt, "search").unwrap_or_default();
         if search_query.is_empty() {
-            alert.set(Some(AlertProps {
-                level: AlertLevel::Warning,
-                message: "The input should not empty".to_string(),
-            }));
+            alert.set(Some(AlertProps::warning(
+                "The input should not empty".to_string(),
+            )));
             return;
         }
 
@@ -66,19 +60,15 @@ pub fn Home() -> Element {
                     is_loading.set(true);
                     match yt::data_api::search(&search_query, &token).await {
                         Ok(videos) => *ITEMS.write() = videos.items,
-                        Err(err) => alert.set(Some(AlertProps {
-                            level: AlertLevel::Error,
-                            message: err.to_string(),
-                        })),
+                        Err(err) => alert.set(Some(AlertProps::error(err.to_string()))),
                     }
                     is_loading.set(false);
                 });
             }
             None => {
-                alert.set(Some(AlertProps {
-                    level: AlertLevel::Info,
-                    message: "Pls setup you token first".to_string(),
-                }));
+                alert.set(Some(AlertProps::info(
+                    "Pls setup you token first".to_string(),
+                )));
             }
         }
     };

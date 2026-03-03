@@ -9,6 +9,29 @@ pub struct AlertProps {
     pub message: String,
 }
 
+impl AlertProps {
+    pub fn error(message: String) -> Self {
+        Self {
+            level: AlertLevel::Error,
+            message,
+        }
+    }
+
+    pub fn warning(message: String) -> Self {
+        Self {
+            level: AlertLevel::Warning,
+            message,
+        }
+    }
+
+    pub fn info(message: String) -> Self {
+        Self {
+            level: AlertLevel::Info,
+            message,
+        }
+    }
+}
+
 pub fn Alert(props: AlertProps) -> Element {
     rsx! {
         div { role: "alert", class: "alert {props.level}",
