@@ -114,6 +114,5 @@ pub fn Home() -> Element {
             }
         }
 
-
     }
 }

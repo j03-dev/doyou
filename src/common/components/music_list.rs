@@ -23,7 +23,7 @@ pub fn MusicList(items: Vec<Item>) -> Element {
 #[component]
 fn MusicCard(item: Item, index: usize) -> Element {
     let playback = use_playback();
-    let favorites = use_favorites();
+    let mut favorites = use_favorites();
 
     let item_id = item.id.as_string().unwrap();
 
@@ -63,26 +63,25 @@ fn MusicCard(item: Item, index: usize) -> Element {
     let artist = item.snippet.channel_title.clone();
     let thumbnail = item.snippet.thumbnails.high.url.clone();
 
-    let set_favorite = {
-        let title = title.clone();
-        let artist = artist.clone();
-        let thumbnail = thumbnail.clone();
-        let video_id = item_id.clone();
-        move |_: Event<MouseData>| {
-            let favorites = use_favorites();
-            let is_fav = favorites.tracks.read().iter().any(|t| t.id == video_id);
+    let set_favorite = move |_: Event<MouseData>| {
+        let item_id = item_id.clone();
+        let title = item.snippet.title.clone();
+        let artist = item.snippet.channel_title.clone();
+        let thumbnail = item.snippet.thumbnails.high.url.clone();
+        spawn(async move {
+            let is_fav = favorites.tracks.read().iter().any(|t| t.id.eq(&item_id));
             if !is_fav {
                 let track = YoutubeTrack {
-                    id: video_id.clone(),
-                    title: title.clone(),
-                    channel_name: artist.clone(),
-                    thumbnail_url: thumbnail.clone(),
+                    id: item_id.clone(),
+                    title: title.to_string(),
+                    channel_name: artist.to_string(),
+                    thumbnail_url: thumbnail.to_string(),
                 };
-                favorites.add(track);
+                favorites.add(track).await.ok();
             } else {
-                favorites.remove(&video_id);
+                favorites.remove(&item_id).await.ok();
             }
-        }
+        });
     };
 
     rsx! {
