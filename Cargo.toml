@@ -19,7 +19,7 @@ dioxus = { version = "0.7.10", features = ["router"] }
 serde_json.workspace = true
 reqwest.workspace = true
 serde.workspace = true
-yt = { path = "yt", version = "0.0.1" }
+yt = { path = "yt", version = "0.1.0" }
 ndk-context = "0.1.1"
 jni = "0.22.4"
 rusql-alchemy = { path = "../rusql-alchemy/rusql-alchemy", features = [
