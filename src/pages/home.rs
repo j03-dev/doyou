@@ -110,7 +110,7 @@ pub fn Home() -> Element {
                     LoadingSpinner { size: 20 }
                 }
             } else {
-                    MusicList { items: ITEMS() }
+                MusicList { items: ITEMS() }
             }
         }
 
