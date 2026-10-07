@@ -4,6 +4,7 @@ mod app;
 mod common;
 mod core;
 mod pages;
+mod repository;
 mod route;
 
 fn main() {
