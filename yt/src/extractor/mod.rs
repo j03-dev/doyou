@@ -95,10 +95,6 @@ impl YouTubeExtractor {
         Ok(Self { client })
     }
 
-    // ---------------------------------------------------------
-    // PUBLIC API
-    // ---------------------------------------------------------
-
     pub async fn get_formats(&self, url: &str) -> Result<Vec<Format>> {
         let video_id = Self::extract_video_id(url)
             .ok_or_else(|| anyhow!("could not extract YouTube video ID from: {url}"))?;
@@ -139,13 +135,10 @@ impl YouTubeExtractor {
             return Err(anyhow!("YouTube returned no formats"));
         }
 
-        // Keep only formats that already contain a usable URL
-        // or a signatureCipher we can inspect later.
         formats.retain(|format| {
             format.url.is_some() || format.signature_cipher.is_some()
         });
 
-        // Remove duplicate URLs.
         let mut seen = HashSet::new();
 
         formats.retain(|format| {
@@ -198,10 +191,6 @@ impl YouTubeExtractor {
         Err(anyhow!("selected audio format has no usable URL"))
     }
 
-    // ---------------------------------------------------------
-    // VIDEO ID
-    // ---------------------------------------------------------
-
     fn extract_video_id(url: &str) -> Option<String> {
         let patterns = [
             r"(?:youtube\.com/watch\?v=)([A-Za-z0-9_-]{11})",
@@ -222,7 +211,6 @@ impl YouTubeExtractor {
             }
         }
 
-        // Allow passing the video ID directly.
         if Regex::new(r"^[A-Za-z0-9_-]{11}$")
             .ok()?
             .is_match(url)
@@ -232,10 +220,6 @@ impl YouTubeExtractor {
 
         None
     }
-
-    // ---------------------------------------------------------
-    // PLAYER RESPONSE
-    // ---------------------------------------------------------
 
     async fn fetch_player_response(&self, video_id: &str) -> Result<PlayerResponse> {
         let api_key = self.get_api_key().await?;
@@ -389,9 +373,6 @@ impl YouTubeExtractor {
             .context("invalid YouTube player JSON")
     }
 
-    // ---------------------------------------------------------
-    // API KEY
-    // ---------------------------------------------------------
 
     async fn get_api_key(&self) -> Result<String> {
         let response = self
@@ -426,10 +407,6 @@ impl YouTubeExtractor {
             "could not find INNERTUBE_API_KEY on YouTube homepage"
         ))
     }
-
-    // ---------------------------------------------------------
-    // SIGNATURE CIPHER
-    // ---------------------------------------------------------
 
     fn parse_signature_cipher(cipher: &str) -> Result<CipherData> {
         let mut url = None;
