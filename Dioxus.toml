@@ -1,4 +1,6 @@
 [application]
+android_manifest = "android/AndroidManifest.xml"
+android_main_activity = "android/MainActivity.kt"
 
 [web.app]
 

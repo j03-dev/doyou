@@ -3,11 +3,35 @@ use dioxus::prelude::*;
 use yt::data_api::types::Item;
 
 use crate::context::AlertProps;
+use crate::core::platform;
 use crate::repository;
 
 #[component]
 pub fn PlaybackProvider(children: Element) -> Element {
     use_context_provider(|| PlaybackContext::new("audio"));
+    let playback = use_playback();
+
+    use_effect(move || {
+        let mut eval = document::eval(
+            r#"
+                window.addEventListener('doyou-command', (event) => {
+                    dioxus.send(String(event.detail))
+                })
+            "#,
+        );
+        spawn(async move {
+            while let Ok(command) = eval.recv::<String>().await {
+                match command.as_str() {
+                    "play" => playback.play(),
+                    "pause" => playback.pause(),
+                    "playpause" => playback.toggle_play(),
+                    "next" => playback.playback_controller(1),
+                    "prev" => playback.playback_controller(-1),
+                    _ => {}
+                }
+            }
+        });
+    });
 
     rsx! {
         {children}
@@ -70,6 +94,7 @@ impl PlaybackContext {
             playing.set(Some(item.clone()));
             is_playing.set(true);
             is_loading.set(true);
+            platform::android_media_update(&item.snippet.title, &item.snippet.channel_title, true);
 
             match repository::youtube::audio_url(&item.id.as_string().unwrap()).await {
                 Ok(src) => {
@@ -90,6 +115,11 @@ impl PlaybackContext {
                         e
                     ))));
                     is_playing.set(false);
+                    platform::android_media_update(
+                        &item.snippet.title,
+                        &item.snippet.channel_title,
+                        false,
+                    );
                     let _ = document::eval(&format!(
                         r#"
                            let audio = document.getElementById('{}')
@@ -110,10 +140,11 @@ impl PlaybackContext {
             r#"
                let audio = document.getElementById('{}')
                if (audio) audio.play()
-            "#,
+           "#,
             id
         ));
         is_playing.set(true);
+        self.push_media_state(true);
     }
 
     pub fn pause(&self) {
@@ -123,10 +154,22 @@ impl PlaybackContext {
             r#"
                let audio = document.getElementById('{}')
                if (audio) audio.pause()
-            "#,
+           "#,
             id
         ));
         is_playing.set(false);
+        self.push_media_state(false);
+    }
+
+    fn push_media_state(&self, is_playing: bool) {
+        let Some(item) = self.playing.read().clone() else {
+            return;
+        };
+        platform::android_media_update(
+            &item.snippet.title,
+            &item.snippet.channel_title,
+            is_playing,
+        );
     }
 
     pub fn toggle_play(&self) {

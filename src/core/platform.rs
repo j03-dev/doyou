@@ -60,3 +60,41 @@ fn get_android_files_dir() -> Result<PathBuf, Error> {
         Ok(PathBuf::from(path))
     })
 }
+
+/// Push the current track metadata and playback state to the Android
+/// foreground playback service (notification + MediaSession).
+///
+/// No-op on platforms other than Android.
+#[cfg(all(feature = "mobile", target_os = "android"))]
+pub fn android_media_update(title: &str, artist: &str, is_playing: bool) {
+    let android_context = ndk_context::android_context();
+    let java_vm = unsafe { jni::JavaVM::from_raw(android_context.vm().cast()) };
+
+    let result = java_vm.attach_current_thread(|env| -> Result<(), Error> {
+        let activity =
+            unsafe { jni::objects::JObject::from_raw(env, android_context.context().cast()) };
+        let main_activity = env.get_object_class(&activity)?;
+        let title = env.new_string(title)?;
+        let artist = env.new_string(artist)?;
+
+        env.call_static_method(
+            &main_activity,
+            jni::jni_str!("startOrUpdatePlayback"),
+            jni::jni_sig!("(Ljava/lang/String;Ljava/lang/String;Z)V"),
+            &[
+                (&title).into(),
+                (&artist).into(),
+                jni::objects::JValue::Bool(is_playing.into()),
+            ],
+        )?;
+
+        Ok(())
+    });
+
+    if let Err(err) = result {
+        eprintln!("android_media_update failed: {err}");
+    }
+}
+
+#[cfg(not(all(feature = "mobile", target_os = "android")))]
+pub fn android_media_update(_title: &str, _artist: &str, _is_playing: bool) {}
