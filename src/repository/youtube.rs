@@ -18,8 +18,7 @@ pub async fn search(query: &str, token: &str) -> Result<Vec<Item>, String> {
 }
 
 pub async fn audio_url(video_id: &str) -> Result<String, String> {
-    let extractor = YouTubeExtractor::new()
-        .map_err(|err| err.to_string())?;
+    let extractor = YouTubeExtractor::new().map_err(|err| err.to_string())?;
 
     extractor
         .get_best_audio_url(video_id)

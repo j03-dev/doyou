@@ -5,7 +5,7 @@ pub async fn all() -> Result<Vec<YoutubeTrack>, String> {
     db::get_all_favorites().await.map_err(|err| err.to_string())
 }
 
-pub async fn add(track: YoutubeTrack) -> Result<(), String> {
+pub async fn add(track: YoutubeTrack) -> Result<YoutubeTrack, String> {
     db::add_to_favorite(track)
         .await
         .map_err(|err| err.to_string())

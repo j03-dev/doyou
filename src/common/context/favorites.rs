@@ -77,8 +77,8 @@ impl FavoritesContext {
                     channel_name: item.snippet.channel_title.clone(),
                     thumbnail_url: item.snippet.thumbnails.high.url.clone(),
                 };
-                match repository::favorites::add(track.clone()).await {
-                    Ok(()) => tracks.write().push(track),
+                match repository::favorites::add(track).await {
+                    Ok(new_track) => tracks.write().push(new_track),
                     Err(err) => error.set(Some(AlertProps::error(err))),
                 }
             }

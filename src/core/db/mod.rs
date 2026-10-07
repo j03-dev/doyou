@@ -10,9 +10,8 @@ use super::utils::get_config_path;
 
 pub mod models;
 
-static CONN: OnceCell<Connection> = OnceCell::const_new();
-
 async fn conn() -> Result<&'static Connection, Error> {
+    static CONN: OnceCell<Connection> = OnceCell::const_new();
     CONN.get_or_try_init(|| async move {
         let path = get_config_path()?;
         let database = Database::new_local(path.to_str().unwrap()).await?;
@@ -22,20 +21,16 @@ async fn conn() -> Result<&'static Connection, Error> {
     .await
 }
 
-pub async fn add_to_favorite(track: YoutubeTrack) -> Result<(), Error> {
+pub async fn add_to_favorite(track: YoutubeTrack) -> Result<YoutubeTrack, Error> {
     let conn = conn().await?;
-
-    if get_favorite_by(&track.id, conn).await?.is_some() {
-        return Ok(());
-    }
-
-    let youtube_track = YoutubeTrack::get(kwargs!(id = track.id), conn).await?;
-    if youtube_track.is_none() {
-        track.save(conn).await?;
-    }
-    Favorite::create(kwargs!(youtube_track_id = track.id), conn).await?;
-
-    Ok(())
+    if !get_favorite_by(&track.id, conn).await?.is_some() {
+        let youtube_track = YoutubeTrack::get(kwargs!(id = track.id), conn).await?;
+        if youtube_track.is_none() {
+            track.save(conn).await?;
+        }
+        Favorite::create(kwargs!(youtube_track_id = track.id), conn).await?;
+    } 
+    Ok(track)
 }
 
 pub async fn remove_from_favorite(youtube_track_id: &str) -> Result<(), Error> {

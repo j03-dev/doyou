@@ -1,8 +1,8 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use regex::Regex;
 use reqwest::{
-    header::{HeaderMap, HeaderValue, ACCEPT, ACCEPT_LANGUAGE, USER_AGENT},
     Client,
+    header::{ACCEPT, ACCEPT_LANGUAGE, HeaderMap, HeaderValue, USER_AGENT},
 };
 use serde_json::json;
 use std::collections::HashSet;
@@ -71,10 +71,7 @@ impl YouTubeExtractor {
             ),
         );
 
-        headers.insert(
-            ACCEPT_LANGUAGE,
-            HeaderValue::from_static("en-US,en;q=0.9"),
-        );
+        headers.insert(ACCEPT_LANGUAGE, HeaderValue::from_static("en-US,en;q=0.9"));
 
         headers.insert(
             USER_AGENT,
@@ -135,9 +132,7 @@ impl YouTubeExtractor {
             return Err(anyhow!("YouTube returned no formats"));
         }
 
-        formats.retain(|format| {
-            format.url.is_some() || format.signature_cipher.is_some()
-        });
+        formats.retain(|format| format.url.is_some() || format.signature_cipher.is_some());
 
         let mut seen = HashSet::new();
 
@@ -162,17 +157,11 @@ impl YouTubeExtractor {
             .filter(|format| {
                 let mime = format.mime_type.as_deref().unwrap_or("");
 
-                mime.starts_with("audio/")
-                    || format.audio_quality.is_some()
+                mime.starts_with("audio/") || format.audio_quality.is_some()
             })
             .collect();
 
-        audio_formats.sort_by_key(|format| {
-            format
-                .average_bitrate
-                .or(format.bitrate)
-                .unwrap_or(0)
-        });
+        audio_formats.sort_by_key(|format| format.average_bitrate.or(format.bitrate).unwrap_or(0));
 
         let format = audio_formats
             .last()
@@ -211,10 +200,7 @@ impl YouTubeExtractor {
             }
         }
 
-        if Regex::new(r"^[A-Za-z0-9_-]{11}$")
-            .ok()?
-            .is_match(url)
-        {
+        if Regex::new(r"^[A-Za-z0-9_-]{11}$").ok()?.is_match(url) {
             return Some(url.to_owned());
         }
 
@@ -227,10 +213,7 @@ impl YouTubeExtractor {
         let mut last_error = None;
 
         for client in CLIENTS {
-            match self
-                .fetch_with_client(video_id, &api_key, client)
-                .await
-            {
+            match self.fetch_with_client(video_id, &api_key, client).await {
                 Ok(response) => {
                     if response.playability_status.status == "OK" {
                         return Ok(response);
@@ -244,9 +227,7 @@ impl YouTubeExtractor {
 
                     eprintln!(
                         "[youtube] client={} status={} reason={}",
-                        client.name,
-                        response.playability_status.status,
-                        reason
+                        client.name, response.playability_status.status, reason
                     );
 
                     last_error = Some(anyhow!(
@@ -257,19 +238,14 @@ impl YouTubeExtractor {
                 }
 
                 Err(error) => {
-                    eprintln!(
-                        "[youtube] client={} request failed: {error:#}",
-                        client.name
-                    );
+                    eprintln!("[youtube] client={} request failed: {error:#}", client.name);
 
                     last_error = Some(error);
                 }
             }
         }
 
-        Err(last_error.unwrap_or_else(|| {
-            anyhow!("all YouTube player clients failed")
-        }))
+        Err(last_error.unwrap_or_else(|| anyhow!("all YouTube player clients failed")))
     }
 
     async fn fetch_with_client(
@@ -360,11 +336,7 @@ impl YouTubeExtractor {
         if !status.is_success() {
             let text = response.text().await.unwrap_or_default();
 
-            return Err(anyhow!(
-                "player request returned HTTP {}: {}",
-                status,
-                text
-            ));
+            return Err(anyhow!("player request returned HTTP {}: {}", status, text));
         }
 
         response
@@ -372,7 +344,6 @@ impl YouTubeExtractor {
             .await
             .context("invalid YouTube player JSON")
     }
-
 
     async fn get_api_key(&self) -> Result<String> {
         let response = self
@@ -438,13 +409,10 @@ impl YouTubeExtractor {
             }
         }
 
-        let url = url.ok_or_else(|| {
-            anyhow!("signatureCipher does not contain a URL")
-        })?;
+        let url = url.ok_or_else(|| anyhow!("signatureCipher does not contain a URL"))?;
 
-        let signature = signature.ok_or_else(|| {
-            anyhow!("signatureCipher does not contain signature `s`")
-        })?;
+        let signature =
+            signature.ok_or_else(|| anyhow!("signatureCipher does not contain signature `s`"))?;
 
         // IMPORTANT:
         //
@@ -458,13 +426,9 @@ impl YouTubeExtractor {
 
         let separator = if url.contains('?') { '&' } else { '?' };
 
-        let final_url = format!(
-            "{url}{separator}{sp}={signature}"
-        );
+        let final_url = format!("{url}{separator}{sp}={signature}");
 
-        Ok(CipherData {
-            url: final_url,
-        })
+        Ok(CipherData { url: final_url })
     }
 
     fn percent_decode(value: &str) -> String {
@@ -478,9 +442,7 @@ impl YouTubeExtractor {
                 let high = bytes[index + 1];
                 let low = bytes[index + 2];
 
-                if let (Some(high), Some(low)) =
-                    (Self::hex_value(high), Self::hex_value(low))
-                {
+                if let (Some(high), Some(low)) = (Self::hex_value(high), Self::hex_value(low)) {
                     output.push((high * 16 + low) as char);
                     index += 3;
                     continue;
