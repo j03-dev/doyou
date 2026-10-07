@@ -22,7 +22,7 @@ serde.workspace = true
 yt = { path = "yt", version = "0.1.0" }
 ndk-context = "0.1.1"
 jni = "0.22.4"
-rusql-alchemy = { path = "../rusql-alchemy/rusql-alchemy", features = [
+rusql-alchemy = {version = "0.5.9", features = [
   "turso",
 ] }
 tokio = "1.49.0"

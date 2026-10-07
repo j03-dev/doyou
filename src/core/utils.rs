@@ -43,7 +43,7 @@ fn get_android_files_dir() -> Result<PathBuf, Error> {
     let mut jni_env = java_vm.attach_current_thread()?;
 
     let android_context_object =
-        unsafe { jni::objects::JObject::from_raw(android_context.context().cast()) };
+        unsafe { jni::objects::JObject::from_raw(jni_env, android_context.context().cast()) };
 
     let java_file_object = jni_env
         .call_method(
