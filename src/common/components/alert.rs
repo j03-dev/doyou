@@ -1,12 +1,15 @@
 #![allow(dead_code)]
 #![allow(non_snake_case)]
 
+use std::time::Duration;
 use dioxus::prelude::*;
 
 #[derive(Props, PartialEq, Clone)]
 pub struct AlertProps {
     pub level: AlertLevel,
     pub message: String,
+    #[props(default = 3000)]
+    pub duration: u64,
 }
 
 impl AlertProps {
@@ -14,6 +17,7 @@ impl AlertProps {
         Self {
             level: AlertLevel::Error,
             message,
+            duration: 3000,
         }
     }
 
@@ -21,6 +25,7 @@ impl AlertProps {
         Self {
             level: AlertLevel::Warning,
             message,
+            duration: 3000,
         }
     }
 
@@ -28,11 +33,26 @@ impl AlertProps {
         Self {
             level: AlertLevel::Info,
             message,
+            duration: 3000,
         }
     }
 }
 
+#[component]
 pub fn Alert(props: AlertProps) -> Element {
+    let mut visible = use_signal(|| true);
+
+    use_effect(move || {
+        spawn(async move {
+            tokio::time::sleep(Duration::from_millis(props.duration)).await;
+            visible.set(false);
+        });
+    });
+
+    if !visible() {
+        return rsx!{};
+    }    
+
     rsx! {
         div { role: "alert", class: "alert {props.level}",
             svg {

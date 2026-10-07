@@ -54,11 +54,9 @@ impl AppSettingsContext {
 
         spawn(async move {
             match repository::settings::save_theme(&theme).await {
-                Ok(()) => {
-                    general.write().theme = theme;
-                }
+                Ok(()) => general.write().theme = theme,
                 Err(err) => error.set(Some(AlertProps::error(err))),
-            }
+            };
             is_loading.set(false);
         });
     }
@@ -73,13 +71,9 @@ impl AppSettingsContext {
 
         spawn(async move {
             match repository::settings::load().await {
-                Ok(settings) => {
-                    general.set(settings);
-                }
-                Err(err) => {
-                    error.set(Some(AlertProps::error(err)));
-                }
-            }
+                Ok(settings) => general.set(settings),
+                Err(err) => error.set(Some(AlertProps::error(err))),
+            };
             is_loading.set(false);
         });
     }
@@ -102,13 +96,9 @@ impl AppSettingsContext {
 
         spawn(async move {
             match repository::settings::save_token(&token).await {
-                Ok(()) => {
-                    general.write().youtube_token = Some(token);
-                }
-                Err(err) => {
-                    error.set(Some(AlertProps::error(err)));
-                }
-            }
+                Ok(()) => general.write().youtube_token = Some(token),
+                Err(err) => error.set(Some(AlertProps::error(err))),
+            };
             is_loading.set(false);
         });
     }

@@ -29,7 +29,7 @@ pub async fn add_to_favorite(track: YoutubeTrack) -> Result<YoutubeTrack, Error>
             track.save(conn).await?;
         }
         Favorite::create(kwargs!(youtube_track_id = track.id), conn).await?;
-    } 
+    }
     Ok(track)
 }
 
@@ -81,10 +81,9 @@ pub async fn save_theme(theme: &str) -> Result<(), Error> {
 
 pub async fn get_settings() -> Result<AppSettings, Error> {
     let conn = conn().await?;
-    let get_app_setting = || async { AppSettings::get(kwargs!(id = 0), conn).await };
-    if let Some(app_setting) = get_app_setting().await? {
+    if let Some(app_setting) = AppSettings::get(kwargs!(id = 0), conn).await? {
         return Ok(app_setting);
     }
-    AppSettings::default().save(conn).await?;
-    Ok(get_app_setting().await?.unwrap())
+    let app_setting = AppSettings::default().save(conn).await?;
+    Ok(app_setting)
 }
