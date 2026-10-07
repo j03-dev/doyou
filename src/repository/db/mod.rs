@@ -6,7 +6,7 @@ use tokio::sync::OnceCell;
 
 use models::{AppSettings, Favorite, YoutubeTrack};
 
-use super::utils::get_config_path;
+use crate::core::platform::get_config_path;
 
 pub mod models;
 

@@ -1,15 +1,6 @@
 use std::path::PathBuf;
 
-use dioxus::prelude::{Event, FormData, FormValue};
-
 use crate::core::error::Error;
-
-pub fn get_value_from(event: Event<FormData>, key: &'static str) -> Option<String> {
-    event.get_first(key).and_then(|v| match v {
-        FormValue::Text(value) => Some(value),
-        _ => None,
-    })
-}
 
 pub fn get_config_path() -> Result<PathBuf, Error> {
     let config_dir = get_config_dir()?;

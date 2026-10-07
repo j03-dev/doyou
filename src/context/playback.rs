@@ -2,27 +2,15 @@ use dioxus::prelude::*;
 
 use yt::data_api::types::Item;
 
-use crate::common::components::alert::AlertProps;
-use crate::common::components::music_player::MusicPlayer;
+use crate::context::AlertProps;
 use crate::repository;
 
 #[component]
 pub fn PlaybackProvider(children: Element) -> Element {
-    let playback = use_context_provider(|| PlaybackContext::new("audio"));
+    use_context_provider(|| PlaybackContext::new("audio"));
 
     rsx! {
         {children}
-        div { class: "hidden",
-            audio {
-                id: playback.id,
-                onended: move |_| playback.playback_controller(1),
-                ontimeupdate: move |_| playback.update_current_time(),
-                ondurationchange: move |_| playback.update_duration(),
-            }
-        }
-        if playback.playing.read().is_some() {
-            MusicPlayer {}
-        }
     }
 }
 

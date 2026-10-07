@@ -1,7 +1,8 @@
 use app::App;
 
 mod app;
-mod common;
+mod components;
+mod context;
 mod core;
 mod pages;
 mod repository;

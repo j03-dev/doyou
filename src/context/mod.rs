@@ -1,8 +1,10 @@
+pub mod alert;
 pub mod favorites;
 pub mod home;
 pub mod playback;
 pub mod settings;
 
+pub use alert::AlertProps;
 pub use favorites::FavoritesProvider;
 pub use home::HomeProvider;
 pub use playback::PlaybackProvider;

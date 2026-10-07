@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::common::components::icons::{FavoriteIcon, HomeIcon, SettingIcon};
+use crate::components::icons::{FavoriteIcon, HomeIcon, SettingIcon};
 use crate::route::Route;
 
 #[component]

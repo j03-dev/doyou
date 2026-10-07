@@ -1,5 +1,5 @@
-use crate::core::db;
-use crate::core::db::models::YoutubeTrack;
+use super::db;
+use super::db::models::YoutubeTrack;
 
 pub async fn all() -> Result<Vec<YoutubeTrack>, String> {
     db::get_all_favorites().await.map_err(|err| err.to_string())

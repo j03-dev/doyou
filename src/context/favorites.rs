@@ -1,9 +1,9 @@
 use dioxus::prelude::*;
 use yt::data_api::types::{Item, Snippet, Thumb, Thumbnails, VideoId};
 
-use crate::common::components::alert::AlertProps;
-use crate::core::db::models::YoutubeTrack;
+use crate::context::AlertProps;
 use crate::repository;
+use crate::repository::db::models::YoutubeTrack;
 
 #[component]
 pub fn FavoritesProvider(children: Element) -> Element {

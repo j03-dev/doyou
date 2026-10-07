@@ -1,11 +1,11 @@
 use dioxus::prelude::*;
 
-use crate::common::components::alert::Alert;
-use crate::common::components::icons::KeyIcon;
-use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
-use crate::common::components::text_input::TextInput;
-use crate::common::context::use_settings;
-use crate::core::utils::get_value_from;
+use crate::components::alert::Alert;
+use crate::components::form::get_value_from;
+use crate::components::icons::KeyIcon;
+use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
+use crate::components::text_input::TextInput;
+use crate::context::use_settings;
 
 #[component]
 pub fn Setting() -> Element {

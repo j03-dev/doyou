@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 use yt::data_api::types::Item;
 
-use crate::common::components::music_list::MusicList;
-use crate::common::context::use_favorites;
+use crate::components::music_list::MusicList;
+use crate::context::use_favorites;
 
 #[component]
 pub fn Favorite() -> Element {

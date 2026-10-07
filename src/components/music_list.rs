@@ -1,10 +1,10 @@
 use dioxus::prelude::*;
 use yt::data_api::types::Item;
 
-use crate::common::components::alert::Alert;
-use crate::common::components::button::ButtonGhost;
-use crate::common::components::icons::{DownloadIcon, FavoriteIcon};
-use crate::common::context::{use_favorites, use_playback};
+use crate::components::alert::Alert;
+use crate::components::button::ButtonGhost;
+use crate::components::icons::{DownloadIcon, FavoriteIcon};
+use crate::context::{use_favorites, use_playback};
 
 #[component]
 pub fn MusicList(items: Vec<Item>) -> Element {
