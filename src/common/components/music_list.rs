@@ -18,7 +18,7 @@ pub fn MusicList(items: Vec<Item>) -> Element {
             Alert { ..alert_props }
         }
         ul { class: "list bg-base-100 rounded-box shadow-md",
-            for (index , item) in items.iter().enumerate() {
+            for (index, item) in items.iter().enumerate() {
                 MusicCard { item: item.clone(), index }
             }
         }

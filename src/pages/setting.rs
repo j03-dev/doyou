@@ -10,6 +10,7 @@ use crate::core::utils::get_value_from;
 #[component]
 pub fn Setting() -> Element {
     let settings = use_settings();
+    let nav  = use_navigator();
     let settings_error = settings.error;
 
     let submit_token = move |evt: Event<FormData>| {
@@ -21,7 +22,11 @@ pub fn Setting() -> Element {
     rsx! {
         NavBar {
             NavBarItem { position: NavBarPos::Start,
-                button { class: "btn btn-ghost", "< Back" }
+                button {
+                    class: "btn btn-ghost",
+                    onclick: move |_| nav.go_back(),
+                    "< Back"
+                }
             }
             NavBarItem { position: NavBarPos::Center,
                 p { class: "btn btn-ghost text-xl", "Settings" }
@@ -57,6 +62,5 @@ pub fn Setting() -> Element {
                 a { class: "link link-primary", "Learn more" }
             }
         }
-
     }
 }
