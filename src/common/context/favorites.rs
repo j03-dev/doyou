@@ -1,8 +1,9 @@
 use dioxus::prelude::*;
+use yt::data_api::types::{Item, Snippet, Thumb, Thumbnails, VideoId};
 
-use crate::core::db;
+use crate::common::components::alert::AlertProps;
 use crate::core::db::models::YoutubeTrack;
-use crate::core::error::Error;
+use crate::repository;
 
 #[component]
 pub fn FavoritesProvider(children: Element) -> Element {
@@ -20,6 +21,7 @@ pub fn use_favorites() -> FavoritesContext {
 pub struct FavoritesContext {
     pub tracks: Signal<Vec<YoutubeTrack>>,
     pub is_loading: Signal<bool>,
+    pub error: Signal<Option<AlertProps>>,
 }
 
 impl FavoritesContext {
@@ -27,29 +29,79 @@ impl FavoritesContext {
         Self {
             tracks: Signal::new(Vec::new()),
             is_loading: Signal::new(false),
+            error: Signal::new(None),
         }
     }
 
-    pub async fn fetch_all(&mut self) -> Result<(), Error> {
-        self.is_loading.set(true);
-        self.tracks.set(db::get_all_favorites().await?);
-        self.is_loading.set(false);
-        Ok(())
+    pub fn fetch_all(&self) {
+        let mut is_loading = self.is_loading;
+        let mut error = self.error;
+        let mut tracks = self.tracks;
+
+        is_loading.set(true);
+        error.set(None);
+
+        spawn(async move {
+            match repository::favorites::all().await {
+                Ok(fetched) => tracks.set(fetched),
+                Err(err) => error.set(Some(AlertProps::error(err))),
+            }
+            is_loading.set(false);
+        });
     }
 
-    pub async fn add(&mut self, track: YoutubeTrack) -> Result<(), Error> {
-        self.is_loading.set(true);
-        db::add_to_favorite(track.clone()).await?;
-        self.tracks.write().push(track);
-        self.is_loading.set(false);
-        Ok(())
+    pub fn toggle(&self, item: &Item) {
+        let item = item.clone();
+        let mut is_loading = self.is_loading;
+        let mut error = self.error;
+        let mut tracks = self.tracks;
+
+        let Some(item_id) = item.id.as_string() else {
+            return;
+        };
+
+        spawn(async move {
+            is_loading.set(true);
+            error.set(None);
+
+            let is_fav = tracks.read().iter().any(|t| t.id == item_id);
+            if is_fav {
+                match repository::favorites::remove(&item_id).await {
+                    Ok(()) => tracks.write().retain(|t| t.id != item_id),
+                    Err(err) => error.set(Some(AlertProps::error(err))),
+                }
+            } else {
+                let track = YoutubeTrack {
+                    id: item_id,
+                    title: item.snippet.title.clone(),
+                    channel_name: item.snippet.channel_title.clone(),
+                    thumbnail_url: item.snippet.thumbnails.high.url.clone(),
+                };
+                match repository::favorites::add(track.clone()).await {
+                    Ok(()) => tracks.write().push(track),
+                    Err(err) => error.set(Some(AlertProps::error(err))),
+                }
+            }
+            is_loading.set(false);
+        });
     }
 
-    pub async fn remove(&mut self, youtube_track_id: &str) -> Result<(), Error> {
-        self.is_loading.set(true);
-        db::remove_from_favorite(youtube_track_id).await?;
-        self.tracks.write().retain(|t| t.id != youtube_track_id);
-        self.is_loading.set(false);
-        Ok(())
+    pub fn items(&self) -> Vec<Item> {
+        self.tracks
+            .read()
+            .iter()
+            .map(|t| Item {
+                id: VideoId::Literal(t.id.clone()),
+                snippet: Snippet {
+                    title: t.title.clone(),
+                    channel_title: t.channel_name.clone(),
+                    thumbnails: Thumbnails {
+                        high: Thumb {
+                            url: t.thumbnail_url.clone(),
+                        },
+                    },
+                },
+            })
+            .collect()
     }
 }

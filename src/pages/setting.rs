@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::common::components::alert::{Alert, AlertProps};
+use crate::common::components::alert::Alert;
 use crate::common::components::icons::KeyIcon;
 use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::common::components::text_input::TextInput;
@@ -10,16 +10,11 @@ use crate::core::utils::get_value_from;
 #[component]
 pub fn Setting() -> Element {
     let settings = use_settings();
-    let mut alert = use_signal(|| None::<AlertProps>);
+    let settings_error = settings.error;
 
     let submit_token = move |evt: Event<FormData>| {
         evt.prevent_default();
         let token = get_value_from(evt, "token").unwrap_or_default();
-        if token.is_empty() {
-            alert.set(Some(AlertProps::warning(
-                "The token should not empty".to_string(),
-            )));
-        }
         settings.save_token(token);
     };
 
@@ -36,8 +31,8 @@ pub fn Setting() -> Element {
             }
         }
         div { class: "flex flex-col items-center justify-center px-6 pt-40",
-            if let Some(alert_propos) = alert() {
-                Alert { ..alert_propos }
+            if let Some(alert_props) = settings_error() {
+                Alert { ..alert_props }
             }
             p { class: "text-base-content/70 text-center mb-8 max-w-md",
                 "Update your YouTube secret key to listen to music through the app."

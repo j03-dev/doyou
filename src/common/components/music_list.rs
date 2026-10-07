@@ -1,17 +1,22 @@
 use dioxus::prelude::*;
 use yt::data_api::types::Item;
 
+use crate::common::components::alert::Alert;
 use crate::common::components::button::ButtonGhost;
 use crate::common::components::icons::{DownloadIcon, FavoriteIcon};
 use crate::common::context::{use_favorites, use_playback};
-use crate::core::db::models::YoutubeTrack;
 
 #[component]
 pub fn MusicList(items: Vec<Item>) -> Element {
-    let mut playback = use_playback();
-    playback.queue.set(items.clone());
+    let playback = use_playback();
+    let favorites = use_favorites();
+    let favorites_error = favorites.error;
+    playback.set_queue(items.clone());
 
     rsx! {
+        if let Some(alert_props) = favorites_error() {
+            Alert { ..alert_props }
+        }
         ul { class: "list bg-base-100 rounded-box shadow-md",
             for (index , item) in items.iter().enumerate() {
                 MusicCard { item: item.clone(), index }
@@ -23,7 +28,7 @@ pub fn MusicList(items: Vec<Item>) -> Element {
 #[component]
 fn MusicCard(item: Item, index: usize) -> Element {
     let playback = use_playback();
-    let mut favorites = use_favorites();
+    let favorites = use_favorites();
 
     let item_id = item.id.as_string().unwrap();
 
@@ -58,30 +63,12 @@ fn MusicCard(item: Item, index: usize) -> Element {
         move || favorites.tracks.read().iter().any(|t| t.id == item_id)
     });
 
-    let item_id = item_id.clone();
     let title = item.snippet.title.clone();
     let artist = item.snippet.channel_title.clone();
     let thumbnail = item.snippet.thumbnails.high.url.clone();
 
     let set_favorite = move |_: Event<MouseData>| {
-        let item_id = item_id.clone();
-        let title = item.snippet.title.clone();
-        let artist = item.snippet.channel_title.clone();
-        let thumbnail = item.snippet.thumbnails.high.url.clone();
-        spawn(async move {
-            let is_fav = favorites.tracks.read().iter().any(|t| t.id.eq(&item_id));
-            if !is_fav {
-                let track = YoutubeTrack {
-                    id: item_id.clone(),
-                    title: title.to_string(),
-                    channel_name: artist.to_string(),
-                    thumbnail_url: thumbnail.to_string(),
-                };
-                favorites.add(track).await.ok();
-            } else {
-                favorites.remove(&item_id).await.ok();
-            }
-        });
+        favorites.toggle(&item);
     };
 
     rsx! {

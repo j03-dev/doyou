@@ -1,6 +1,8 @@
 use dioxus::prelude::*;
 
-use crate::common::context::{AppSettingsProvider, FavoritesProvider, PlaybackProvider};
+use crate::common::context::{
+    AppSettingsProvider, FavoritesProvider, HomeProvider, PlaybackProvider,
+};
 use crate::route::Route;
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
@@ -12,8 +14,10 @@ pub fn App() -> Element {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
         AppSettingsProvider {
-            PlaybackProvider {
-                FavoritesProvider { Router::<Route> {} }
+            HomeProvider {
+                PlaybackProvider {
+                    FavoritesProvider { Router::<Route> {} }
+                }
             }
         }
     }

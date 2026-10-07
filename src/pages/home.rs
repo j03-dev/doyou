@@ -1,76 +1,41 @@
 use dioxus::prelude::*;
-use yt::data_api::types::Item;
 
-use crate::common::components::alert::{Alert, AlertProps};
+use crate::common::components::alert::Alert;
 use crate::common::components::button::ButtonGhost;
 use crate::common::components::icons::{BurgerIcon, CloseIcon, DoYouIcon, SearchIcon};
 use crate::common::components::loading::LoadingSpinner;
 use crate::common::components::music_list::MusicList;
 use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::common::components::text_input::TextInput;
-use crate::common::context::use_settings;
+use crate::common::context::{use_home, use_settings};
 use crate::core::utils::get_value_from;
-
-static ITEMS: GlobalSignal<Vec<Item>> = Signal::global(|| Vec::new());
 
 #[component]
 pub fn Home() -> Element {
     let settings = use_settings();
+    let home = use_home();
 
-    let mut is_loading = use_signal(|| false);
     let mut show_search = use_signal(|| false);
-    let mut alert = use_signal(|| None::<AlertProps>);
 
-    let youtube_token = use_memo(move || settings.general.read().youtube_token.clone());
+    let home_error = home.error;
+    let home_is_loading = home.is_loading;
+    let home_items = home.items;
+    let settings_error = settings.error;
 
     use_effect(move || {
         if settings.general.read().youtube_token.is_none() {
             document::eval("token_form.showDialog()");
-            return;
         }
     });
 
     use_effect(move || {
-        if ITEMS.read().is_empty()
-            && let Some(token) = youtube_token.read().clone()
-        {
-            spawn(async move {
-                match yt::data_api::home(&token).await {
-                    Ok(videos) => *ITEMS.write() = videos.items,
-                    Err(err) => alert.set(Some(AlertProps::error(err.to_string()))),
-                }
-            });
-        }
+        home.load_feed();
     });
 
     let search = move |evt: Event<FormData>| {
         evt.prevent_default();
-        alert.set(None);
         let search_query = get_value_from(evt, "search").unwrap_or_default();
-        if search_query.is_empty() {
-            alert.set(Some(AlertProps::warning(
-                "The input should not empty".to_string(),
-            )));
-            return;
-        }
-
-        match youtube_token() {
-            Some(token) => {
-                spawn(async move {
-                    is_loading.set(true);
-                    match yt::data_api::search(&search_query, &token).await {
-                        Ok(videos) => *ITEMS.write() = videos.items,
-                        Err(err) => alert.set(Some(AlertProps::error(err.to_string()))),
-                    }
-                    is_loading.set(false);
-                });
-            }
-            None => {
-                alert.set(Some(AlertProps::info(
-                    "Pls setup you token first".to_string(),
-                )));
-            }
-        }
+        home.search(search_query);
     };
 
     let submit_token = move |evt: Event<FormData>| {
@@ -102,15 +67,18 @@ pub fn Home() -> Element {
         }
 
         div { class: "m-2 pb-5",
-            if let Some(alert_props) = alert() {
+            if let Some(alert_props) = home_error() {
                 Alert { ..alert_props }
             }
-            if is_loading() {
+            if let Some(alert_props) = settings_error() {
+                Alert { ..alert_props }
+            }
+            if home_is_loading() {
                 div { class: "flex h-screen justify-center items-center",
                     LoadingSpinner { size: 20 }
                 }
             } else {
-                MusicList { items: ITEMS() }
+                MusicList { items: home_items() }
             }
         }
 

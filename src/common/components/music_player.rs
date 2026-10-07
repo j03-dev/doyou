@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 
+use crate::common::components::alert::Alert;
 use crate::common::components::button::ButtonGhost;
 use crate::common::components::icons::{
     CloseIcon, FavoriteIcon, NextIcon, PauseIcon, PlayIcon, PrevIcon,
@@ -10,12 +11,17 @@ use crate::common::context::use_playback;
 
 #[component]
 pub fn MusicPlayer() -> Element {
+    let playback = use_playback();
+    let playback_error = playback.error;
     let mut show_full_player = use_signal(|| false);
     rsx! {
         if show_full_player() {
             FullMusicPlayer { on_close_full_player: move |_| show_full_player.set(false) }
         } else {
             div { class: "fixed bottom-16 left-0 w-full bg-base-200 shadow-inner z-50",
+                if let Some(alert_props) = playback_error() {
+                    Alert { ..alert_props }
+                }
                 MiniMusicPlayer { on_open_full_player: move |_| show_full_player.set(true) }
             }
         }
@@ -25,6 +31,7 @@ pub fn MusicPlayer() -> Element {
 #[component]
 fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
     let playback = use_playback();
+    let playback_error = playback.error;
 
     let playing = playback.playing.read();
 
@@ -49,6 +56,9 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
                 class: "absolute top-4 right-4 z-10",
                 onclick: on_close_full_player,
                 CloseIcon {}
+            }
+            if let Some(alert_props) = playback_error() {
+                Alert { ..alert_props }
             }
             div { class: "flex-1 flex flex-col px-6 pt-5 pb-8",
                 div { class: "relative flex-1 flex flex-col items-center justify-center pt-12 md:pt-16 lg:pt-20 mb-8 lg:mb-12",

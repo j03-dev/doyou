@@ -1,9 +1,10 @@
 use dioxus::prelude::*;
 
 use yt::data_api::types::Item;
-use yt::extractor::YouTubeExtractor;
 
+use crate::common::components::alert::AlertProps;
 use crate::common::components::music_player::MusicPlayer;
+use crate::repository;
 
 #[component]
 pub fn PlaybackProvider(children: Element) -> Element {
@@ -39,7 +40,7 @@ pub struct PlaybackContext {
     pub is_loading: Signal<bool>,
     pub current_time: Signal<f64>,
     pub duration: Signal<f64>,
-    pub error: Signal<Option<String>>,
+    pub error: Signal<Option<AlertProps>>,
 }
 
 impl PlaybackContext {
@@ -55,6 +56,11 @@ impl PlaybackContext {
             duration: Signal::new(0.0),
             error: Signal::new(None),
         }
+    }
+
+    pub fn set_queue(&self, items: Vec<Item>) {
+        let mut queue = self.queue;
+        queue.set(items);
     }
 
     pub fn start(&self, index: usize) {
@@ -77,10 +83,7 @@ impl PlaybackContext {
             is_playing.set(true);
             is_loading.set(true);
 
-            match YouTubeExtractor::default()
-                .get_best_audio_url(&item.id.as_string().unwrap())
-                .await
-            {
+            match repository::youtube::audio_url(&item.id.as_string().unwrap()).await {
                 Ok(src) => {
                     let _ = document::eval(&format!(
                         r#"
@@ -94,7 +97,10 @@ impl PlaybackContext {
                     ));
                 }
                 Err(e) => {
-                    error.set(Some(format!("Failed to get audio: {}", e)));
+                    error.set(Some(AlertProps::error(format!(
+                        "Failed to get audio: {}",
+                        e
+                    ))));
                     is_playing.set(false);
                     let _ = document::eval(&format!(
                         r#"
