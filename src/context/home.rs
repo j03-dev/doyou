@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 use yt::data_api::types::Item;
 
-use crate::common::components::alert::AlertProps;
-use crate::common::context::settings::AppSettingsContext;
+use crate::context::AlertProps;
+use crate::context::settings::AppSettingsContext;
 use crate::repository;
 
 #[component]

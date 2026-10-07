@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 
-use crate::common::components::alert::AlertProps;
-use crate::core::db::models::AppSettings;
+use crate::context::AlertProps;
 use crate::repository;
+use crate::repository::db::models::AppSettings;
 
 #[component]
 pub fn AppSettingsProvider(children: Element) -> Element {

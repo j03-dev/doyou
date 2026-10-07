@@ -1,14 +1,14 @@
 use dioxus::prelude::*;
 
-use crate::common::components::alert::Alert;
-use crate::common::components::button::ButtonGhost;
-use crate::common::components::icons::{BurgerIcon, CloseIcon, DoYouIcon, SearchIcon};
-use crate::common::components::loading::LoadingSpinner;
-use crate::common::components::music_list::MusicList;
-use crate::common::components::navbar::{NavBar, NavBarItem, NavBarPos};
-use crate::common::components::text_input::TextInput;
-use crate::common::context::{use_home, use_settings};
-use crate::core::utils::get_value_from;
+use crate::components::alert::Alert;
+use crate::components::button::ButtonGhost;
+use crate::components::form::get_value_from;
+use crate::components::icons::{BurgerIcon, CloseIcon, DoYouIcon, SearchIcon};
+use crate::components::loading::LoadingSpinner;
+use crate::components::music_list::MusicList;
+use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
+use crate::components::text_input::TextInput;
+use crate::context::{use_home, use_settings};
 
 #[component]
 pub fn Home() -> Element {

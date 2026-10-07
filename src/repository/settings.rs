@@ -1,5 +1,5 @@
-use crate::core::db;
-use crate::core::db::models::AppSettings;
+use super::db;
+use super::db::models::AppSettings;
 
 pub async fn load() -> Result<AppSettings, String> {
     db::get_settings().await.map_err(|err| err.to_string())
