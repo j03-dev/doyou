@@ -2,6 +2,12 @@
 android_manifest = "android/AndroidManifest.xml"
 android_main_activity = "android/MainActivity.kt"
 
+[android]
+gradle_dependencies = [
+    "androidx.media3:media3-exoplayer:1.4.1",
+    "androidx.media3:media3-session:1.4.1",
+]
+
 [web.app]
 
 # HTML title tag content

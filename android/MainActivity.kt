@@ -1,3 +1,5 @@
+@file:OptIn(androidx.media3.common.util.UnstableApi::class)
+
 package dev.dioxus.main
 
 import android.app.Notification
@@ -8,16 +10,22 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.media.MediaMetadata
-import android.media.session.MediaSession
-import android.media.session.PlaybackState
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
-import android.os.PowerManager
-import android.webkit.WebView
+import android.os.Looper
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
+import androidx.media3.common.ForwardingPlayer
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaSession
 
 typealias BuildConfig = com.example.Doyou.BuildConfig
 
@@ -26,131 +34,245 @@ private const val NOTIFICATION_ID = 1
 private const val ACTION_PREV = "dev.dioxus.main.PREV"
 private const val ACTION_TOGGLE = "dev.dioxus.main.TOGGLE"
 private const val ACTION_NEXT = "dev.dioxus.main.NEXT"
+private const val EXTRA_URL = "dev.dioxus.main.URL"
+private const val EXTRA_TITLE = "dev.dioxus.main.TITLE"
+private const val EXTRA_ARTIST = "dev.dioxus.main.ARTIST"
 
 class MainActivity : WryActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        instance = this
-    }
-
-    override fun onWebViewCreate(webView: WebView) {
-        webViewRef = webView
-    }
-
-    override fun onDestroy() {
-        stopService(Intent(this, DioxusForegroundService::class.java))
-        instance = null
-        webViewRef = null
-        super.onDestroy()
+        appContext = applicationContext
     }
 
     companion object {
-        var instance: MainActivity? = null
+        var appContext: Context? = null
             private set
-        var webViewRef: WebView? = null
-            private set
-        var serviceRunning = false
         var trackTitle = ""
         var trackArtist = ""
-        var isPlaying = false
+
+        private val mainHandler = Handler(Looper.getMainLooper())
 
         @JvmStatic
-        fun startOrUpdatePlayback(title: String, artist: String, playing: Boolean) {
+        fun playTrack(url: String, title: String, artist: String) {
             trackTitle = title
             trackArtist = artist
-            isPlaying = playing
-            val activity = instance ?: return
-            val service = DioxusForegroundService.instance
-            if (serviceRunning && service != null) {
-                service.refresh()
-            } else {
-                serviceRunning = true
-                ContextCompat.startForegroundService(
-                    activity,
-                    Intent(activity, DioxusForegroundService::class.java),
-                )
+            mainHandler.post {
+                val context = appContext ?: return@post
+                val intent = Intent(context, DioxusForegroundService::class.java)
+                    .putExtra(EXTRA_URL, url)
+                    .putExtra(EXTRA_TITLE, title)
+                    .putExtra(EXTRA_ARTIST, artist)
+                ContextCompat.startForegroundService(context, intent)
+            }
+        }
+
+        @JvmStatic
+        fun pausePlayback() {
+            mainHandler.post { DioxusForegroundService.instance?.pausePlayback() }
+        }
+
+        @JvmStatic
+        fun resumePlayback() {
+            mainHandler.post { DioxusForegroundService.instance?.resumePlayback() }
+        }
+
+        @JvmStatic
+        fun stopPlayback() {
+            mainHandler.post { DioxusForegroundService.instance?.requestStop() }
+        }
+
+        @JvmStatic
+        private external fun onPlayerEvent(event: String)
+
+        fun emit(event: String) {
+            try {
+                onPlayerEvent(event)
+            } catch (err: Throwable) {
+                err.printStackTrace()
             }
         }
     }
 }
 
 class DioxusForegroundService : Service() {
+    private var player: ExoPlayer? = null
     private var mediaSession: MediaSession? = null
-    private var wakeLock: PowerManager.WakeLock? = null
+    private var stopped = false
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    private val progressTask = object : Runnable {
+        override fun run() {
+            val current = player ?: return
+            if (stopped || !current.isPlaying) return
+            val duration = if (current.duration > 0) current.duration / 1000 else -1L
+            MainActivity.emit("progress:${current.currentPosition / 1000}:$duration")
+            mainHandler.postDelayed(this, 1000)
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
         instance = this
         createNotificationChannel()
-        mediaSession = MediaSession(this, "doyou_playback").apply {
-            setCallback(SessionCallback())
-            setPlaybackState(playbackState())
-            isActive = true
-        }
-        wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
-            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "doyou:playback").apply {
-                setReferenceCounted(false)
-                acquire()
-            }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) {
-            ACTION_PREV -> dispatch("prev")
-            ACTION_TOGGLE -> dispatch("playpause")
-            ACTION_NEXT -> dispatch("next")
+        val url = intent?.getStringExtra(EXTRA_URL)
+        if (!url.isNullOrBlank()) {
+            stopped = false
+            MainActivity.trackTitle = intent.getStringExtra(EXTRA_TITLE).orEmpty()
+            MainActivity.trackArtist = intent.getStringExtra(EXTRA_ARTIST).orEmpty()
+            ServiceCompat.startForeground(
+                this,
+                NOTIFICATION_ID,
+                buildNotification(),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
+            )
+            startPlayback(url, MainActivity.trackTitle, MainActivity.trackArtist)
+            updateNotification()
+        } else if (!stopped) {
+            when (intent?.action) {
+                ACTION_PREV -> MainActivity.emit("prev")
+                ACTION_NEXT -> MainActivity.emit("next")
+                ACTION_TOGGLE -> {
+                    val current = player
+                    if (current != null && current.isPlaying) current.pause() else current?.play()
+                }
+            }
+            ServiceCompat.startForeground(
+                this,
+                NOTIFICATION_ID,
+                buildNotification(),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
+            )
+            updateNotification()
         }
-        ServiceCompat.startForeground(
-            this,
-            NOTIFICATION_ID,
-            buildNotification(),
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
-        )
-        refresh()
         return START_NOT_STICKY
     }
 
     override fun onDestroy() {
-        instance = null
-        MainActivity.serviceRunning = false
-        wakeLock?.let { if (it.isHeld) it.release() }
-        wakeLock = null
-        mediaSession?.isActive = false
+        stopProgressUpdates()
         mediaSession?.release()
         mediaSession = null
+        player?.release()
+        player = null
+        val notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(NOTIFICATION_ID)
+        instance = null
         super.onDestroy()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    fun refresh() {
+    fun pausePlayback() {
+        player?.pause()
+    }
+
+    fun resumePlayback() {
+        player?.play()
+    }
+
+    @Suppress("DEPRECATION")
+    fun requestStop() {
+        if (stopped) return
+        stopped = true
+        stopProgressUpdates()
+        player?.stop()
+        mediaSession?.release()
+        mediaSession = null
+        stopForeground(true)
+        stopSelf()
+    }
+
+    private fun startPlayback(url: String, title: String, artist: String) {
+        ensurePlayer()
+        val current = player ?: return
+        current.setMediaItem(
+            MediaItem.Builder()
+                .setUri(url)
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle(title)
+                        .setArtist(artist)
+                        .build(),
+                )
+                .build(),
+        )
+        current.prepare()
+        current.play()
+    }
+
+    private fun ensurePlayer() {
+        if (player != null) return
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(C.USAGE_MEDIA)
+            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+            .build()
+        val exoPlayer = ExoPlayer.Builder(this)
+            .setAudioAttributes(audioAttributes, true)
+            .build()
+        player = exoPlayer
+        val sessionPlayer = object : ForwardingPlayer(exoPlayer) {
+            override fun hasNextMediaItem(): Boolean = true
+            override fun hasPreviousMediaItem(): Boolean = true
+            override fun getNextMediaItemIndex(): Int = 0
+            override fun getPreviousMediaItemIndex(): Int = 0
+            override fun seekToNext() {
+                MainActivity.emit("next")
+            }
+
+            override fun seekToNextMediaItem() {
+                MainActivity.emit("next")
+            }
+
+            override fun seekToPrevious() {
+                MainActivity.emit("prev")
+            }
+
+            override fun seekToPreviousMediaItem() {
+                MainActivity.emit("prev")
+            }
+        }
+        mediaSession = MediaSession.Builder(this, sessionPlayer).build()
+        exoPlayer.addListener(
+            object : Player.Listener {
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    if (stopped) return
+                    MainActivity.emit("state:${if (isPlaying) 1 else 0}")
+                    if (isPlaying) startProgressUpdates() else stopProgressUpdates()
+                    updateNotification()
+                }
+
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    if (stopped) return
+                    if (playbackState == Player.STATE_ENDED) MainActivity.emit("ended")
+                    updateNotification()
+                }
+
+                override fun onPlayerError(error: PlaybackException) {
+                    if (stopped) return
+                    MainActivity.emit("error:${error.errorCode}")
+                    stopProgressUpdates()
+                    updateNotification()
+                }
+            },
+        )
+    }
+
+    private fun startProgressUpdates() {
+        mainHandler.removeCallbacks(progressTask)
+        mainHandler.post(progressTask)
+    }
+
+    private fun stopProgressUpdates() {
+        mainHandler.removeCallbacks(progressTask)
+    }
+
+    private fun updateNotification() {
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(NOTIFICATION_ID, buildNotification())
-        mediaSession?.setMetadata(
-            MediaMetadata.Builder()
-                .putString(MediaMetadata.METADATA_KEY_TITLE, MainActivity.trackTitle)
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, MainActivity.trackArtist)
-                .build(),
-        )
-        mediaSession?.setPlaybackState(playbackState())
-    }
-
-    private fun playbackState(): PlaybackState {
-        val actions = PlaybackState.ACTION_PLAY or
-            PlaybackState.ACTION_PAUSE or
-            PlaybackState.ACTION_PLAY_PAUSE or
-            PlaybackState.ACTION_SKIP_TO_NEXT or
-            PlaybackState.ACTION_SKIP_TO_PREVIOUS
-        val state = if (MainActivity.isPlaying) {
-            PlaybackState.STATE_PLAYING
-        } else {
-            PlaybackState.STATE_PAUSED
-        }
-        return PlaybackState.Builder()
-            .setActions(actions)
-            .setState(state, 0, 1f)
-            .build()
     }
 
     private fun buildNotification(): Notification {
@@ -169,7 +291,7 @@ class DioxusForegroundService : Service() {
             )
             return Notification.Action.Builder(icon, label, intent).build()
         }
-        val playing = MainActivity.isPlaying
+        val playing = player?.isPlaying == true
         val builder = Notification.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setContentTitle(MainActivity.trackTitle)
@@ -187,21 +309,15 @@ class DioxusForegroundService : Service() {
                 ),
             )
             .addAction(action(ACTION_NEXT, android.R.drawable.ic_media_next, "Next"))
-        val token = mediaSession?.sessionToken
-        if (token != null) {
+        val session = mediaSession
+        if (session != null) {
             builder.setStyle(
                 Notification.MediaStyle()
-                    .setMediaSession(token)
+                    .setMediaSession(session.platformToken)
                     .setShowActionsInCompactView(0, 1, 2),
             )
         }
         return builder.build()
-    }
-
-    private fun dispatch(command: String) {
-        val script =
-            "window.dispatchEvent(new CustomEvent('doyou-command',{detail:'$command'}))"
-        MainActivity.webViewRef?.evaluateJavascript(script, null)
     }
 
     private fun createNotificationChannel() {
@@ -211,14 +327,6 @@ class DioxusForegroundService : Service() {
             channel.setShowBadge(false)
             getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
         }
-    }
-
-    private inner class SessionCallback : MediaSession.Callback() {
-        override fun onPlay() = dispatch("play")
-        override fun onPause() = dispatch("pause")
-        override fun onStop() = dispatch("pause")
-        override fun onSkipToNext() = dispatch("next")
-        override fun onSkipToPrevious() = dispatch("prev")
     }
 
     companion object {
