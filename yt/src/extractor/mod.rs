@@ -83,7 +83,7 @@ impl YouTubeExtractor {
             ),
         );
 
-        let client = Client::builder()
+        let client = crate::client::builder()
             .default_headers(headers)
             .redirect(reqwest::redirect::Policy::limited(10))
             .build()

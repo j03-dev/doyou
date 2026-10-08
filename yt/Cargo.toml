@@ -10,3 +10,7 @@ reqwest = { workspace = true, features = ["json", "rustls"] }
 serde_json.workspace = true
 serde.workspace = true
 regex = "1.12.2"
+
+[target.'cfg(target_os = "android")'.dependencies]
+rustls = { version = "0.23", features = ["aws-lc-rs"] }
+webpki-roots = "1"

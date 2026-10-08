@@ -10,7 +10,7 @@ pub async fn home(key: &str) -> Result<YouTubeResponse> {
         "part=snippet&chart=mostPopular&videoCategoryId=10&regionCode=US&maxResults=10&key={key}"
     );
 
-    let client = reqwest::Client::new();
+    let client = crate::client::builder().build()?;
 
     let response = client
         .get(format!("{GOOGLE_API}/videos?{query}"))
@@ -31,7 +31,7 @@ pub async fn home(key: &str) -> Result<YouTubeResponse> {
 pub async fn search(name: &str, key: &str) -> Result<YouTubeResponse> {
     let query = format!("part=snippet&q={name}&type=video&maxResults=10&key={key}",);
 
-    let client = reqwest::Client::new();
+    let client = crate::client::builder().build()?;
 
     let response = client
         .get(format!("{GOOGLE_API}/search?{query}"))
