@@ -98,11 +98,11 @@ src/
 │   ├── alert.rs         # AlertProps / AlertLevel (state payload)
 │   ├── favorites.rs
 │   ├── home.rs
-│   ├── playback.rs      # Audio playback state
+│   ├── playback.rs      # Audio playback state + media command listener
 │   └── settings.rs
 ├── core/                # Infra (no DB, no UI)
 │   ├── error.rs         # Error type alias
-│   └── platform.rs      # Config dir / path resolution (desktop + Android)
+│   └── platform.rs      # Config dir / path resolution + Android media service bridge
 └── repository/          # Data access boundary
     ├── db/              # rusql-alchemy models + queries
     │   ├── mod.rs
@@ -116,6 +116,10 @@ yt/                      # Workspace crate for YouTube API
 │   ├── data_api/        # YouTube Data API v3
 │   └── extractor/       # Audio stream URL extraction
 └── Cargo.toml
+
+android/                 # Custom Android entry points (wired up in Dioxus.toml [application])
+├── AndroidManifest.xml  # Used VERBATIM by dx (no merge) — keep in sync with generated output
+└── MainActivity.kt      # WryActivity subclass + media foreground service
 ```
 
 **Layering rule**: `context` (state) must not import `components` (UI). `components` may

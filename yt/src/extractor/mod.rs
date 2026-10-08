@@ -367,10 +367,10 @@ impl YouTubeExtractor {
         for pattern in patterns {
             let regex = Regex::new(pattern)?;
 
-            if let Some(captures) = regex.captures(&html) {
-                if let Some(key) = captures.get(1) {
-                    return Ok(key.as_str().to_owned());
-                }
+            if let Some(captures) = regex.captures(&html)
+                && let Some(key) = captures.get(1)
+            {
+                return Ok(key.as_str().to_owned());
             }
         }
 

@@ -3,11 +3,47 @@ use dioxus::prelude::*;
 use yt::data_api::types::Item;
 
 use crate::context::AlertProps;
+use crate::core::platform;
 use crate::repository;
 
 #[component]
 pub fn PlaybackProvider(children: Element) -> Element {
     use_context_provider(|| PlaybackContext::new("audio"));
+    let playback = use_playback();
+
+    use_effect(move || {
+        let mut playback = playback;
+        let mut events = platform::player_events();
+        spawn(async move {
+            while let Some(event) = events.recv().await {
+                match event.as_str() {
+                    "ended" | "next" => playback.playback_controller(1),
+                    "prev" => playback.playback_controller(-1),
+                    "state:1" => playback.is_playing.set(true),
+                    "state:0" => playback.is_playing.set(false),
+                    _ => {
+                        if let Some(rest) = event.strip_prefix("progress:") {
+                            let mut parts = rest.splitn(2, ':');
+                            if let Some(time) = parts.next().and_then(|v| v.parse::<f64>().ok()) {
+                                playback.current_time.set(time);
+                            }
+                            if let Some(len) = parts.next().and_then(|v| v.parse::<f64>().ok())
+                                && len.is_finite()
+                                && len > 0.0
+                            {
+                                playback.duration.set(len);
+                            }
+                        } else if let Some(code) = event.strip_prefix("error:") {
+                            playback.error.set(Some(AlertProps::error(format!(
+                                "Playback failed (code: {})",
+                                code
+                            ))));
+                        }
+                    }
+                }
+            }
+        });
+    });
 
     rsx! {
         {children}
@@ -62,6 +98,8 @@ impl PlaybackContext {
         let mut playing = self.playing;
         let mut current_index = self.current_index;
         let mut is_loading = self.is_loading;
+        let mut current_time = self.current_time;
+        let mut duration = self.duration;
         let mut error = self.error;
 
         spawn(async move {
@@ -70,19 +108,17 @@ impl PlaybackContext {
             playing.set(Some(item.clone()));
             is_playing.set(true);
             is_loading.set(true);
+            current_time.set(0.0);
+            duration.set(0.0);
 
             match repository::youtube::audio_url(&item.id.as_string().unwrap()).await {
                 Ok(src) => {
-                    let _ = document::eval(&format!(
-                        r#"
-                           let audio = document.getElementById('{}')
-                           if (audio) {{
-                               audio.src = '{}'
-                               audio.play()
-                           }}
-                        "#,
-                        id, src
-                    ));
+                    platform::media_play(
+                        id,
+                        &src,
+                        &item.snippet.title,
+                        &item.snippet.channel_title,
+                    );
                 }
                 Err(e) => {
                     error.set(Some(AlertProps::error(format!(
@@ -90,13 +126,7 @@ impl PlaybackContext {
                         e
                     ))));
                     is_playing.set(false);
-                    let _ = document::eval(&format!(
-                        r#"
-                           let audio = document.getElementById('{}')
-                           if (audio) audio.pause()
-                        "#,
-                        id
-                    ));
+                    platform::media_stop(id);
                 }
             };
             is_loading.set(false);
@@ -106,26 +136,14 @@ impl PlaybackContext {
     pub fn play(&self) {
         let id = self.id;
         let mut is_playing = self.is_playing;
-        let _ = document::eval(&format!(
-            r#"
-               let audio = document.getElementById('{}')
-               if (audio) audio.play()
-            "#,
-            id
-        ));
+        platform::media_resume(id);
         is_playing.set(true);
     }
 
     pub fn pause(&self) {
         let id = self.id;
         let mut is_playing = self.is_playing;
-        let _ = document::eval(&format!(
-            r#"
-               let audio = document.getElementById('{}')
-               if (audio) audio.pause()
-            "#,
-            id
-        ));
+        platform::media_pause(id);
         is_playing.set(false);
     }
 
