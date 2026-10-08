@@ -8,7 +8,6 @@ use crate::core::error::Error;
 pub fn get_config_path() -> Result<PathBuf, Error> {
     let config_dir = get_config_dir()?;
     std::fs::create_dir_all(&config_dir)?;
-
     Ok(config_dir.join("config.db"))
 }
 
@@ -28,7 +27,6 @@ pub fn get_config_dir() -> Result<PathBuf, Error> {
 #[cfg(any(feature = "mobile", target_os = "android"))]
 fn java_vm() -> &'static jni::JavaVM {
     static JAVA_VM: OnceLock<jni::JavaVM> = OnceLock::new();
-
     JAVA_VM.get_or_init(|| {
         let context = ndk_context::android_context();
         unsafe { jni::JavaVM::from_raw(context.vm().cast()) }
@@ -39,12 +37,9 @@ fn java_vm() -> &'static jni::JavaVM {
 fn get_android_files_dir() -> Result<PathBuf, Error> {
     let android_context = ndk_context::android_context();
     let java_vm = java_vm();
-
     java_vm.attach_current_thread(|env| -> Result<PathBuf, Error> {
-        let context = unsafe {
-            jni::objects::JObject::from_raw(env, android_context.context().cast())
-        };
-
+        let context =
+            unsafe { jni::objects::JObject::from_raw(env, android_context.context().cast()) };
         let files_dir = env
             .call_method(
                 &context,
@@ -53,7 +48,6 @@ fn get_android_files_dir() -> Result<PathBuf, Error> {
                 &[],
             )?
             .l()?;
-
         let path = env
             .call_method(
                 &files_dir,
@@ -62,10 +56,8 @@ fn get_android_files_dir() -> Result<PathBuf, Error> {
                 &[],
             )?
             .l()?;
-
         let path = env.cast_local::<jni::objects::JString>(path)?;
         let path = path.try_to_string(env)?;
-
         Ok(PathBuf::from(path))
     })
 }
@@ -80,68 +72,48 @@ static MAIN_ACTIVITY: Mutex<Option<jni::objects::Global<jni::objects::JObject<'s
 
 #[cfg(target_os = "android")]
 fn call_main_activity(
-    f: impl for<'a> FnOnce(
-        &mut jni::Env<'a>,
-        &jni::objects::JClass<'a>,
-    ) -> jni::errors::Result<()>,
+    f: impl for<'a> FnOnce(&mut jni::Env<'a>, &jni::objects::JClass<'a>) -> jni::errors::Result<()>,
 ) -> jni::errors::Result<()> {
     let mut activity = MAIN_ACTIVITY
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
-
     let java_vm = java_vm();
-
     java_vm.attach_current_thread(|env| {
         let class = match activity.as_ref() {
             Some(activity) => env.get_object_class(activity)?,
-
             None => {
                 let context = ndk_context::android_context();
-
-                // SAFETY:
-                // ndk_context provides the application's valid Android context.
-                let context = unsafe {
-                    jni::objects::JObject::from_raw(env, context.context().cast())
-                };
-
+                let context =
+                    unsafe { jni::objects::JObject::from_raw(env, context.context().cast()) };
                 let global_context = env.new_global_ref(&context)?;
                 let class = env.get_object_class(&global_context)?;
-
                 *activity = Some(global_context);
-
                 class
             }
         };
-
         f(env, &class)
     })
 }
 
 #[cfg(target_os = "android")]
 pub fn media_play(_id: &str, src: &str, title: &str, artist: &str) {
-    let result = call_main_activity(|env, class| {
+    call_main_activity(|env, class| {
         let src = env.new_string(src)?;
         let title = env.new_string(title)?;
         let artist = env.new_string(artist)?;
-
         env.call_static_method(
             class,
             jni::jni_str!("playTrack"),
             jni::jni_sig!("(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V"),
             &[(&src).into(), (&title).into(), (&artist).into()],
         )?;
-
         Ok(())
     });
-
-    if let Err(error) = result {
-        eprintln!("media_play failed: {error}");
-    }
 }
 
 #[cfg(target_os = "android")]
 pub fn media_pause(_id: &str) {
-    let result = call_main_activity(|env, class| {
+    call_main_activity(|env, class| {
         env.call_static_method(
             class,
             jni::jni_str!("pausePlayback"),
@@ -151,33 +123,24 @@ pub fn media_pause(_id: &str) {
 
         Ok(())
     });
-
-    if let Err(error) = result {
-        eprintln!("media_pause failed: {error}");
-    }
 }
 
 #[cfg(target_os = "android")]
 pub fn media_resume(_id: &str) {
-    let result = call_main_activity(|env, class| {
+    call_main_activity(|env, class| {
         env.call_static_method(
             class,
             jni::jni_str!("resumePlayback"),
             jni::jni_sig!("()V"),
             &[],
         )?;
-
         Ok(())
     });
-
-    if let Err(error) = result {
-        eprintln!("media_resume failed: {error}");
-    }
 }
 
 #[cfg(target_os = "android")]
 pub fn media_stop(_id: &str) {
-    let result = call_main_activity(|env, class| {
+    call_main_activity(|env, class| {
         env.call_static_method(
             class,
             jni::jni_str!("stopPlayback"),
@@ -187,22 +150,15 @@ pub fn media_stop(_id: &str) {
 
         Ok(())
     });
-
-    if let Err(error) = result {
-        eprintln!("media_stop failed: {error}");
-    }
 }
 
 #[cfg(target_os = "android")]
 pub fn player_events() -> tokio::sync::mpsc::UnboundedReceiver<String> {
     let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
-
     let mut sender = PLAYER_EVENT_TX
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
-
     *sender = Some(tx);
-
     rx
 }
 
@@ -215,7 +171,6 @@ pub extern "system" fn Java_dev_dioxus_main_MainActivity_onPlayerEvent<'caller>(
 ) {
     let result = unowned_env.with_env(|env| -> jni::errors::Result<()> {
         let event = event.try_to_string(env)?;
-
         let sender = PLAYER_EVENT_TX
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner());
@@ -223,7 +178,6 @@ pub extern "system" fn Java_dev_dioxus_main_MainActivity_onPlayerEvent<'caller>(
         if let Some(sender) = sender.as_ref() {
             let _ = sender.send(event);
         }
-
         Ok(())
     });
 
