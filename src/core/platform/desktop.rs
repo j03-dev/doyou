@@ -10,16 +10,11 @@ pub fn get_config_dir() -> Result<PathBuf, Error> {
 pub fn media_play(id: &str, src: &str, _title: &str, _artist: &str) {
     let script = format!(
         r#"
-        (() => {{
-            const audio = document.getElementById({id:?});
-
-            if (!audio) {{
-                return;
-            }}
-
+        const audio = document.getElementById({id:?});
+        if (audio) {{
             audio.src = {src:?};
             void audio.play();
-        }})();
+        }}
         "#,
         id = id,
         src = src,
@@ -31,13 +26,10 @@ pub fn media_play(id: &str, src: &str, _title: &str, _artist: &str) {
 pub fn media_pause(id: &str) {
     let script = format!(
         r#"
-        (() => {{
-            const audio = document.getElementById({id:?});
-
-            if (audio) {{
-                audio.pause();
-            }}
-        }})();
+        const audio = document.getElementById({id:?});
+        if (audio) {{
+            audio.pause();
+        }}
         "#,
         id = id,
     );
@@ -48,13 +40,10 @@ pub fn media_pause(id: &str) {
 pub fn media_resume(id: &str) {
     let script = format!(
         r#"
-        (() => {{
-            const audio = document.getElementById({id:?});
-
-            if (audio) {{
-                void audio.play();
-            }}
-        }})();
+        const audio = document.getElementById({id:?});
+        if (audio) {{
+            void audio.play();
+        }}
         "#,
         id = id,
     );
@@ -65,14 +54,11 @@ pub fn media_resume(id: &str) {
 pub fn media_stop(id: &str) {
     let script = format!(
         r#"
-        (() => {{
-            const audio = document.getElementById({id:?});
-
-            if (audio) {{
-                audio.pause();
-                audio.currentTime = 0;
-            }}
-        }})();
+        const audio = document.getElementById({id:?});
+        if (audio) {{
+            audio.pause();
+            audio.currentTime = 0;
+        }}
         "#,
         id = id,
     );
