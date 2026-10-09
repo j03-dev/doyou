@@ -123,7 +123,7 @@ pub fn Home() -> Element {
 #[component]
 fn ThemeController() -> Element {
     let settings = use_settings();
-    let themes = &["Lofi", "Black", "Night", "Forest", "Dracula"];
+    let themes = &["Lofi", "Black", "Nord", "Pastel", "Slik", "Sunset"];
 
     rsx! {
         div { class: "dropdown",

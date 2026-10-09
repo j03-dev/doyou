@@ -105,7 +105,8 @@ pub fn MusicCard(item: Item, index: usize) -> Element {
                         onclick: on_favorite,
                         Icon {
                             icon: LdHeart,
-                            fill: if is_favorite() { "red" } else { "currentColor" },
+                            fill: "currentColor",
+                            class: if is_favorite() { "fill-error stroke-error" } else { "" },
                         }
                     }
                     button {

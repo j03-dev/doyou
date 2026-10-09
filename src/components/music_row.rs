@@ -87,7 +87,8 @@ pub fn MusicRow(item: Item, index: usize) -> Element {
             ButtonGhost { onclick: set_favorite,
                 Icon {
                     icon: LdHeart,
-                    fill: if is_favorite() { "red" } else { "currentColor" },
+                    fill: "currentColor",
+                    class: if is_favorite() { "fill-error stroke-error" } else { "" },
                 }
             }
         }
