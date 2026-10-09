@@ -24,7 +24,7 @@ pub fn Home() -> Element {
 
     use_effect(move || {
         if settings.general.read().youtube_token.is_none() {
-            document::eval("token_form.showDialog()");
+            document::eval("token_form.showModal()");
         }
     });
 
