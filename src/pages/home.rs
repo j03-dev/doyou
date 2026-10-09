@@ -9,12 +9,13 @@ use crate::components::loading::LoadingSpinner;
 use crate::components::music_card::MusicCard;
 use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::components::text_input::TextInput;
-use crate::context::{use_home, use_settings};
+use crate::context::{use_home, use_playback, use_settings};
 
 #[component]
 pub fn Home() -> Element {
     let settings = use_settings();
     let home = use_home();
+    let playback = use_playback();
 
     let mut show_search = use_signal(|| false);
 
@@ -31,6 +32,10 @@ pub fn Home() -> Element {
 
     use_effect(move || {
         home.load_feed();
+    });
+
+    use_effect(move || {
+        playback.set_queue(home_items());
     });
 
     let search = move |evt: Event<FormData>| {
