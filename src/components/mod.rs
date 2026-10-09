@@ -2,7 +2,6 @@ pub mod alert;
 pub mod button;
 pub mod dock;
 pub mod form;
-pub mod icons;
 pub mod loading;
 pub mod music_list;
 pub mod music_player;

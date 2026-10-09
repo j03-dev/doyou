@@ -1,9 +1,10 @@
 use dioxus::prelude::*;
+use dioxus_free_icons::Icon;
+use dioxus_free_icons::icons::ld_icons::{LdMenu, LdSearch, LdX};
 
 use crate::components::alert::Alert;
 use crate::components::button::ButtonGhost;
 use crate::components::form::get_value_from;
-use crate::components::icons::{BurgerIcon, CloseIcon, DoYouIcon, SearchIcon};
 use crate::components::loading::LoadingSpinner;
 use crate::components::music_list::MusicList;
 use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
@@ -54,15 +55,17 @@ pub fn Home() -> Element {
                             name: "search",
                             r#type: "search",
                             placeholder: "Search",
-                            SearchIcon { class: "h-[1em] opacity-50" }
+                            Icon { icon: LdSearch, fill: "grey", width: 16 }
                         }
                     }
                 } else {
-                    DoYouIcon {}
+                    p { class: "btn btn-ghost text-xl", "DoYou" }
                 }
             }
             NavBarItem { position: NavBarPos::End,
-                ButtonGhost { onclick: move |_| show_search.set(!show_search()), SearchIcon {} }
+                ButtonGhost { onclick: move |_| show_search.set(!show_search()),
+                    Icon { icon: LdSearch }
+                }
             }
         }
 
@@ -85,7 +88,9 @@ pub fn Home() -> Element {
         dialog { id: "token_form", class: "modal",
             div { class: "modal-box w-96",
                 form { method: "dialog",
-                    button { class: "btn btn-sm absolute right-4 top-7", CloseIcon {} }
+                    button { class: "btn btn-sm absolute right-4 top-7",
+                        Icon { icon: LdX }
+                    }
                 }
                 br {}
                 form { onsubmit: submit_token,
@@ -114,7 +119,7 @@ fn ThemeController() -> Element {
                 tabindex: 0,
                 role: "button",
                 class: "btn btn-ghost btn-circle",
-                BurgerIcon {}
+                Icon { icon: LdMenu }
             }
             ul {
                 tabindex: -1,

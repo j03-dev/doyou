@@ -4,7 +4,7 @@ use rusql_alchemy::Error;
 use rusql_alchemy::prelude::*;
 use tokio::sync::OnceCell;
 
-use models::{AppSettings, Favorite, YoutubeTrack};
+use models::{AppSettings, Favorite, Playlist, Track, TrackPlaylist};
 
 use crate::core::platform::get_config_path;
 
@@ -21,42 +21,45 @@ async fn conn() -> Result<&'static Connection, Error> {
     .await
 }
 
-pub async fn add_to_favorite(track: YoutubeTrack) -> Result<YoutubeTrack, Error> {
+pub async fn get_or_create_track(track: &Track, conn: &Connection) -> Result<Track, Error> {
+    if let Some(track) = Track::get(kwargs!(track_id = track.track_id), conn).await? {
+        return Ok(track);
+    }
+    track.save(conn).await
+}
+
+pub async fn add_to_favorite(track: Track) -> Result<Track, Error> {
     let conn = conn().await?;
-    if !get_favorite_by(&track.id, conn).await?.is_some() {
-        let youtube_track = YoutubeTrack::get(kwargs!(id = track.id), conn).await?;
-        if youtube_track.is_none() {
-            track.save(conn).await?;
-        }
-        Favorite::create(kwargs!(youtube_track_id = track.id), conn).await?;
+    let ref track_id = track.track_id;
+
+    if !get_favorite_by(track_id, conn).await?.is_some() {
+        let track = get_or_create_track(&track, conn).await?;
+        Favorite::create(kwargs!(favorite_fk_track_id = track.track_id), conn).await?;
     }
     Ok(track)
 }
 
-pub async fn remove_from_favorite(youtube_track_id: &str) -> Result<(), Error> {
+pub async fn remove_from_favorite(track_id: &str) -> Result<(), Error> {
     let conn = conn().await?;
-    if let Some(favorite) = get_favorite_by(youtube_track_id, conn).await? {
+    if let Some(favorite) = get_favorite_by(track_id, conn).await? {
         favorite.delete(conn).await?;
     }
     Ok(())
 }
 
-pub async fn is_favorite(youtube_track_id: &str) -> Result<bool, Error> {
+pub async fn is_favorite(track_id: &str) -> Result<bool, Error> {
     let conn = conn().await?;
-    Ok(get_favorite_by(youtube_track_id, conn).await?.is_some())
+    Ok(get_favorite_by(track_id, conn).await?.is_some())
 }
 
-async fn get_favorite_by(
-    youtube_track_id: &str,
-    conn: &Connection,
-) -> Result<Option<Favorite>, Error> {
-    Favorite::get(kwargs!(youtube_track_id = youtube_track_id), conn).await
+async fn get_favorite_by(track_id: &str, conn: &Connection) -> Result<Option<Favorite>, Error> {
+    Favorite::get(kwargs!(favorite_fk_track_id = track_id), conn).await
 }
 
-pub async fn get_all_favorites() -> Result<Vec<YoutubeTrack>, rusql_alchemy::Error> {
+pub async fn get_all_favorites() -> Result<Vec<Track>, Error> {
     let conn = conn().await?;
-    let results: Vec<YoutubeTrack> = select!(YoutubeTrack, Favorite)
-        .inner_join::<YoutubeTrack, Favorite>(kwargs!(YoutubeTrack.id == Favorite.youtube_track_id))
+    let results: Vec<Track> = select!(Track, Favorite)
+        .inner_join::<Track, Favorite>(kwargs!(Track.track_id == Favorite.favorite_fk_track_id))
         .fetch_all(conn)
         .await?;
 
@@ -86,4 +89,46 @@ pub async fn get_settings() -> Result<AppSettings, Error> {
     }
     let app_setting = AppSettings::default().save(conn).await?;
     Ok(app_setting)
+}
+
+pub async fn create_playlist(name: &str) -> Result<Playlist, Error> {
+    let conn = conn().await?;
+    Playlist::create(kwargs!(name = name), conn).await
+}
+
+pub async fn get_playlist_by_id(playlist_id: i32) -> Result<Option<Playlist>, Error> {
+    let conn = conn().await?;
+    Playlist::get(kwargs!(playlist_id = playlist_id), conn).await
+}
+
+pub async fn list_track_playlist(playlist_id: i32) -> Result<Vec<Track>, Error> {
+    let conn = conn().await?;
+
+    let results: Vec<Track> = select!(Track, TrackPlaylist)
+        .inner_join::<Track, TrackPlaylist>(kwargs!(
+            Track.track_id == TrackPlaylist.track_playlist_fk_track_id
+        ))
+        .r#where(kwargs!(
+            TrackPlaylist.track_playlist_fk_playlist_id == playlist_id
+        ))
+        .fetch_all(conn)
+        .await?;
+
+    Ok(results)
+}
+
+pub async fn add_to_playlist(track: Track, playlist_id: i32) -> Result<Track, Error> {
+    let conn = conn().await?;
+    let track = get_or_create_track(&track, &conn).await?;
+
+    TrackPlaylist::create(
+        kwargs!(
+            track_playlist_fk_track_id = track.track_id,
+            track_playlist_fk_playlist_id = playlist_id
+        ),
+        conn,
+    )
+    .await?;
+
+    Ok(track)
 }

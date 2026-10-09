@@ -1905,15 +1905,8 @@
     width: calc(var(--spacing) * 10);
     height: calc(var(--spacing) * 10);
   }
-  .size-\[1\.2em\] {
-    width: 1.2em;
-    height: 1.2em;
-  }
   .h-1\.5 {
     height: calc(var(--spacing) * 1.5);
-  }
-  .h-5 {
-    height: calc(var(--spacing) * 5);
   }
   .h-6 {
     height: calc(var(--spacing) * 6);
@@ -1923,9 +1916,6 @@
   }
   .h-64 {
     height: calc(var(--spacing) * 64);
-  }
-  .h-\[1em\] {
-    height: 1em;
   }
   .h-full {
     height: 100%;
@@ -1942,9 +1932,6 @@
     @layer daisyui.l1.l2 {
       width: calc(var(--size-selector, 0.25rem) * 5);
     }
-  }
-  .w-5 {
-    width: calc(var(--spacing) * 5);
   }
   .w-6 {
     width: calc(var(--spacing) * 6);
@@ -2136,17 +2123,8 @@
       }
     }
   }
-  .fill-error {
-    fill: var(--color-error);
-  }
-  .fill-transparent {
-    fill: transparent;
-  }
   .stroke-current {
     stroke: currentcolor;
-  }
-  .stroke-error {
-    stroke: var(--color-error);
   }
   .object-cover {
     object-fit: cover;
@@ -2265,14 +2243,8 @@
   .uppercase {
     text-transform: uppercase;
   }
-  .opacity-50 {
-    opacity: 50%;
-  }
   .opacity-60 {
     opacity: 60%;
-  }
-  .opacity-70 {
-    opacity: 70%;
   }
   .shadow-2xl {
     --tw-shadow: 0 25px 50px -12px var(--tw-shadow-color, rgb(0 0 0 / 0.25));

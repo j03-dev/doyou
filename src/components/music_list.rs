@@ -1,9 +1,12 @@
 use dioxus::prelude::*;
+use dioxus_free_icons::{
+    Icon,
+    icons::ld_icons::{LdDownload, LdHeart},
+};
 use yt::data_api::types::Item;
 
 use crate::components::alert::Alert;
 use crate::components::button::ButtonGhost;
-use crate::components::icons::{DownloadIcon, FavoriteIcon};
 use crate::context::{use_favorites, use_playback};
 
 #[component]
@@ -60,7 +63,13 @@ fn MusicCard(item: Item, index: usize) -> Element {
 
     let is_favorite = use_memo({
         let item_id = item_id.clone();
-        move || favorites.tracks.read().iter().any(|t| t.id == item_id)
+        move || {
+            favorites
+                .tracks
+                .read()
+                .iter()
+                .any(|t| t.track_id == item_id)
+        }
     });
 
     let title = item.snippet.title.clone();
@@ -92,9 +101,14 @@ fn MusicCard(item: Item, index: usize) -> Element {
                     span { class: "loading loading-dots loading-sm" }
                 }
             }
-            ButtonGhost { DownloadIcon {} }
+            ButtonGhost {
+                Icon { icon: LdDownload }
+            }
             ButtonGhost { onclick: set_favorite,
-                FavoriteIcon { class: if is_favorite() { "fill-error stroke-error" } else { "fill-transparent stroke-current" } }
+                Icon {
+                    icon: LdHeart,
+                    fill: if is_favorite() { "red" } else {"currentColor"},
+                }
             }
         }
     }

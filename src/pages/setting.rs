@@ -1,8 +1,9 @@
 use dioxus::prelude::*;
+use dioxus_free_icons::Icon;
+use dioxus_free_icons::icons::ld_icons::LdKey;
 
 use crate::components::alert::Alert;
 use crate::components::form::get_value_from;
-use crate::components::icons::KeyIcon;
 use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::components::text_input::TextInput;
 use crate::context::use_settings;
@@ -49,7 +50,7 @@ pub fn Setting() -> Element {
                     r#type: "password",
                     placeholder: "your-youtube-token",
                     value: settings.general.read().youtube_token.clone().unwrap_or_default(),
-                    KeyIcon {}
+                    Icon { icon: LdKey }
                 }
                 button { class: "btn btn-primary w-full max-w-md mt-6", "Submit Token" }
             }
