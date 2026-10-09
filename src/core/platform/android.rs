@@ -42,7 +42,8 @@ pub fn media_play(_id: &str, src: &str, title: &str, artist: &str) {
             &[(&src).into(), (&title).into(), (&artist).into()],
         )?;
         Ok(())
-    });
+    })
+    .ok();
 }
 
 pub fn media_pause(_id: &str) {
@@ -55,7 +56,8 @@ pub fn media_pause(_id: &str) {
         )?;
 
         Ok(())
-    });
+    })
+    .ok();
 }
 
 pub fn media_resume(_id: &str) {
@@ -67,7 +69,8 @@ pub fn media_resume(_id: &str) {
             &[],
         )?;
         Ok(())
-    });
+    })
+    .ok();
 }
 
 pub fn media_stop(_id: &str) {
@@ -80,7 +83,8 @@ pub fn media_stop(_id: &str) {
         )?;
 
         Ok(())
-    });
+    })
+    .ok();
 }
 
 pub fn player_events() -> tokio::sync::mpsc::UnboundedReceiver<String> {
