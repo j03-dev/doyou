@@ -6,7 +6,7 @@ use crate::components::alert::Alert;
 use crate::components::button::ButtonGhost;
 use crate::components::form::get_value_from;
 use crate::components::loading::LoadingSpinner;
-use crate::components::music_list::MusicList;
+use crate::components::music_card::MusicCard;
 use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::components::text_input::TextInput;
 use crate::context::{use_home, use_settings};
@@ -81,7 +81,13 @@ pub fn Home() -> Element {
                     LoadingSpinner { size: 20 }
                 }
             } else {
-                MusicList { items: home_items() }
+                div { class: "carousel carousel-center w-full gap-3",
+                    for (index, item) in home_items().iter().enumerate() {
+                        div { class: "carousel-item w-36 sm:w-40",
+                            MusicCard { item: item.clone(), index }
+                        }
+                    }
+                }
             }
         }
 

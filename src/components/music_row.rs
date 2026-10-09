@@ -5,31 +5,11 @@ use dioxus_free_icons::{
 };
 use yt::data_api::types::Item;
 
-use crate::components::alert::Alert;
 use crate::components::button::ButtonGhost;
 use crate::context::{use_favorites, use_playback};
 
 #[component]
-pub fn MusicList(items: Vec<Item>) -> Element {
-    let playback = use_playback();
-    let favorites = use_favorites();
-    let favorites_error = favorites.error;
-    playback.set_queue(items.clone());
-
-    rsx! {
-        if let Some(alert_props) = favorites_error() {
-            Alert { ..alert_props }
-        }
-        ul { class: "list bg-base-100 rounded-box shadow-md",
-            for (index, item) in items.iter().enumerate() {
-                MusicCard { item: item.clone(), index }
-            }
-        }
-    }
-}
-
-#[component]
-fn MusicCard(item: Item, index: usize) -> Element {
+pub fn MusicRow(item: Item, index: usize) -> Element {
     let playback = use_playback();
     let favorites = use_favorites();
 
@@ -107,7 +87,7 @@ fn MusicCard(item: Item, index: usize) -> Element {
             ButtonGhost { onclick: set_favorite,
                 Icon {
                     icon: LdHeart,
-                    fill: if is_favorite() { "red" } else {"currentColor"},
+                    fill: if is_favorite() { "red" } else { "currentColor" },
                 }
             }
         }

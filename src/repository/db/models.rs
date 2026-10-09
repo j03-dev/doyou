@@ -33,6 +33,7 @@ pub struct TrackPlaylist {
 pub struct Playlist {
     #[field(primary_key = true, auto = true)]
     pub playlist_id: Integer,
+
     pub name: String,
 }
 
@@ -49,8 +50,10 @@ pub struct Favorite {
 pub struct AppSettings {
     #[field(primary_key = true)]
     pub id: Integer,
+
     #[field(size = 255)]
     pub youtube_token: Option<String>,
+
     #[field(size = 50, default = "Lofi")]
     pub theme: String,
 }
