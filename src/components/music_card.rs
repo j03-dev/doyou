@@ -62,10 +62,8 @@ pub fn MusicCard(item: Item, index: usize) -> Element {
     };
 
     rsx! {
-        div {
-            class: "card bg-base-100 w-full min-w-0 rounded-xl transition-colors hover:bg-base-200/60",
-            figure {
-                class: "relative aspect-square overflow-hidden rounded-xl bg-base-200",
+        div { class: "card bg-base-100 w-full min-w-0 rounded-xl transition-colors hover:bg-base-200/60",
+            figure { class: "relative aspect-square overflow-hidden rounded-xl bg-base-200",
                 img {
                     class: "size-full object-cover transition-transform duration-300 hover:scale-105",
                     src: "{thumbnail}",
@@ -87,10 +85,8 @@ pub fn MusicCard(item: Item, index: usize) -> Element {
                     }
                 }
             }
-            div {
-                class: "flex min-w-0 items-center gap-2 px-1 pt-2 pb-1",
-                div {
-                    class: "flex min-w-0 flex-1 flex-col gap-1",
+            div { class: "flex min-w-0 items-center gap-2 px-1 pt-2 pb-1",
+                div { class: "flex min-w-0 flex-1 flex-col gap-1",
                     h2 {
                         class: "truncate text-sm font-semibold leading-tight",
                         title: "{title}",
@@ -102,8 +98,7 @@ pub fn MusicCard(item: Item, index: usize) -> Element {
                         dangerous_inner_html: artist,
                     }
                 }
-                div {
-                    class: "flex shrink-0 items-center gap-1",
+                div { class: "flex shrink-0 items-center gap-1",
                     button {
                         class: "btn btn-ghost btn-sm btn-square",
                         "aria-label": if is_favorite() { "Remove from favorites" } else { "Add to favorites" },
