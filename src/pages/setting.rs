@@ -2,9 +2,7 @@ use std::time::Instant;
 
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
-use dioxus_free_icons::icons::ld_icons::{
-    LdActivity, LdCast, LdChevronRight, LdHeadphones, LdInfo, LdKey, LdRefreshCw,
-};
+use dioxus_free_icons::icons::ld_icons::{LdActivity, LdCast, LdChevronRight, LdKey, LdRefreshCw};
 
 use crate::components::alert::Alert;
 use crate::components::form::get_value_from;

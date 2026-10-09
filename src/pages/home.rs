@@ -74,7 +74,10 @@ pub fn Home() -> Element {
             }
         }
 
-        div { class: "m-2 pb-5",
+        div { class: format!(
+                "px-2 pt-2 mx-auto w-full max-w-6xl {}",
+                if playback.playing.read().is_some() { "pb-48" } else { "pb-28" }
+            ),
             if let Some(alert_props) = home_error() {
                 Alert { ..alert_props }
             }
@@ -86,11 +89,9 @@ pub fn Home() -> Element {
                     LoadingSpinner { size: 20 }
                 }
             } else {
-                div { class: "carousel carousel-center w-full gap-3",
+                div { class: "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5",
                     for (index, item) in home_items().iter().enumerate() {
-                        div { class: "carousel-item w-36 sm:w-40",
-                            MusicCard { item: item.clone(), index }
-                        }
+                        MusicCard { item: item.clone(), index }
                     }
                 }
             }
