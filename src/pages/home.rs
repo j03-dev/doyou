@@ -192,7 +192,7 @@ pub fn Home() -> Element {
                         "New playlist"
                     }
                 }
-                div { class: "carousel carousel-end gap-3 w-full",
+                div { class: "carousel carousel-end gap-3 w-full py-3 px-1 mb-2",
                     PlaylistCard {
                         name: "Favorites".to_string(),
                         thumbnails: favorite_thumbnails(),
@@ -221,13 +221,13 @@ pub fn Home() -> Element {
                     }
                 }
 
-                div { class: "flex items-center gap-2 px-1 pt-6 pb-2",
+                div { class: "flex items-center gap-2 px-1 pt-8 sm:pt-10 pb-3",
                     Icon { icon: LdFlame, class: "size-5 text-error" }
                     h2 { class: "text-lg font-semibold", "Trending" }
                 }
-                div { class: "carousel gap-4 w-full",
+                div { class: "carousel gap-4 w-full py-4 px-1 mb-2",
                     for (index, item) in displayed().iter().enumerate() {
-                        div { class: "carousel-item w-48 sm:w-56 md:w-64",
+                        div { class: "carousel-item w-56 sm:w-64 md:w-72",
                             MusicCard {
                                 item: item.clone(),
                                 index,
@@ -241,13 +241,13 @@ pub fn Home() -> Element {
                 }
 
                 if !recent_items().is_empty() {
-                    div { class: "flex items-center gap-2 px-1 pt-6 pb-2",
+                    div { class: "flex items-center gap-2 px-1 pt-8 sm:pt-10 pb-3",
                         Icon { icon: LdHistory, class: "size-5 text-secondary" }
                         h2 { class: "text-lg font-semibold", "Recently Played" }
                     }
-                    div { class: "carousel gap-4 w-full",
+                    div { class: "carousel gap-4 w-full py-4 px-1 mb-2",
                         for (index, item) in recent_items().iter().enumerate() {
-                            div { class: "carousel-item w-48 sm:w-56 md:w-64",
+                            div { class: "carousel-item w-56 sm:w-64 md:w-72",
                                 MusicCard {
                                     item: item.clone(),
                                     index,
@@ -262,13 +262,13 @@ pub fn Home() -> Element {
                 }
 
                 if !most_items().is_empty() {
-                    div { class: "flex items-center gap-2 px-1 pt-6 pb-2",
+                    div { class: "flex items-center gap-2 px-1 pt-8 sm:pt-10 pb-3",
                         Icon { icon: LdTrophy, class: "size-5 text-warning" }
                         h2 { class: "text-lg font-semibold", "Most Played" }
                     }
-                    div { class: "carousel gap-4 w-full",
+                    div { class: "carousel gap-4 w-full py-4 px-1 mb-2",
                         for (index, item) in most_items().iter().enumerate() {
-                            div { class: "carousel-item w-48 sm:w-56 md:w-64",
+                            div { class: "carousel-item w-56 sm:w-64 md:w-72",
                                 MusicCard {
                                     item: item.clone(),
                                     index,
