@@ -1,13 +1,15 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
-use dioxus_free_icons::icons::ld_icons::{LdPlay, LdShuffle};
+use dioxus_free_icons::icons::ld_icons::{LdHeart, LdListMusic, LdPlay, LdShuffle};
 use yt::data_api::types::Item;
 
 use crate::components::alert::Alert;
-use crate::components::cover::CoverCollage;
+use crate::components::collection_hero::CollectionHero;
+use crate::components::empty_state::EmptyState;
 use crate::components::loading::LoadingSpinner;
 use crate::components::music_row::MusicRow;
 use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
+use crate::components::section_header::SectionHeader;
 use crate::context::{use_favorites, use_playback, use_playlists};
 
 #[component]
@@ -49,7 +51,9 @@ pub fn Favorite() -> Element {
         playback.start(0);
     };
 
-    let shuffle = move |_: Event<MouseData>| {};
+    let shuffle = move |_: Event<MouseData>| {
+        playback.start_shuffled(items());
+    };
 
     rsx! {
         NavBar {
@@ -57,14 +61,14 @@ pub fn Favorite() -> Element {
                 span {}
             }
             NavBarItem { position: NavBarPos::Center,
-                p { class: "btn btn-ghost text-xl", "Favorite" }
+                p { class: "btn btn-ghost text-xl", "Favorites" }
             }
             NavBarItem { position: NavBarPos::End,
                 span {}
             }
         }
         div { class: format!(
-                "px-2 pt-2 mx-auto w-full max-w-6xl {}",
+                "px-4 pt-4 mx-auto w-full max-w-4xl sm:pt-6 {}",
                 if playback.playing.read().is_some() { "pb-48" } else { "pb-28" }
             ),
             if let Some(alert_props) = favorite_error() {
@@ -73,44 +77,54 @@ pub fn Favorite() -> Element {
             if let Some(alert_props) = playlist_error() {
                 Alert { ..alert_props }
             }
-            div { class: "flex flex-col items-center gap-4 py-6 sm:flex-row sm:items-end",
-                CoverCollage {
-                    thumbnails: thumbnails(),
-                    class: "w-40 rounded-box shadow-lg",
-                }
-                div { class: "min-w-0 text-center sm:text-left",
-                    h1 { class: "truncate text-2xl font-bold", "Favorites" }
-                    p { class: "text-sm text-base-content/60",
-                        "{count()} "
-                        if count() == 1 { "song" } else { "songs" }
-                    }
-                }
-            }
-            div { class: "flex justify-center items-center gap-3 w-full max-w-3xl mx-auto px-4 mt-2",
+
+            CollectionHero {
+                name: "Favorites".to_string(),
+                eyebrow: Some("Auto-generated collection".to_string()),
+                thumbnails: thumbnails(),
+                count: count(),
+                accent: "text-error".to_string(),
                 button {
-                    class: "btn btn-lg btn-primary h-16 w-1/2",
+                    class: "btn btn-primary rounded-full gap-2 px-6",
+                    disabled: items().is_empty(),
                     onclick: play_all,
                     Icon { icon: LdPlay }
                     span { "Play All" }
                 }
                 button {
-                    class: "btn btn-lg btn-neutral h-16 w-1/4 rounded-full",
+                    class: "btn btn-outline rounded-full gap-2 px-5",
+                    disabled: items().is_empty(),
                     onclick: shuffle,
                     Icon { icon: LdShuffle }
+                    span { "Shuffle" }
                 }
             }
-            if favorite_is_loading() {
-                div { class: "flex justify-center items-center h-40",
-                    LoadingSpinner { size: 20 }
+
+            div { class: "mt-8",
+                SectionHeader {
+                    title: "Tracks".to_string(),
+                    badge: Some(count().to_string()),
+                    icon: rsx! { Icon { icon: LdListMusic, class: "size-4 text-error" } },
                 }
-            } else if items().is_empty() {
-                div { class: "flex justify-center items-center h-40",
-                    p { class: "text-base-content/60", "No favorites yet" }
-                }
-            } else {
-                ul { class: "list bg-base-100 rounded-box shadow-md mt-3",
-                    for (index, item) in items().iter().enumerate() {
-                        MusicRow { item: item.clone(), index }
+                div { class: "card mt-2 bg-base-100 border border-base-content/10 shadow-sm rounded-2xl overflow-hidden",
+                    if favorite_is_loading() {
+                        div { class: "flex h-40 items-center justify-center",
+                            LoadingSpinner { size: 8 }
+                        }
+                    } else if items().is_empty() {
+                        EmptyState {
+                            title: "No favorites yet".to_string(),
+                            message: Some(
+                                "Tap the heart on any track to save it here.".to_string(),
+                            ),
+                            icon: rsx! { Icon { icon: LdHeart, class: "size-7" } },
+                        }
+                    } else {
+                        ul { class: "list divide-y divide-base-content/5",
+                            for (index, item) in items().iter().enumerate() {
+                                MusicRow { item: item.clone(), index }
+                            }
+                        }
                     }
                 }
             }

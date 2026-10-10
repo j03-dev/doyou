@@ -1,8 +1,10 @@
 pub mod add_to_playlist;
 pub mod alert;
 pub mod button;
+pub mod collection_hero;
 pub mod cover;
 pub mod dock;
+pub mod empty_state;
 pub mod form;
 pub mod loading;
 pub mod music_card;
@@ -10,4 +12,5 @@ pub mod music_player;
 pub mod music_row;
 pub mod navbar;
 pub mod playlist_card;
+pub mod section_header;
 pub mod text_input;

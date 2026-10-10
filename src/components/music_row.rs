@@ -77,38 +77,52 @@ pub fn MusicRow(
         });
     };
 
+    let play = move |_: Event<MouseData>| match on_play {
+        Some(handler) => handler.call(index),
+        None => playback.start(index),
+    };
+
     rsx! {
         li {
-            class: format!(
-                "list-row {}",
-                if is_playing_now() { "bg-secondary text-base-content" } else { "" },
-            ),
-            if let Some(rank) = rank {
-                div { class: "w-6 flex-shrink-0 text-center text-sm font-bold opacity-60",
-                    "{rank}"
+            class: if is_playing_now() {
+                "list-row items-center gap-3 rounded-xl bg-primary/10"
+            } else {
+                "list-row items-center gap-3 rounded-xl transition-colors hover:bg-base-200/60"
+            },
+            div { class: "w-5 shrink-0 text-center text-xs font-medium tabular-nums text-base-content/40",
+                "{rank.unwrap_or(index + 1)}"
+            }
+            div {
+                class: "relative shrink-0 cursor-pointer",
+                onclick: play,
+                img {
+                    class: "size-12 rounded-xl object-cover md:size-14",
+                    src: thumbnail,
+                    alt: "{title}",
+                    loading: "lazy",
                 }
             }
             div {
-                class: "flex-shrink-0 cursor-pointer",
-                onclick: move |_| match on_play {
-                    Some(handler) => handler.call(index),
-                    None => playback.start(index),
-                },
-                img { class: "md:size-20 size-10 rounded-box", src: thumbnail }
-            }
-            div {
                 class: "min-w-0 flex-1 cursor-pointer",
-                onclick: move |_| match on_play {
-                    Some(handler) => handler.call(index),
-                    None => playback.start(index),
-                },
-                div { class: "truncate", dangerous_inner_html: title }
+                onclick: play,
+                div {
+                    class: if is_playing_now() {
+                        "truncate font-semibold text-primary"
+                    } else {
+                        "truncate font-medium"
+                    },
+                    dangerous_inner_html: title,
+                }
                 div {
                     class: "text-xs uppercase font-semibold opacity-60",
                     dangerous_inner_html: artist,
                 }
+            }
+            div { class: "flex shrink-0 items-center gap-0.5",
                 if is_loading() {
-                    span { class: "loading loading-dots loading-sm" }
+                    span { class: "loading loading-dots loading-sm text-primary" }
+                } else if is_playing_now() {
+                    span { class: "loading loading-bars loading-sm text-primary" }
                 }
             }
             ButtonGhost {

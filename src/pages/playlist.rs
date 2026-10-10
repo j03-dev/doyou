@@ -1,13 +1,17 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
-use dioxus_free_icons::icons::ld_icons::{LdArrowLeft, LdEllipsis, LdPlay, LdShuffle, LdTrash2};
+use dioxus_free_icons::icons::ld_icons::{
+    LdArrowLeft, LdEllipsis, LdListMusic, LdMusic, LdPlay, LdShuffle, LdTrash2,
+};
 use yt::data_api::types::Item;
 
 use crate::components::alert::Alert;
-use crate::components::cover::CoverCollage;
+use crate::components::collection_hero::CollectionHero;
+use crate::components::empty_state::EmptyState;
 use crate::components::loading::LoadingSpinner;
 use crate::components::music_row::MusicRow;
 use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
+use crate::components::section_header::SectionHeader;
 use crate::context::{use_playback, use_playlists};
 use crate::repository::tracks_to_items;
 use crate::route::Route;
@@ -47,13 +51,16 @@ pub fn Playlist(id: i32) -> Element {
         playback.start(0);
     };
 
-    let shuffle = move |_: Event<MouseData>| {};
+    let shuffle = move |_: Event<MouseData>| {
+        playback.start_shuffled(items());
+    };
 
     rsx! {
         NavBar {
             NavBarItem { position: NavBarPos::Start,
                 button {
                     class: "btn btn-ghost btn-circle",
+                    "aria-label": "Back",
                     onclick: move |_| nav.go_back(),
                     Icon { icon: LdArrowLeft }
                 }
@@ -90,7 +97,7 @@ pub fn Playlist(id: i32) -> Element {
             }
         }
         div { class: format!(
-                "px-2 pt-2 mx-auto w-full max-w-6xl {}",
+                "px-4 pt-4 mx-auto w-full max-w-4xl sm:pt-6 {}",
                 if playback.playing.read().is_some() { "pb-48" } else { "pb-28" }
             ),
             if let Some(alert_props) = error() {
@@ -98,51 +105,59 @@ pub fn Playlist(id: i32) -> Element {
             }
             if is_loading() {
                 div { class: "flex h-40 justify-center items-center",
-                    LoadingSpinner { size: 20 }
+                    LoadingSpinner { size: 8 }
                 }
             } else if let Some(entry) = detail() {
-                div { class: "flex flex-col items-center gap-4 py-6 sm:flex-row sm:items-end",
-                    CoverCollage {
-                        thumbnails: entry.thumbnails(),
-                        class: "w-40 rounded-box shadow-lg",
-                    }
-                    div { class: "min-w-0 text-center sm:text-left",
-                        h1 { class: "truncate text-2xl font-bold", "{entry.playlist.name}" }
-                        p { class: "text-sm text-base-content/60",
-                            "{entry.tracks.len()} "
-                            if entry.tracks.len() == 1 { "song" } else { "songs" }
-                        }
-                    }
-                }
-                div { class: "flex justify-center items-center gap-3 w-full max-w-3xl mx-auto px-4 mt-2",
+                CollectionHero {
+                    name: entry.playlist.name.clone(),
+                    eyebrow: Some("Playlist".to_string()),
+                    thumbnails: entry.thumbnails(),
+                    count: entry.tracks.len(),
                     button {
-                        class: "btn btn-lg btn-primary h-16 w-1/2",
+                        class: "btn btn-primary rounded-full gap-2 px-6",
+                        disabled: items().is_empty(),
                         onclick: play_all,
                         Icon { icon: LdPlay }
                         span { "Play All" }
                     }
                     button {
-                        class: "btn btn-lg btn-neutral h-16 w-1/4 rounded-full",
+                        class: "btn btn-outline rounded-full gap-2 px-5",
+                        disabled: items().is_empty(),
                         onclick: shuffle,
                         Icon { icon: LdShuffle }
+                        span { "Shuffle" }
                     }
                 }
-                if items().is_empty() {
-                    div { class: "flex justify-center items-center h-40",
-                        p { class: "text-base-content/60", "No songs yet" }
+
+                div { class: "mt-8",
+                    SectionHeader {
+                        title: "Tracks".to_string(),
+                        badge: Some(entry.tracks.len().to_string()),
+                        icon: rsx! { Icon { icon: LdListMusic, class: "size-4 text-primary" } },
                     }
-                } else {
-                    ul { class: "list bg-base-100 rounded-box shadow-md mt-3",
-                        for (index, item) in items().iter().enumerate() {
-                            {
-                                let track_id = item.id.as_string().unwrap_or_default();
-                                rsx! {
-                                    MusicRow {
-                                        item: item.clone(),
-                                        index,
-                                        on_remove: move |_| {
-                                            playlists.remove_track(id, track_id.clone());
-                                        },
+                    div { class: "card mt-2 bg-base-100 border border-base-content/10 shadow-sm rounded-2xl overflow-hidden",
+                        if items().is_empty() {
+                            EmptyState {
+                                title: "No songs yet".to_string(),
+                                message: Some(
+                                    "Add tracks from the library or search results.".to_string(),
+                                ),
+                                icon: rsx! { Icon { icon: LdMusic, class: "size-7" } },
+                            }
+                        } else {
+                            ul { class: "list divide-y divide-base-content/5",
+                                for (index, item) in items().iter().enumerate() {
+                                    {
+                                        let track_id = item.id.as_string().unwrap_or_default();
+                                        rsx! {
+                                            MusicRow {
+                                                item: item.clone(),
+                                                index,
+                                                on_remove: move |_| {
+                                                    playlists.remove_track(id, track_id.clone());
+                                                },
+                                            }
+                                        }
                                     }
                                 }
                             }

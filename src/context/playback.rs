@@ -90,6 +90,15 @@ impl PlaybackContext {
         queue.set(items);
     }
 
+    pub fn start_shuffled(&self, mut items: Vec<Item>) {
+        if items.is_empty() {
+            return;
+        }
+        shuffle(&mut items);
+        self.set_queue(items);
+        self.start(0);
+    }
+
     pub fn start(&self, index: usize) {
         let item = match self.queue.read().get(index).cloned() {
             Some(item) => item,
@@ -220,5 +229,27 @@ impl PlaybackContext {
                 duration.set(len);
             }
         });
+    }
+}
+
+fn shuffle<T>(items: &mut [T]) {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    let mut seed = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_nanos() as u64)
+        .unwrap_or(0x9e37_79b9_7f4a_7c15)
+        | 1;
+
+    let mut next = move || {
+        seed ^= seed << 13;
+        seed ^= seed >> 7;
+        seed ^= seed << 17;
+        seed
+    };
+
+    for i in (1..items.len()).rev() {
+        let j = (next() % (i as u64 + 1)) as usize;
+        items.swap(i, j);
     }
 }
