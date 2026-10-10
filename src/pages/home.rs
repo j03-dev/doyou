@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
-use dioxus_free_icons::icons::ld_icons::{LdMenu, LdSearch, LdX};
+use dioxus_free_icons::icons::ld_icons::{LdMenu, LdPlus, LdSearch, LdX};
 
 use crate::components::alert::Alert;
 use crate::components::button::ButtonGhost;
@@ -8,21 +8,26 @@ use crate::components::form::get_value_from;
 use crate::components::loading::LoadingSpinner;
 use crate::components::music_card::MusicCard;
 use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
+use crate::components::playlist_card::PlaylistCard;
 use crate::components::text_input::TextInput;
-use crate::context::{use_home, use_playback, use_settings};
+use crate::context::{
+    HomeMode, use_favorites, use_home, use_playback, use_playlists, use_settings,
+};
+use crate::route::Route;
 
 #[component]
 pub fn Home() -> Element {
     let settings = use_settings();
     let home = use_home();
     let playback = use_playback();
+    let favorites = use_favorites();
+    let playlists = use_playlists();
 
-    let mut show_search = use_signal(|| false);
-
+    let mode = home.mode;
     let home_error = home.error;
     let home_is_loading = home.is_loading;
-    let home_items = home.items;
     let settings_error = settings.error;
+    let playlist_error = playlists.error;
 
     use_effect(move || {
         if settings.general.read().youtube_token.is_none() {
@@ -35,8 +40,32 @@ pub fn Home() -> Element {
     });
 
     use_effect(move || {
-        playback.set_queue(home_items());
+        favorites.fetch_all();
     });
+
+    use_effect(move || {
+        playlists.fetch_all();
+    });
+
+    let displayed: Memo<Vec<yt::data_api::types::Item>> = use_memo(move || match mode() {
+        HomeMode::Results => home.results.read().clone(),
+        _ => home.feed.read().clone(),
+    });
+
+    use_effect(move || {
+        playback.set_queue(displayed());
+    });
+
+    let favorite_thumbnails = use_memo(move || {
+        favorites
+            .tracks
+            .read()
+            .iter()
+            .take(4)
+            .map(|t| t.thumbnail_url.clone())
+            .collect::<Vec<_>>()
+    });
+    let favorite_count = use_memo(move || favorites.tracks.read().len());
 
     let search = move |evt: Event<FormData>| {
         evt.prevent_default();
@@ -50,11 +79,19 @@ pub fn Home() -> Element {
         settings.save_token(token.unwrap());
     };
 
+    let submit_playlist = move |evt: Event<FormData>| {
+        evt.prevent_default();
+        let name = get_value_from(evt, "playlist_name").unwrap_or_default();
+        playlists.create(name);
+    };
+
     rsx! {
         NavBar {
             NavBarItem { position: NavBarPos::Start, ThemeController {} }
             NavBarItem { position: NavBarPos::Center,
-                if show_search() {
+                if mode() == HomeMode::Feed {
+                    p { class: "btn btn-ghost text-xl", "DoYou" }
+                } else {
                     form { onsubmit: search,
                         TextInput {
                             name: "search",
@@ -63,13 +100,17 @@ pub fn Home() -> Element {
                             Icon { icon: LdSearch, fill: "grey", width: 16 }
                         }
                     }
-                } else {
-                    p { class: "btn btn-ghost text-xl", "DoYou" }
                 }
             }
             NavBarItem { position: NavBarPos::End,
-                ButtonGhost { onclick: move |_| show_search.set(!show_search()),
-                    Icon { icon: LdSearch }
+                if mode() == HomeMode::Feed {
+                    ButtonGhost { onclick: move |_| home.open_search(),
+                        Icon { icon: LdSearch }
+                    }
+                } else {
+                    ButtonGhost { onclick: move |_| home.close_search(),
+                        Icon { icon: LdX }
+                    }
                 }
             }
         }
@@ -84,16 +125,100 @@ pub fn Home() -> Element {
             if let Some(alert_props) = settings_error() {
                 Alert { ..alert_props }
             }
-            if home_is_loading() {
+            if let Some(alert_props) = playlist_error() {
+                Alert { ..alert_props }
+            }
+
+            if mode() == HomeMode::Searching {
+                div { class: "min-h-[60vh]" }
+            } else if mode() == HomeMode::Results {
+                if home_is_loading() {
+                    div { class: "flex h-screen justify-center items-center",
+                        LoadingSpinner { size: 20 }
+                    }
+                } else {
+                    div { class: "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5",
+                        for (index, item) in displayed().iter().enumerate() {
+                            MusicCard { item: item.clone(), index }
+                        }
+                    }
+                }
+            } else if home.feed.read().is_empty() && home_is_loading() {
                 div { class: "flex h-screen justify-center items-center",
                     LoadingSpinner { size: 20 }
                 }
             } else {
-                div { class: "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5",
-                    for (index, item) in home_items().iter().enumerate() {
-                        MusicCard { item: item.clone(), index }
+                div { class: "flex items-center justify-between px-1 pt-4 pb-2",
+                    h2 { class: "text-lg font-semibold", "Your Library" }
+                    button {
+                        class: "btn btn-sm btn-ghost gap-1",
+                        onclick: move |_| playlists.open_create(),
+                        Icon { icon: LdPlus, class: "size-4" }
+                        "New playlist"
                     }
                 }
+                div { class: "carousel carousel-end gap-3 w-full",
+                    PlaylistCard {
+                        name: "Favorites".to_string(),
+                        thumbnails: favorite_thumbnails(),
+                        count: favorite_count(),
+                        to: Route::Favorite {},
+                    }
+                    for entry in playlists.items.read().iter() {
+                        PlaylistCard {
+                            name: entry.playlist.name.clone(),
+                            thumbnails: entry.thumbnails(),
+                            count: entry.tracks.len(),
+                            to: Route::Playlist { id: entry.playlist.playlist_id },
+                        }
+                    }
+                    div { class: "carousel-item",
+                        button {
+                            class: "card w-36 shrink-0 border border-dashed border-base-content/30 bg-base-100 transition-colors hover:bg-base-200/60 sm:w-40",
+                            onclick: move |_| playlists.open_create(),
+                            div { class: "flex aspect-square items-center justify-center",
+                                Icon { icon: LdPlus, class: "size-8 text-base-content/50" }
+                            }
+                            div { class: "px-1 pt-2 pb-1",
+                                p { class: "text-sm font-semibold", "New playlist" }
+                            }
+                        }
+                    }
+                }
+
+                h2 { class: "px-1 pt-6 pb-2 text-lg font-semibold", "Trending" }
+                div { class: "carousel gap-3 w-full",
+                    for (index, item) in displayed().iter().enumerate() {
+                        div { class: "carousel-item w-40 sm:w-48",
+                            MusicCard { item: item.clone(), index }
+                        }
+                    }
+                }
+            }
+        }
+
+        dialog { id: "create_playlist", class: "modal",
+            div { class: "modal-box w-96 max-w-[calc(100vw-2rem)]",
+                h3 { class: "font-bold text-lg", "New playlist" }
+                form { onsubmit: submit_playlist,
+                    fieldset { class: "fieldset",
+                        legend { class: "fieldset-legend", "Playlist name" }
+                        TextInput {
+                            name: "playlist_name",
+                            r#type: "text",
+                            placeholder: "My playlist",
+                        }
+                    }
+                    button { class: "btn btn-primary mt-3", r#type: "submit", "Create" }
+                }
+                div { class: "modal-action",
+                    form { method: "dialog",
+                        button { class: "btn", "Cancel" }
+                    }
+                }
+            }
+            form { method: "dialog", class: "modal-backdrop",
+                button { "close" }
             }
         }
 

@@ -1,8 +1,8 @@
-use crate::context::{use_favorites, use_playback};
+use crate::context::{use_favorites, use_playback, use_playlists};
 use dioxus::prelude::*;
 use dioxus_free_icons::{
     Icon,
-    icons::ld_icons::{LdDownload, LdHeart, LdPlay},
+    icons::ld_icons::{LdDownload, LdEllipsis, LdHeart, LdPlay},
 };
 use yt::data_api::types::Item;
 
@@ -10,6 +10,7 @@ use yt::data_api::types::Item;
 pub fn MusicCard(item: Item, index: usize) -> Element {
     let playback = use_playback();
     let favorites = use_favorites();
+    let playlists = use_playlists();
 
     let item_id = item.id.as_string().unwrap_or_default();
 
@@ -59,6 +60,14 @@ pub fn MusicCard(item: Item, index: usize) -> Element {
     let favorite_item = item.clone();
     let on_favorite = move |_| {
         favorites.toggle(&favorite_item);
+    };
+
+    let more_item = item.clone();
+    let on_more = move |_| {
+        playlists.open_add(more_item.clone());
+        spawn(async move {
+            let _ = document::eval("add_to_playlist.showModal()").await;
+        });
     };
 
     rsx! {
@@ -114,6 +123,12 @@ pub fn MusicCard(item: Item, index: usize) -> Element {
                         "aria-label": "Download track",
                         onclick: move |_| {},
                         Icon { icon: LdDownload, class: "text-base-content/70" }
+                    }
+                    button {
+                        class: "btn btn-ghost btn-sm btn-square",
+                        "aria-label": "Add to playlist",
+                        onclick: on_more,
+                        Icon { icon: LdEllipsis, class: "text-base-content/70" }
                     }
                 }
             }

@@ -4,23 +4,40 @@ use dioxus_free_icons::icons::ld_icons::{LdPlay, LdShuffle};
 use yt::data_api::types::Item;
 
 use crate::components::alert::Alert;
+use crate::components::cover::CoverCollage;
 use crate::components::loading::LoadingSpinner;
 use crate::components::music_row::MusicRow;
 use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
-use crate::context::{use_favorites, use_playback};
+use crate::context::{use_favorites, use_playback, use_playlists};
 
 #[component]
 pub fn Favorite() -> Element {
     let favorites = use_favorites();
     let playback = use_playback();
+    let playlists = use_playlists();
 
     use_effect(move || {
         favorites.fetch_all();
     });
 
     let items: Memo<Vec<Item>> = use_memo(move || favorites.items());
+    let thumbnails = use_memo(move || {
+        favorites
+            .tracks
+            .read()
+            .iter()
+            .take(4)
+            .map(|t| t.thumbnail_url.clone())
+            .collect::<Vec<_>>()
+    });
+    let count = use_memo(move || favorites.tracks.read().len());
+
+    use_effect(move || {
+        playback.set_queue(items());
+    });
 
     let favorite_error = favorites.error;
+    let playlist_error = playlists.error;
     let favorite_is_loading = favorites.is_loading;
 
     let play_all = move |_: Event<MouseData>| {
@@ -52,6 +69,22 @@ pub fn Favorite() -> Element {
             ),
             if let Some(alert_props) = favorite_error() {
                 Alert { ..alert_props }
+            }
+            if let Some(alert_props) = playlist_error() {
+                Alert { ..alert_props }
+            }
+            div { class: "flex flex-col items-center gap-4 py-6 sm:flex-row sm:items-end",
+                CoverCollage {
+                    thumbnails: thumbnails(),
+                    class: "w-40 rounded-box shadow-lg",
+                }
+                div { class: "min-w-0 text-center sm:text-left",
+                    h1 { class: "truncate text-2xl font-bold", "Favorites" }
+                    p { class: "text-sm text-base-content/60",
+                        "{count()} "
+                        if count() == 1 { "song" } else { "songs" }
+                    }
+                }
             }
             div { class: "flex justify-center items-center gap-3 w-full max-w-3xl mx-auto px-4 mt-2",
                 button {

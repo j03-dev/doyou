@@ -101,6 +101,11 @@ pub async fn get_playlist_by_id(playlist_id: i32) -> Result<Option<Playlist>, Er
     Playlist::get(kwargs!(playlist_id = playlist_id), conn).await
 }
 
+pub async fn get_all_playlists() -> Result<Vec<Playlist>, Error> {
+    let conn = conn().await?;
+    Playlist::all(conn).await
+}
+
 pub async fn list_track_playlist(playlist_id: i32) -> Result<Vec<Track>, Error> {
     let conn = conn().await?;
 

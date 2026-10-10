@@ -1,17 +1,18 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::{
     Icon,
-    icons::ld_icons::{LdDownload, LdHeart},
+    icons::ld_icons::{LdDownload, LdEllipsis, LdHeart},
 };
 use yt::data_api::types::Item;
 
 use crate::components::button::ButtonGhost;
-use crate::context::{use_favorites, use_playback};
+use crate::context::{use_favorites, use_playback, use_playlists};
 
 #[component]
 pub fn MusicRow(item: Item, index: usize) -> Element {
     let playback = use_playback();
     let favorites = use_favorites();
+    let playlists = use_playlists();
 
     let item_id = item.id.as_string().unwrap();
 
@@ -56,8 +57,16 @@ pub fn MusicRow(item: Item, index: usize) -> Element {
     let artist = item.snippet.channel_title.clone();
     let thumbnail = item.snippet.thumbnails.high.url.clone();
 
+    let more_item = item.clone();
     let set_favorite = move |_: Event<MouseData>| {
         favorites.toggle(&item);
+    };
+
+    let set_playlist = move |_: Event<MouseData>| {
+        playlists.open_add(more_item.clone());
+        spawn(async move {
+            let _ = document::eval("add_to_playlist.showModal()").await;
+        });
     };
 
     rsx! {
@@ -90,6 +99,9 @@ pub fn MusicRow(item: Item, index: usize) -> Element {
                     fill: "currentColor",
                     class: if is_favorite() { "fill-error stroke-error" } else { "" },
                 }
+            }
+            ButtonGhost { onclick: set_playlist,
+                Icon { icon: LdEllipsis }
             }
         }
     }
