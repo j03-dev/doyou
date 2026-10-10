@@ -77,7 +77,7 @@ pub fn MusicCard(
     rsx! {
         div {
             class: format!(
-                "card w-full min-w-0 p-2.5 rounded-2xl transition-all {}",
+                "card w-full min-w-0 p-3 rounded-2xl transition-all {}",
                 if is_playing_now() {
                     "ring-2 ring-primary bg-primary/10 shadow-lg"
                 } else {
@@ -92,7 +92,7 @@ pub fn MusicCard(
                     loading: "lazy",
                 }
                 button {
-                    class: "btn btn-circle btn-md absolute bottom-2 right-2 border-none bg-primary text-primary-content shadow-md hover:scale-105 hover:bg-primary/90",
+                    class: "btn btn-circle btn-md sm:btn-lg absolute bottom-2.5 right-2.5 border-none bg-primary text-primary-content shadow-md hover:scale-105 hover:bg-primary/90",
                     "aria-label": if is_playing_now() { "Playing" } else { "Play track" },
                     disabled: is_loading(),
                     onclick: move |_| match on_play {
@@ -103,21 +103,21 @@ pub fn MusicCard(
                     if is_loading() {
                         span { class: "loading loading-spinner loading-sm" }
                     } else if is_playing_now() {
-                        span { class: "text-sm font-bold", "Ⅱ" }
+                        span { class: "text-sm sm:text-base font-bold", "Ⅱ" }
                     } else {
                         Icon { icon: LdPlay }
                     }
                 }
             }
-            div { class: "flex min-w-0 items-center gap-2 px-1 pt-2 pb-1",
+            div { class: "flex min-w-0 items-center gap-2 px-1 pt-2.5 pb-1",
                 div { class: "flex min-w-0 flex-1 flex-col gap-1",
                     h2 {
-                        class: "truncate text-sm font-semibold leading-tight",
+                        class: "truncate text-sm sm:text-base font-semibold leading-tight",
                         title: "{title}",
                         dangerous_inner_html: title,
                     }
                     p {
-                        class: "truncate text-xs text-base-content/60",
+                        class: "truncate text-xs sm:text-sm text-base-content/60",
                         title: "{artist}",
                         dangerous_inner_html: artist,
                     }

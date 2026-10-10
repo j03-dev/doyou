@@ -225,9 +225,9 @@ pub fn Home() -> Element {
                     Icon { icon: LdFlame, class: "size-5 text-error" }
                     h2 { class: "text-lg font-semibold", "Trending" }
                 }
-                div { class: "carousel gap-3 w-full",
+                div { class: "carousel gap-4 w-full",
                     for (index, item) in displayed().iter().enumerate() {
-                        div { class: "carousel-item w-40 sm:w-48",
+                        div { class: "carousel-item w-48 sm:w-56 md:w-64",
                             MusicCard {
                                 item: item.clone(),
                                 index,
@@ -245,9 +245,9 @@ pub fn Home() -> Element {
                         Icon { icon: LdHistory, class: "size-5 text-secondary" }
                         h2 { class: "text-lg font-semibold", "Recently Played" }
                     }
-                    div { class: "carousel gap-3 w-full",
+                    div { class: "carousel gap-4 w-full",
                         for (index, item) in recent_items().iter().enumerate() {
-                            div { class: "carousel-item w-40 sm:w-48",
+                            div { class: "carousel-item w-48 sm:w-56 md:w-64",
                                 MusicCard {
                                     item: item.clone(),
                                     index,
@@ -266,9 +266,9 @@ pub fn Home() -> Element {
                         Icon { icon: LdTrophy, class: "size-5 text-warning" }
                         h2 { class: "text-lg font-semibold", "Most Played" }
                     }
-                    div { class: "carousel gap-3 w-full",
+                    div { class: "carousel gap-4 w-full",
                         for (index, item) in most_items().iter().enumerate() {
-                            div { class: "carousel-item w-40 sm:w-48",
+                            div { class: "carousel-item w-48 sm:w-56 md:w-64",
                                 MusicCard {
                                     item: item.clone(),
                                     index,
