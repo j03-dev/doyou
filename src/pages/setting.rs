@@ -105,7 +105,7 @@ pub fn Setting() -> Element {
         div {
             class: format!(
                 "mx-auto w-full max-w-2xl px-4 py-4 sm:py-6 flex flex-col gap-6 {}",
-                if playback.playing.read().is_some() { "pb-48" } else { "pb-28" }
+                if playback.playing.read().is_some() { "pb-48" } else { "pb-28" },
             ),
             if let Some(alert_props) = settings_error() {
                 Alert { ..alert_props }
@@ -145,9 +145,13 @@ pub fn Setting() -> Element {
                                 }
                             }
                             if has_token() {
-                                span { class: "badge badge-soft badge-success text-xs shrink-0 font-medium", "Active" }
+                                span { class: "badge badge-soft badge-success text-xs shrink-0 font-medium",
+                                    "Active"
+                                }
                             } else {
-                                span { class: "badge badge-soft badge-error text-xs shrink-0 font-medium", "Inactive" }
+                                span { class: "badge badge-soft badge-error text-xs shrink-0 font-medium",
+                                    "Inactive"
+                                }
                             }
                         }
 
@@ -165,7 +169,11 @@ pub fn Setting() -> Element {
                                 class: "btn btn-sm btn-outline shrink-0",
                                 r#type: "button",
                                 onclick: move |_| show_form.set(!show_form()),
-                                if show_form() { "Cancel" } else { "Edit Key" }
+                                if show_form() {
+                                    "Cancel"
+                                } else {
+                                    "Edit Key"
+                                }
                             }
                         }
 
@@ -177,17 +185,17 @@ pub fn Setting() -> Element {
                                 div { class: "text-sm font-semibold", "Latency Diagnostic" }
                                 div { class: "text-xs text-base-content/60",
                                     match ping_status() {
-                                        PingStatus::Idle => rsx! { span { "Check response latency with YouTube servers" } },
-                                        PingStatus::Testing => rsx! { span { class: "loading loading-spinner loading-xs text-primary" } },
+                                        PingStatus::Idle => rsx! {
+                                            span { "Check response latency with YouTube servers" }
+                                        },
+                                        PingStatus::Testing => rsx! {
+                                            span { class: "loading loading-spinner loading-xs text-primary" }
+                                        },
                                         PingStatus::Success(ms) => rsx! {
-                                            span { class: "text-success font-medium font-mono",
-                                                "{ms}ms roundtrip"
-                                            }
+                                            span { class: "text-success font-medium font-mono", "{ms}ms roundtrip" }
                                         },
                                         PingStatus::Error(ref err) => rsx! {
-                                            span { class: "text-error font-medium truncate",
-                                                "{err}"
-                                            }
+                                            span { class: "text-error font-medium truncate", "{err}" }
                                         },
                                     }
                                 }
@@ -282,7 +290,7 @@ pub fn Setting() -> Element {
                                                 "border-primary bg-primary/10 ring-2 ring-primary text-primary font-semibold shadow-sm"
                                             } else {
                                                 "border-base-content/10 bg-base-200/40 hover:bg-base-200/80 hover:border-base-content/20 text-base-content"
-                                            }
+                                            },
                                         ),
                                         onclick: move |_| settings.save_theme(theme_str.clone()),
                                         div { class: "flex items-center gap-2.5 min-w-0",
@@ -367,12 +375,17 @@ pub fn Setting() -> Element {
                                     Icon { icon: LdExternalLink, class: "size-5" }
                                 }
                                 div { class: "min-w-0 flex-1",
-                                    div { class: "text-sm font-semibold group-hover:text-primary transition-colors", "Source Code & Licenses" }
+                                    div { class: "text-sm font-semibold group-hover:text-primary transition-colors",
+                                        "Source Code & Licenses"
+                                    }
                                     div { class: "text-xs text-base-content/60 truncate",
                                         "github.com/j03-dev/doyou"
                                     }
                                 }
-                                Icon { icon: LdChevronRight, class: "size-4 text-base-content/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" }
+                                Icon {
+                                    icon: LdChevronRight,
+                                    class: "size-4 text-base-content/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0",
+                                }
                             }
                         }
 
@@ -385,12 +398,17 @@ pub fn Setting() -> Element {
                                     Icon { icon: LdInfo, class: "size-5" }
                                 }
                                 div { class: "min-w-0 flex-1",
-                                    div { class: "text-sm font-semibold group-hover:text-error transition-colors", "Report an Issue" }
+                                    div { class: "text-sm font-semibold group-hover:text-error transition-colors",
+                                        "Report an Issue"
+                                    }
                                     div { class: "text-xs text-base-content/60 truncate",
                                         "Submit bug reports or feature requests"
                                     }
                                 }
-                                Icon { icon: LdChevronRight, class: "size-4 text-base-content/40 group-hover:text-error group-hover:translate-x-0.5 transition-all shrink-0" }
+                                Icon {
+                                    icon: LdChevronRight,
+                                    class: "size-4 text-base-content/40 group-hover:text-error group-hover:translate-x-0.5 transition-all shrink-0",
+                                }
                             }
                         }
                     }

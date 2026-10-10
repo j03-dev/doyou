@@ -7,7 +7,9 @@ pub fn CoverCollage(
 ) -> Element {
     rsx! {
         div {
-            class: format!("grid aspect-square grid-cols-2 grid-rows-2 overflow-hidden bg-base-300 {class}"),
+            class: format!(
+                "grid aspect-square grid-cols-2 grid-rows-2 overflow-hidden bg-base-300 {class}",
+            ),
             for index in 0..4 {
                 if let Some(url) = thumbnails.get(index) {
                     img {

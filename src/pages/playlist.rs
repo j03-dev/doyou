@@ -96,9 +96,10 @@ pub fn Playlist(id: i32) -> Element {
                 }
             }
         }
-        div { class: format!(
+        div {
+            class: format!(
                 "px-4 pt-4 mx-auto w-full max-w-4xl sm:pt-6 {}",
-                if playback.playing.read().is_some() { "pb-48" } else { "pb-28" }
+                if playback.playing.read().is_some() { "pb-48" } else { "pb-28" },
             ),
             if let Some(alert_props) = error() {
                 Alert { ..alert_props }
@@ -133,16 +134,18 @@ pub fn Playlist(id: i32) -> Element {
                     SectionHeader {
                         title: "Tracks".to_string(),
                         badge: Some(entry.tracks.len().to_string()),
-                        icon: rsx! { Icon { icon: LdListMusic, class: "size-4 text-primary" } },
+                        icon: rsx! {
+                            Icon { icon: LdListMusic, class: "size-4 text-primary" }
+                        },
                     }
                     div { class: "card mt-2 bg-base-100 border border-base-content/10 shadow-sm rounded-2xl overflow-hidden",
                         if items().is_empty() {
                             EmptyState {
                                 title: "No songs yet".to_string(),
-                                message: Some(
-                                    "Add tracks from the library or search results.".to_string(),
-                                ),
-                                icon: rsx! { Icon { icon: LdMusic, class: "size-7" } },
+                                message: Some("Add tracks from the library or search results.".to_string()),
+                                icon: rsx! {
+                                    Icon { icon: LdMusic, class: "size-7" }
+                                },
                             }
                         } else {
                             ul { class: "list divide-y divide-base-content/5",

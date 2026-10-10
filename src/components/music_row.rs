@@ -83,18 +83,11 @@ pub fn MusicRow(
     };
 
     rsx! {
-        li {
-            class: if is_playing_now() {
-                "list-row items-center gap-3 rounded-xl bg-primary/10"
-            } else {
-                "list-row items-center gap-3 rounded-xl transition-colors hover:bg-base-200/60"
-            },
+        li { class: if is_playing_now() { "list-row items-center gap-3 rounded-xl bg-primary/10" } else { "list-row items-center gap-3 rounded-xl transition-colors hover:bg-base-200/60" },
             div { class: "w-5 shrink-0 text-center text-xs font-medium tabular-nums text-base-content/40",
                 "{rank.unwrap_or(index + 1)}"
             }
-            div {
-                class: "relative shrink-0 cursor-pointer",
-                onclick: play,
+            div { class: "relative shrink-0 cursor-pointer", onclick: play,
                 img {
                     class: "size-12 rounded-xl object-cover md:size-14",
                     src: thumbnail,
@@ -102,15 +95,9 @@ pub fn MusicRow(
                     loading: "lazy",
                 }
             }
-            div {
-                class: "min-w-0 flex-1 cursor-pointer",
-                onclick: play,
+            div { class: "min-w-0 flex-1 cursor-pointer", onclick: play,
                 div {
-                    class: if is_playing_now() {
-                        "truncate font-semibold text-primary"
-                    } else {
-                        "truncate font-medium"
-                    },
+                    class: if is_playing_now() { "truncate font-semibold text-primary" } else { "truncate font-medium" },
                     dangerous_inner_html: title,
                 }
                 div {
@@ -139,12 +126,8 @@ pub fn MusicRow(
                 Icon { icon: LdEllipsis }
             }
             if let Some(handler) = on_remove {
-                ButtonGhost {
-                    onclick: move |evt| handler.call(evt),
-                    Icon {
-                        icon: LdTrash2,
-                        class: "text-error",
-                    }
+                ButtonGhost { onclick: move |evt| handler.call(evt),
+                    Icon { icon: LdTrash2, class: "text-error" }
                 }
             }
         }

@@ -82,7 +82,7 @@ pub fn MusicCard(
                     "ring-2 ring-primary bg-primary/10 shadow-lg"
                 } else {
                     "bg-base-200 hover:bg-base-300/60"
-                }
+                },
             ),
             figure { class: "relative aspect-square overflow-hidden rounded-xl bg-base-200",
                 img {

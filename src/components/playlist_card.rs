@@ -23,7 +23,11 @@ pub fn PlaylistCard(
                 }
                 p { class: "truncate text-xs text-base-content/60",
                     "{count} "
-                    if count == 1 { "song" } else { "songs" }
+                    if count == 1 {
+                        "song"
+                    } else {
+                        "songs"
+                    }
                 }
             }
         }

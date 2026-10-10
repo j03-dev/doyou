@@ -67,9 +67,10 @@ pub fn Favorite() -> Element {
                 span {}
             }
         }
-        div { class: format!(
+        div {
+            class: format!(
                 "px-4 pt-4 mx-auto w-full max-w-4xl sm:pt-6 {}",
-                if playback.playing.read().is_some() { "pb-48" } else { "pb-28" }
+                if playback.playing.read().is_some() { "pb-48" } else { "pb-28" },
             ),
             if let Some(alert_props) = favorite_error() {
                 Alert { ..alert_props }
@@ -104,7 +105,9 @@ pub fn Favorite() -> Element {
                 SectionHeader {
                     title: "Tracks".to_string(),
                     badge: Some(count().to_string()),
-                    icon: rsx! { Icon { icon: LdListMusic, class: "size-4 text-error" } },
+                    icon: rsx! {
+                        Icon { icon: LdListMusic, class: "size-4 text-error" }
+                    },
                 }
                 div { class: "card mt-2 bg-base-100 border border-base-content/10 shadow-sm rounded-2xl overflow-hidden",
                     if favorite_is_loading() {
@@ -114,10 +117,10 @@ pub fn Favorite() -> Element {
                     } else if items().is_empty() {
                         EmptyState {
                             title: "No favorites yet".to_string(),
-                            message: Some(
-                                "Tap the heart on any track to save it here.".to_string(),
-                            ),
-                            icon: rsx! { Icon { icon: LdHeart, class: "size-7" } },
+                            message: Some("Tap the heart on any track to save it here.".to_string()),
+                            icon: rsx! {
+                                Icon { icon: LdHeart, class: "size-7" }
+                            },
                         }
                     } else {
                         ul { class: "list divide-y divide-base-content/5",

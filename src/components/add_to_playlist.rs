@@ -60,13 +60,15 @@ pub fn AddToPlaylistDialog() -> Element {
                             Icon { icon: LdPlus }
                         }
                     }
-                    button { class: "btn btn-primary self-center", r#type: "submit", "Create" }
+                    button {
+                        class: "btn btn-primary self-center",
+                        r#type: "submit",
+                        "Create"
+                    }
                 }
 
                 if playlist_rows.read().is_empty() {
-                    p { class: "py-4 text-center text-sm text-base-content/60",
-                        "No playlists yet"
-                    }
+                    p { class: "py-4 text-center text-sm text-base-content/60", "No playlists yet" }
                 } else {
                     ul { class: "list bg-base-100 rounded-box",
                         for entry in playlist_rows.read().iter() {
@@ -113,7 +115,11 @@ fn PlaylistOption(
                 div { class: "truncate text-sm font-medium", "{name}" }
                 div { class: "text-xs text-base-content/60",
                     "{count} "
-                    if count == 1 { "song" } else { "songs" }
+                    if count == 1 {
+                        "song"
+                    } else {
+                        "songs"
+                    }
                 }
             }
         }

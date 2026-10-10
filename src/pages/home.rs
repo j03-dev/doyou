@@ -137,9 +137,10 @@ pub fn Home() -> Element {
             }
         }
 
-        div { class: format!(
+        div {
+            class: format!(
                 "px-2 pt-2 mx-auto w-full max-w-6xl {}",
-                if playback.playing.read().is_some() { "pb-48" } else { "pb-28" }
+                if playback.playing.read().is_some() { "pb-48" } else { "pb-28" },
             ),
             if let Some(alert_props) = home_error() {
                 Alert { ..alert_props }
@@ -204,7 +205,9 @@ pub fn Home() -> Element {
                             name: entry.playlist.name.clone(),
                             thumbnails: entry.thumbnails(),
                             count: entry.tracks.len(),
-                            to: Route::Playlist { id: entry.playlist.playlist_id },
+                            to: Route::Playlist {
+                                id: entry.playlist.playlist_id,
+                            },
                         }
                     }
                     div { class: "carousel-item",
@@ -212,7 +215,10 @@ pub fn Home() -> Element {
                             class: "card w-36 shrink-0 border border-dashed border-base-content/30 bg-base-100 transition-colors hover:bg-base-200/60 sm:w-40",
                             onclick: move |_| playlists.open_create(),
                             div { class: "flex aspect-square items-center justify-center",
-                                Icon { icon: LdPlus, class: "size-8 text-base-content/50" }
+                                Icon {
+                                    icon: LdPlus,
+                                    class: "size-8 text-base-content/50",
+                                }
                             }
                             div { class: "px-1 pt-2 pb-1",
                                 p { class: "text-sm font-semibold", "New playlist" }
@@ -324,9 +330,7 @@ pub fn Home() -> Element {
                     }
                     div { class: "min-w-0",
                         h3 { class: "text-lg font-bold", "Connect YouTube" }
-                        p { class: "text-sm text-base-content/60",
-                            "Add your API key to load music."
-                        }
+                        p { class: "text-sm text-base-content/60", "Add your API key to load music." }
                     }
                 }
                 if let Some(alert_props) = settings_error() {
