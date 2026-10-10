@@ -30,7 +30,7 @@ pub async fn get_or_create_track(track: &Track, conn: &Connection) -> Result<Tra
 
 pub async fn add_to_favorite(track: Track) -> Result<Track, Error> {
     let conn = conn().await?;
-    let ref track_id = track.track_id;
+    let track_id = &track.track_id;
 
     if !get_favorite_by(track_id, conn).await?.is_some() {
         let track = get_or_create_track(&track, conn).await?;
@@ -164,7 +164,7 @@ pub async fn list_track_playlist(playlist_id: i32) -> Result<Vec<Track>, Error> 
 
 pub async fn add_to_playlist(track: Track, playlist_id: i32) -> Result<Track, Error> {
     let conn = conn().await?;
-    let track = get_or_create_track(&track, &conn).await?;
+    let track = get_or_create_track(&track, conn).await?;
 
     TrackPlaylist::create(
         kwargs!(
@@ -176,4 +176,31 @@ pub async fn add_to_playlist(track: Track, playlist_id: i32) -> Result<Track, Er
     .await?;
 
     Ok(track)
+}
+
+pub async fn delete_playlist(playlist_id: i32) -> Result<(), Error> {
+    let conn = conn().await?;
+    let links: Vec<TrackPlaylist> =
+        TrackPlaylist::filter(kwargs!(track_playlist_fk_playlist_id == playlist_id), conn).await?;
+    for link in links {
+        link.delete(conn).await?;
+    }
+    if let Some(playlist) = Playlist::get(kwargs!(playlist_id = playlist_id), conn).await? {
+        playlist.delete(conn).await?;
+    }
+    Ok(())
+}
+
+pub async fn remove_from_playlist(playlist_id: i32, track_id: &str) -> Result<(), Error> {
+    let conn = conn().await?;
+    let links: Vec<TrackPlaylist> = TrackPlaylist::filter(
+        kwargs!(track_playlist_fk_playlist_id == playlist_id)
+            .and(kwargs!(track_playlist_fk_track_id == track_id)),
+        conn,
+    )
+    .await?;
+    for link in links {
+        link.delete(conn).await?;
+    }
+    Ok(())
 }

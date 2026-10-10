@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::{
     Icon,
-    icons::ld_icons::{LdDownload, LdEllipsis, LdHeart},
+    icons::ld_icons::{LdDownload, LdEllipsis, LdHeart, LdTrash2},
 };
 use yt::data_api::types::Item;
 
@@ -14,12 +14,13 @@ pub fn MusicRow(
     index: usize,
     #[props(default)] rank: Option<usize>,
     #[props(default)] on_play: Option<EventHandler<usize>>,
+    #[props(default)] on_remove: Option<EventHandler<MouseEvent>>,
 ) -> Element {
     let playback = use_playback();
     let favorites = use_favorites();
     let playlists = use_playlists();
 
-    let item_id = item.id.as_string().unwrap();
+    let item_id = item.id.as_string().unwrap_or_default();
 
     let is_playing_now = use_memo({
         let item_id = item_id.clone();
@@ -28,8 +29,9 @@ pub fn MusicRow(
                 .playing
                 .read()
                 .as_ref()
-                .map(|i| i.id.as_string().unwrap())
-                == Some(item_id.clone())
+                .and_then(|i| i.id.as_string())
+                .as_deref()
+                == Some(item_id.as_str())
                 && *playback.is_playing.read()
         }
     });
@@ -41,8 +43,9 @@ pub fn MusicRow(
                 .playing
                 .read()
                 .as_ref()
-                .map(|i| i.id.as_string().unwrap())
-                == Some(item_id.clone())
+                .and_then(|i| i.id.as_string())
+                .as_deref()
+                == Some(item_id.as_str())
                 && *playback.is_loading.read()
         }
     });
@@ -86,14 +89,19 @@ pub fn MusicRow(
                 }
             }
             div {
-                class: "flex-shrink-0",
+                class: "flex-shrink-0 cursor-pointer",
                 onclick: move |_| match on_play {
                     Some(handler) => handler.call(index),
                     None => playback.start(index),
                 },
                 img { class: "md:size-20 size-10 rounded-box", src: thumbnail }
             }
-            div { class: "min-w-0",
+            div {
+                class: "min-w-0 flex-1 cursor-pointer",
+                onclick: move |_| match on_play {
+                    Some(handler) => handler.call(index),
+                    None => playback.start(index),
+                },
                 div { class: "truncate", dangerous_inner_html: title }
                 div {
                     class: "text-xs uppercase font-semibold opacity-60",
@@ -115,6 +123,15 @@ pub fn MusicRow(
             }
             ButtonGhost { onclick: set_playlist,
                 Icon { icon: LdEllipsis }
+            }
+            if let Some(handler) = on_remove {
+                ButtonGhost {
+                    onclick: move |evt| handler.call(evt),
+                    Icon {
+                        icon: LdTrash2,
+                        class: "text-error",
+                    }
+                }
             }
         }
     }

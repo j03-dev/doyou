@@ -1,6 +1,8 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
-use dioxus_free_icons::icons::ld_icons::{LdKey, LdMenu, LdPlus, LdSearch, LdX};
+use dioxus_free_icons::icons::ld_icons::{
+    LdFlame, LdHistory, LdKey, LdLibrary, LdMenu, LdPlus, LdSearch, LdTrophy, LdX,
+};
 
 use crate::components::alert::Alert;
 use crate::components::button::ButtonGhost;
@@ -179,7 +181,10 @@ pub fn Home() -> Element {
                 }
             } else {
                 div { class: "flex items-center justify-between px-1 pt-4 pb-2",
-                    h2 { class: "text-lg font-semibold", "Your Library" }
+                    div { class: "flex items-center gap-2",
+                        Icon { icon: LdLibrary, class: "size-5 text-primary" }
+                        h2 { class: "text-lg font-semibold", "Your Library" }
+                    }
                     button {
                         class: "btn btn-sm btn-ghost gap-1",
                         onclick: move |_| playlists.open_create(),
@@ -216,7 +221,10 @@ pub fn Home() -> Element {
                     }
                 }
 
-                h2 { class: "px-1 pt-6 pb-2 text-lg font-semibold", "Trending" }
+                div { class: "flex items-center gap-2 px-1 pt-6 pb-2",
+                    Icon { icon: LdFlame, class: "size-5 text-error" }
+                    h2 { class: "text-lg font-semibold", "Trending" }
+                }
                 div { class: "carousel gap-3 w-full",
                     for (index, item) in displayed().iter().enumerate() {
                         div { class: "carousel-item w-40 sm:w-48",
@@ -233,7 +241,10 @@ pub fn Home() -> Element {
                 }
 
                 if !recent_items().is_empty() {
-                    h2 { class: "px-1 pt-6 pb-2 text-lg font-semibold", "Recently Played" }
+                    div { class: "flex items-center gap-2 px-1 pt-6 pb-2",
+                        Icon { icon: LdHistory, class: "size-5 text-secondary" }
+                        h2 { class: "text-lg font-semibold", "Recently Played" }
+                    }
                     div { class: "carousel gap-3 w-full",
                         for (index, item) in recent_items().iter().enumerate() {
                             div { class: "carousel-item w-40 sm:w-48",
@@ -251,7 +262,10 @@ pub fn Home() -> Element {
                 }
 
                 if !most_items().is_empty() {
-                    h2 { class: "px-1 pt-6 pb-2 text-lg font-semibold", "Most Played" }
+                    div { class: "flex items-center gap-2 px-1 pt-6 pb-2",
+                        Icon { icon: LdTrophy, class: "size-5 text-warning" }
+                        h2 { class: "text-lg font-semibold", "Most Played" }
+                    }
                     div { class: "carousel gap-3 w-full",
                         for (index, item) in most_items().iter().enumerate() {
                             div { class: "carousel-item w-40 sm:w-48",

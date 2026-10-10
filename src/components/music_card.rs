@@ -75,7 +75,15 @@ pub fn MusicCard(
     };
 
     rsx! {
-        div { class: "card bg-base-200 w-full min-w-0 rounded-xl transition-colors hover:bg-base-300/60",
+        div {
+            class: format!(
+                "card w-full min-w-0 p-2.5 rounded-2xl transition-all {}",
+                if is_playing_now() {
+                    "ring-2 ring-primary bg-primary/10 shadow-lg"
+                } else {
+                    "bg-base-200 hover:bg-base-300/60"
+                }
+            ),
             figure { class: "relative aspect-square overflow-hidden rounded-xl bg-base-200",
                 img {
                     class: "size-full object-cover transition-transform duration-300 hover:scale-105",

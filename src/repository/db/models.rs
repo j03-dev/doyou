@@ -54,10 +54,8 @@ pub struct History {
     #[field(foreign_key = Track.track_id, on_delete = "cascade", unique = true, size = 11)]
     pub history_fk_track_id: String,
 
-    #[field(default = 0)]
     pub play_count: Integer,
 
-    #[field(default = 0)]
     pub last_played_at: Float,
 }
 
