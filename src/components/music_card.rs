@@ -71,7 +71,7 @@ pub fn MusicCard(item: Item, index: usize) -> Element {
     };
 
     rsx! {
-        div { class: "card bg-base-100 w-full min-w-0 rounded-xl transition-colors hover:bg-base-200/60",
+        div { class: "card bg-base-200 w-full min-w-0 rounded-xl transition-colors hover:bg-base-300/60",
             figure { class: "relative aspect-square overflow-hidden rounded-xl bg-base-200",
                 img {
                     class: "size-full object-cover transition-transform duration-300 hover:scale-105",

@@ -22,7 +22,7 @@ pub struct TrackPlaylist {
     #[field(primary_key = true, auto = true)]
     pub track_playlist_id: Option<Integer>,
 
-    #[field(foreign_key = Playlist.track_id, on_delete = "cascade")]
+    #[field(foreign_key = Track.track_id, on_delete = "cascade")]
     pub track_playlist_fk_track_id: String,
 
     #[field(foreign_key = Playlist.playlist_id, on_delete = "cascade")]

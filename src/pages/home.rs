@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
-use dioxus_free_icons::icons::ld_icons::{LdMenu, LdPlus, LdSearch, LdX};
+use dioxus_free_icons::icons::ld_icons::{LdKey, LdMenu, LdPlus, LdSearch, LdX};
 
 use crate::components::alert::Alert;
 use crate::components::button::ButtonGhost;
@@ -75,8 +75,17 @@ pub fn Home() -> Element {
 
     let submit_token = move |evt: Event<FormData>| {
         evt.prevent_default();
-        let token = get_value_from(evt, "token");
-        settings.save_token(token.unwrap());
+        let Some(token) = get_value_from(evt, "token") else {
+            return;
+        };
+        if token.trim().is_empty() {
+            settings.save_token(token);
+            return;
+        }
+        settings.save_token(token);
+        spawn(async move {
+            let _ = document::eval("token_form.close()").await;
+        });
     };
 
     let submit_playlist = move |evt: Event<FormData>| {
@@ -223,22 +232,54 @@ pub fn Home() -> Element {
         }
 
         dialog { id: "token_form", class: "modal",
-            div { class: "modal-box w-96",
+            div { class: "modal-box w-96 max-w-[calc(100vw-2rem)]",
                 form { method: "dialog",
-                    button { class: "btn btn-sm absolute right-4 top-7",
+                    button {
+                        class: "btn btn-sm btn-circle btn-ghost absolute right-3 top-3",
+                        "aria-label": "Close",
                         Icon { icon: LdX }
                     }
                 }
-                br {}
-                form { onsubmit: submit_token,
-                    legend { class: "fieldset-legend", "Youtube Token" }
-                    TextInput {
-                        name: "token",
-                        r#type: "password",
-                        placeholder: "paste your api key here (e.g. AIzaSy...)",
+                div { class: "flex items-center gap-3 pb-2",
+                    div { class: "flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary",
+                        Icon { icon: LdKey, class: "size-5" }
                     }
-                    button { class: "btn btn-primary mt-%", r#type: "submit", "Save" }
+                    div { class: "min-w-0",
+                        h3 { class: "text-lg font-bold", "Connect YouTube" }
+                        p { class: "text-sm text-base-content/60",
+                            "Add your API key to load music."
+                        }
+                    }
                 }
+                if let Some(alert_props) = settings_error() {
+                    Alert { ..alert_props }
+                }
+                form { class: "flex flex-col gap-3 pt-2", onsubmit: submit_token,
+                    fieldset { class: "fieldset",
+                        legend { class: "fieldset-legend", "YouTube Data API key" }
+                        TextInput {
+                            name: "token",
+                            r#type: "password",
+                            placeholder: "AIzaSy...",
+                            required: true,
+                            autofocus: true,
+                            Icon { icon: LdKey, class: "size-5 opacity-60" }
+                        }
+                        p { class: "label gap-1",
+                            "Create a key in the "
+                            a {
+                                class: "link link-primary",
+                                href: "https://console.cloud.google.com/apis/credentials",
+                                target: "_blank",
+                                "Google Cloud Console"
+                            }
+                        }
+                    }
+                    button { class: "btn btn-primary w-full", r#type: "submit", "Save & Continue" }
+                }
+            }
+            form { method: "dialog", class: "modal-backdrop",
+                button { "close" }
             }
         }
 
