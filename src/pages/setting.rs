@@ -111,24 +111,6 @@ pub fn Setting() -> Element {
                 Alert { ..alert_props }
             }
 
-            // Hero Brand Summary
-            div { class: "flex items-center gap-3.5 p-4 rounded-2xl bg-base-100 border border-base-content/10 shadow-sm",
-                div { class: "flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary",
-                    Icon { icon: LdVolume2, class: "size-6" }
-                }
-                div { class: "min-w-0 flex-1",
-                    div { class: "flex items-center gap-2",
-                        h1 { class: "text-base sm:text-lg font-bold leading-tight", "DoYou Music" }
-                        span { class: "badge badge-neutral badge-xs font-mono font-medium",
-                            {format!("v{}", env!("CARGO_PKG_VERSION"))}
-                        }
-                    }
-                    p { class: "text-xs text-base-content/60 truncate mt-0.5",
-                        "Cross-platform YouTube streaming desktop & mobile client"
-                    }
-                }
-            }
-
             // Section 1: YouTube Integration & API
             div { class: "flex flex-col gap-2.5",
                 div { class: "flex items-center justify-between px-1",
