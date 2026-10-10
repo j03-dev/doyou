@@ -81,7 +81,6 @@ pub fn Favorite() -> Element {
 
             CollectionHero {
                 name: "Favorites".to_string(),
-                eyebrow: Some("Auto-generated collection".to_string()),
                 thumbnails: thumbnails(),
                 count: count(),
                 accent: "text-error".to_string(),
