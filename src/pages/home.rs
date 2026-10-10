@@ -11,7 +11,7 @@ use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::components::playlist_card::PlaylistCard;
 use crate::components::text_input::TextInput;
 use crate::context::{
-    HomeMode, use_favorites, use_home, use_playback, use_playlists, use_settings,
+    HomeMode, use_favorites, use_history, use_home, use_playback, use_playlists, use_settings,
 };
 use crate::route::Route;
 
@@ -22,12 +22,14 @@ pub fn Home() -> Element {
     let playback = use_playback();
     let favorites = use_favorites();
     let playlists = use_playlists();
+    let history = use_history();
 
     let mode = home.mode;
     let home_error = home.error;
     let home_is_loading = home.is_loading;
     let settings_error = settings.error;
     let playlist_error = playlists.error;
+    let history_error = history.error;
 
     use_effect(move || {
         if settings.general.read().youtube_token.is_none() {
@@ -47,10 +49,19 @@ pub fn Home() -> Element {
         playlists.fetch_all();
     });
 
+    use_effect(move || {
+        let _ = playback.history_revision.read();
+        history.fetch_all();
+    });
+
     let displayed: Memo<Vec<yt::data_api::types::Item>> = use_memo(move || match mode() {
         HomeMode::Results => home.results.read().clone(),
         _ => home.feed.read().clone(),
     });
+
+    let recent_items: Memo<Vec<yt::data_api::types::Item>> =
+        use_memo(move || history.recent_items());
+    let most_items: Memo<Vec<yt::data_api::types::Item>> = use_memo(move || history.most_items());
 
     use_effect(move || {
         playback.set_queue(displayed());
@@ -137,6 +148,9 @@ pub fn Home() -> Element {
             if let Some(alert_props) = playlist_error() {
                 Alert { ..alert_props }
             }
+            if let Some(alert_props) = history_error() {
+                Alert { ..alert_props }
+            }
 
             if mode() == HomeMode::Searching {
                 div { class: "min-h-[60vh]" }
@@ -148,7 +162,14 @@ pub fn Home() -> Element {
                 } else {
                     div { class: "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5",
                         for (index, item) in displayed().iter().enumerate() {
-                            MusicCard { item: item.clone(), index }
+                            MusicCard {
+                                item: item.clone(),
+                                index,
+                                on_play: move |idx| {
+                                    playback.set_queue(displayed());
+                                    playback.start(idx);
+                                },
+                            }
                         }
                     }
                 }
@@ -199,7 +220,50 @@ pub fn Home() -> Element {
                 div { class: "carousel gap-3 w-full",
                     for (index, item) in displayed().iter().enumerate() {
                         div { class: "carousel-item w-40 sm:w-48",
-                            MusicCard { item: item.clone(), index }
+                            MusicCard {
+                                item: item.clone(),
+                                index,
+                                on_play: move |idx| {
+                                    playback.set_queue(displayed());
+                                    playback.start(idx);
+                                },
+                            }
+                        }
+                    }
+                }
+
+                if !recent_items().is_empty() {
+                    h2 { class: "px-1 pt-6 pb-2 text-lg font-semibold", "Recently Played" }
+                    div { class: "carousel gap-3 w-full",
+                        for (index, item) in recent_items().iter().enumerate() {
+                            div { class: "carousel-item w-40 sm:w-48",
+                                MusicCard {
+                                    item: item.clone(),
+                                    index,
+                                    on_play: move |idx| {
+                                        playback.set_queue(recent_items());
+                                        playback.start(idx);
+                                    },
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if !most_items().is_empty() {
+                    h2 { class: "px-1 pt-6 pb-2 text-lg font-semibold", "Most Played" }
+                    div { class: "carousel gap-3 w-full",
+                        for (index, item) in most_items().iter().enumerate() {
+                            div { class: "carousel-item w-40 sm:w-48",
+                                MusicCard {
+                                    item: item.clone(),
+                                    index,
+                                    on_play: move |idx| {
+                                        playback.set_queue(most_items());
+                                        playback.start(idx);
+                                    },
+                                }
+                            }
                         }
                     }
                 }

@@ -7,7 +7,11 @@ use dioxus_free_icons::{
 use yt::data_api::types::Item;
 
 #[component]
-pub fn MusicCard(item: Item, index: usize) -> Element {
+pub fn MusicCard(
+    item: Item,
+    index: usize,
+    #[props(default)] on_play: Option<EventHandler<usize>>,
+) -> Element {
     let playback = use_playback();
     let favorites = use_favorites();
     let playlists = use_playlists();
@@ -83,7 +87,10 @@ pub fn MusicCard(item: Item, index: usize) -> Element {
                     class: "btn btn-circle btn-md absolute bottom-2 right-2 border-none bg-primary text-primary-content shadow-md hover:scale-105 hover:bg-primary/90",
                     "aria-label": if is_playing_now() { "Playing" } else { "Play track" },
                     disabled: is_loading(),
-                    onclick: move |_| playback.start(index),
+                    onclick: move |_| match on_play {
+                        Some(handler) => handler.call(index),
+                        None => playback.start(index),
+                    },
 
                     if is_loading() {
                         span { class: "loading loading-spinner loading-sm" }

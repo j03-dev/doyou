@@ -56,3 +56,15 @@ pub async fn detail(playlist_id: i32) -> Result<PlaylistWithTracks, String> {
 
     Ok(PlaylistWithTracks { playlist, tracks })
 }
+
+pub async fn remove(playlist_id: i32) -> Result<(), String> {
+    db::delete_playlist(playlist_id)
+        .await
+        .map_err(|err| err.to_string())
+}
+
+pub async fn remove_track(playlist_id: i32, track_id: &str) -> Result<(), String> {
+    db::remove_from_playlist(playlist_id, track_id)
+        .await
+        .map_err(|err| err.to_string())
+}

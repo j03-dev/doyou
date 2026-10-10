@@ -9,7 +9,12 @@ use crate::components::button::ButtonGhost;
 use crate::context::{use_favorites, use_playback, use_playlists};
 
 #[component]
-pub fn MusicRow(item: Item, index: usize) -> Element {
+pub fn MusicRow(
+    item: Item,
+    index: usize,
+    #[props(default)] rank: Option<usize>,
+    #[props(default)] on_play: Option<EventHandler<usize>>,
+) -> Element {
     let playback = use_playback();
     let favorites = use_favorites();
     let playlists = use_playlists();
@@ -75,9 +80,17 @@ pub fn MusicRow(item: Item, index: usize) -> Element {
                 "list-row {}",
                 if is_playing_now() { "bg-secondary text-base-content" } else { "" },
             ),
+            if let Some(rank) = rank {
+                div { class: "w-6 flex-shrink-0 text-center text-sm font-bold opacity-60",
+                    "{rank}"
+                }
+            }
             div {
                 class: "flex-shrink-0",
-                onclick: move |_| playback.start(index),
+                onclick: move |_| match on_play {
+                    Some(handler) => handler.call(index),
+                    None => playback.start(index),
+                },
                 img { class: "md:size-20 size-10 rounded-box", src: thumbnail }
             }
             div { class: "min-w-0",

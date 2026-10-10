@@ -4,7 +4,7 @@ use rusql_alchemy::Error;
 use rusql_alchemy::prelude::*;
 use tokio::sync::OnceCell;
 
-use models::{AppSettings, Favorite, Playlist, Track, TrackPlaylist};
+use models::{AppSettings, Favorite, History, Playlist, Track, TrackPlaylist};
 
 use crate::core::platform::get_config_path;
 
@@ -64,6 +64,46 @@ pub async fn get_all_favorites() -> Result<Vec<Track>, Error> {
         .await?;
 
     Ok(results)
+}
+
+pub async fn record_play(track: Track) -> Result<(), Error> {
+    let conn = conn().await?;
+    let track = get_or_create_track(&track, conn).await?;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs_f64())
+        .unwrap_or(0.0);
+
+    match History::get(kwargs!(history_fk_track_id = track.track_id), conn).await? {
+        Some(mut history) => {
+            history.play_count += 1;
+            history.last_played_at = now;
+            history.update(conn).await?;
+        }
+        None => {
+            History::create(
+                kwargs!(
+                    history_fk_track_id = track.track_id,
+                    play_count = 1,
+                    last_played_at = now
+                ),
+                conn,
+            )
+            .await?;
+        }
+    }
+
+    Ok(())
+}
+
+pub async fn get_all_history() -> Result<Vec<History>, Error> {
+    let conn = conn().await?;
+    History::all(conn).await
+}
+
+pub async fn get_track_by_id(track_id: &str) -> Result<Option<Track>, Error> {
+    let conn = conn().await?;
+    Track::get(kwargs!(track_id = track_id), conn).await
 }
 
 pub async fn save_token(token: &str) -> Result<(), Error> {

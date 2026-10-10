@@ -5,6 +5,7 @@ use yt::data_api::types::Item;
 use crate::context::AlertProps;
 use crate::core::platform;
 use crate::repository;
+use crate::repository::db::models::Track;
 
 #[component]
 pub fn PlaybackProvider(children: Element) -> Element {
@@ -64,6 +65,7 @@ pub struct PlaybackContext {
     pub is_loading: Signal<bool>,
     pub current_time: Signal<f64>,
     pub duration: Signal<f64>,
+    pub history_revision: Signal<u32>,
     pub error: Signal<Option<AlertProps>>,
 }
 
@@ -78,6 +80,7 @@ impl PlaybackContext {
             is_loading: Signal::new(false),
             current_time: Signal::new(0.0),
             duration: Signal::new(0.0),
+            history_revision: Signal::new(0),
             error: Signal::new(None),
         }
     }
@@ -100,6 +103,7 @@ impl PlaybackContext {
         let mut is_loading = self.is_loading;
         let mut current_time = self.current_time;
         let mut duration = self.duration;
+        let mut history_revision = self.history_revision;
         let mut error = self.error;
 
         spawn(async move {
@@ -119,6 +123,20 @@ impl PlaybackContext {
                         &item.snippet.title,
                         &item.snippet.channel_title,
                     );
+
+                    if let Some(track_id) = item.id.as_string() {
+                        let track = Track {
+                            track_id,
+                            title: item.snippet.title.clone(),
+                            channel_name: item.snippet.channel_title.clone(),
+                            thumbnail_url: item.snippet.thumbnails.high.url.clone(),
+                            ..Default::default()
+                        };
+                        if repository::history::record(track).await.is_ok() {
+                            let next = *history_revision.read() + 1;
+                            history_revision.set(next);
+                        }
+                    }
                 }
                 Err(e) => {
                     error.set(Some(AlertProps::error(format!(

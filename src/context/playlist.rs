@@ -200,4 +200,66 @@ impl PlaylistContext {
             is_loading.set(false);
         });
     }
+
+    pub fn remove(&self, playlist_id: i32) {
+        let mut items = self.items;
+        let mut detail = self.detail;
+        let mut is_loading = self.is_loading;
+        let mut error = self.error;
+
+        is_loading.set(true);
+        error.set(None);
+
+        spawn(async move {
+            match repository::playlist::remove(playlist_id).await {
+                Ok(_) => {
+                    let is_current = detail
+                        .read()
+                        .as_ref()
+                        .is_some_and(|d| d.playlist.playlist_id == playlist_id);
+                    if is_current {
+                        detail.set(None);
+                    }
+                    match repository::playlist::list().await {
+                        Ok(fetched) => items.set(fetched),
+                        Err(err) => error.set(Some(AlertProps::error(err))),
+                    }
+                }
+                Err(err) => error.set(Some(AlertProps::error(err))),
+            }
+            is_loading.set(false);
+        });
+    }
+
+    pub fn remove_track(&self, playlist_id: i32, track_id: String) {
+        let mut items = self.items;
+        let mut detail = self.detail;
+        let mut is_loading = self.is_loading;
+        let mut error = self.error;
+
+        is_loading.set(true);
+        error.set(None);
+
+        spawn(async move {
+            match repository::playlist::remove_track(playlist_id, &track_id).await {
+                Ok(_) => {
+                    match repository::playlist::list().await {
+                        Ok(fetched) => items.set(fetched),
+                        Err(err) => error.set(Some(AlertProps::error(err))),
+                    }
+                    let in_detail = detail
+                        .read()
+                        .as_ref()
+                        .is_some_and(|entry| entry.playlist.playlist_id == playlist_id);
+                    if in_detail
+                        && let Ok(fetched) = repository::playlist::detail(playlist_id).await
+                    {
+                        detail.set(Some(fetched));
+                    }
+                }
+                Err(err) => error.set(Some(AlertProps::error(err))),
+            }
+            is_loading.set(false);
+        });
+    }
 }

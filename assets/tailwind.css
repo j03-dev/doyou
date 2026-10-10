@@ -44,6 +44,8 @@
     --radius-xl: 0.75rem;
     --radius-2xl: 1rem;
     --radius-3xl: 1.5rem;
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
     --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     --blur-3xl: 64px;
     --default-transition-duration: 150ms;
@@ -5629,6 +5631,47 @@
       }
     }
   }
+  .vc-arrow {
+    .vc  & {
+      @layer daisyui.l1.l2.l3 {
+        pointer-events: auto;
+        position: relative;
+        display: block;
+        height: 1.5rem;
+        width: 1.5rem;
+        cursor: pointer;
+        border: 0;
+        border-radius: var(--radius-field);
+        background-color: transparent;
+        color: var(--color-base-content);
+        &:hover {
+          background-color: var(--color-base-200);
+        }
+        &:hover::before {
+          opacity: 0.6;
+        }
+        &::before {
+          content: "";
+          position: absolute;
+          inset-inline-start: 50%;
+          inset-block-start: 50%;
+          height: 0.5rem;
+          width: 0.5rem;
+          border-color: currentColor;
+          border-style: solid;
+          border-width: 0 2px 2px 0;
+          background-repeat: no-repeat;
+          background-position: center;
+        }
+        &[data-vc-arrow="prev"]::before {
+          transform: translate(-35%, -50%) rotate(135deg);
+        }
+        &[data-vc-arrow="next"]::before {
+          transform: translate(-65%, -50%) rotate(-45deg);
+        }
+      }
+    }
+  }
   .collapse-title {
     @layer daisyui.l1.l2.l3 {
       grid-column-start: 1;
@@ -7454,6 +7497,14 @@
       }
     }
   }
+  .rdp-hidden {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        visibility: hidden;
+        color: var(--color-base-content);
+      }
+    }
+  }
   .collapse {
     visibility: collapse;
   }
@@ -7765,6 +7816,30 @@
     .list & > * {
       @layer daisyui.l1.l2 {
         grid-row-start: 1;
+      }
+    }
+  }
+  .rdp-dropdown {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        z-index: 2;
+        opacity: 0;
+        appearance: none;
+        cursor: inherit;
+        line-height: inherit;
+        border: none;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: 0;
+        &:focus-visible {
+          ~ .rdp-caption_label {
+            outline: 5px auto highlight;
+            outline: 5px auto -webkit-focus-ring-color;
+          }
+        }
       }
     }
   }
@@ -8182,6 +8257,28 @@
         height: 15%;
         top: 7%;
         inset-inline-end: 7%;
+      }
+    }
+  }
+  .rdp-nav {
+    .react-day-picker[dir="rtl"] & .rdp-chevron {
+      @layer daisyui.l1.l2.l3 {
+        transform-origin: 50%;
+        transform: rotate(180deg);
+      }
+    }
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        height: 2.75rem;
+        inset-block-start: 0;
+        inset-inline-end: 0;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding-inline: 0.5rem;
+        display: flex;
+        position: absolute;
+        top: 0.25rem;
       }
     }
   }
@@ -9097,6 +9194,18 @@
       transition: min-width 0.3s ease-out, max-width 0.3s ease-out;
     }
   }
+  .rdp-caption_label {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        z-index: 1;
+        white-space: nowrap;
+        border: 0;
+        align-items: center;
+        display: inline-flex;
+        position: relative;
+      }
+    }
+  }
   .timeline {
     @layer daisyui.l1.l2.l3 {
       position: relative;
@@ -9255,6 +9364,76 @@
       @layer daisyui.l1.l2 {
         opacity: 100%;
         backface-visibility: visible;
+      }
+    }
+  }
+  .rdp-button_next {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        border-radius: var(--radius-field);
+        &:hover {
+          background-color: var(--color-base-200);
+        }
+      }
+    }
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        cursor: pointer;
+        font: inherit;
+        color: inherit;
+        appearance: none;
+        width: 2.25rem;
+        height: 2.25rem;
+        background: 0 0;
+        border: none;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        display: inline-flex;
+        position: relative;
+        &:disabled, &[aria-disabled="true"] {
+          cursor: revert;
+          opacity: 0.5;
+        }
+        &:disabled:hover, &[aria-disabled="true"]:hover {
+          background-color: transparent;
+        }
+      }
+    }
+  }
+  .rdp-button_previous {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        border-radius: var(--radius-field);
+        &:hover {
+          background-color: var(--color-base-200);
+        }
+      }
+    }
+    .react-day-picker  & {
+      @layer daisyui.l1.l2.l3 {
+        cursor: pointer;
+        font: inherit;
+        color: inherit;
+        appearance: none;
+        width: 2.25rem;
+        height: 2.25rem;
+        background: 0 0;
+        border: none;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        display: inline-flex;
+        position: relative;
+        &:disabled, &[aria-disabled="true"] {
+          cursor: revert;
+          opacity: 0.5;
+        }
+        &:disabled:hover, &[aria-disabled="true"]:hover {
+          background-color: transparent;
+        }
       }
     }
   }
@@ -10174,6 +10353,18 @@
       grid-auto-columns: max-content auto;
     }
   }
+  .rdp-months {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        gap: 2rem;
+        flex-wrap: wrap;
+        max-width: fit-content;
+        padding: 0.5rem;
+        display: flex;
+        position: relative;
+      }
+    }
+  }
   .card-body {
     @layer daisyui.l1.l2.l3 {
       display: flex;
@@ -10309,6 +10500,30 @@
       grid-auto-flow: column;
       overflow-x: auto;
       border-radius: var(--radius-box);
+    }
+  }
+  .rdp-dropdowns {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        align-items: center;
+        gap: 0.5rem;
+        display: inline-flex;
+        position: relative;
+      }
+    }
+  }
+  .rdp-dropdown_root {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        align-items: center;
+        display: inline-flex;
+        position: relative;
+        &[data-disabled="true"] {
+          .rdp-chevron {
+            opacity: 0.5;
+          }
+        }
+      }
     }
   }
   .progress {
@@ -12737,6 +12952,65 @@
       }
     }
   }
+  .rdp-day_button {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        cursor: pointer;
+        font: inherit;
+        color: inherit;
+        width: 2.25rem;
+        height: 2.25rem;
+        border: 2px solid #0000;
+        border-radius: var(--radius-field);
+        background: 0 0;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        &:disabled {
+          cursor: revert;
+        }
+        &:hover {
+          background-color: var(--color-base-200);
+        }
+        &:disabled:hover, &[aria-disabled="true"]:hover {
+          background-color: transparent;
+          cursor: not-allowed;
+        }
+      }
+    }
+    .react-day-picker .rdp-today:not(.rdp-outside) & {
+      @layer daisyui.l1.l2.l3 {
+        background: var(--color-primary);
+        color: var(--color-primary-content);
+      }
+    }
+    .react-day-picker .rdp-range_start & {
+      @layer daisyui.l1.l2.l3 {
+        border-radius: var(--radius-field) 0 0 var(--radius-field);
+        background-color: var(--color-base-content);
+        color: var(--color-base-100);
+      }
+    }
+    .react-day-picker .rdp-range_middle & {
+      @layer daisyui.l1.l2.l3 {
+        border: unset;
+        border-radius: unset;
+        color: inherit;
+        background-color: transparent;
+        &:hover {
+          background-color: transparent;
+        }
+      }
+    }
+    .react-day-picker .rdp-range_end & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-content);
+        color: var(--color-base-100);
+      }
+    }
+  }
   .m-2 {
     margin: calc(var(--spacing) * 2);
   }
@@ -13337,6 +13611,22 @@
       padding-inline: calc(var(--size) / 2 - var(--border));
     }
   }
+  .rdp-chevron {
+    .react-day-picker[dir="rtl"] .rdp-nav & {
+      @layer daisyui.l1.l2.l3 {
+        transform-origin: 50%;
+        transform: rotate(180deg);
+      }
+    }
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        fill: var(--color-base-content);
+        width: 1rem;
+        height: 1rem;
+        display: inline-block;
+      }
+    }
+  }
   .kbd {
     box-shadow: none;
     @layer daisyui.l1.l2.l3 {
@@ -13421,6 +13711,17 @@
         > * {
           animation-play-state: paused;
         }
+      }
+    }
+  }
+  .rdp-month_caption {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        height: 2.75rem;
+        font-size: 0.75rem;
+        font-weight: inherit;
+        place-content: center;
+        display: flex;
       }
     }
   }
@@ -13804,6 +14105,62 @@
       }
     }
   }
+  .prose {
+    :root & {
+      --tw-prose-body: var(--color-base-content);
+      @supports (color: color-mix(in lab, red, red)) {
+        --tw-prose-body: color-mix(in oklab, var(--color-base-content) 80%, #0000);
+      }
+      --tw-prose-headings: var(--color-base-content);
+      --tw-prose-lead: var(--color-base-content);
+      --tw-prose-links: var(--color-base-content);
+      --tw-prose-bold: var(--color-base-content);
+      --tw-prose-counters: var(--color-base-content);
+      --tw-prose-bullets: var(--color-base-content);
+      @supports (color: color-mix(in lab, red, red)) {
+        --tw-prose-bullets: color-mix(in oklab, var(--color-base-content) 50%, #0000);
+      }
+      --tw-prose-hr: var(--color-base-content);
+      @supports (color: color-mix(in lab, red, red)) {
+        --tw-prose-hr: color-mix(in oklab, var(--color-base-content) 20%, #0000);
+      }
+      --tw-prose-quotes: var(--color-base-content);
+      --tw-prose-quote-borders: var(--color-base-content);
+      @supports (color: color-mix(in lab, red, red)) {
+        --tw-prose-quote-borders: color-mix(in oklab, var(--color-base-content) 20%, #0000);
+      }
+      --tw-prose-captions: var(--color-base-content);
+      @supports (color: color-mix(in lab, red, red)) {
+        --tw-prose-captions: color-mix(in oklab, var(--color-base-content) 50%, #0000);
+      }
+      --tw-prose-code: var(--color-base-content);
+      --tw-prose-pre-code: var(--color-neutral-content);
+      --tw-prose-pre-bg: var(--color-neutral);
+      --tw-prose-th-borders: var(--color-base-content);
+      @supports (color: color-mix(in lab, red, red)) {
+        --tw-prose-th-borders: color-mix(in oklab, var(--color-base-content) 50%, #0000);
+      }
+      --tw-prose-td-borders: var(--color-base-content);
+      @supports (color: color-mix(in lab, red, red)) {
+        --tw-prose-td-borders: color-mix(in oklab, var(--color-base-content) 20%, #0000);
+      }
+      --tw-prose-kbd: var(--color-base-content);
+      @supports (color: color-mix(in lab, red, red)) {
+        --tw-prose-kbd: color-mix(in oklab, var(--color-base-content) 80%, #0000);
+      }
+      :where(code):not(pre > code) {
+        background-color: var(--color-base-200);
+        border-radius: var(--radius-selector);
+        border: var(--border) solid var(--color-base-300);
+        padding-inline: 0.5em;
+        padding-block: 0.2em;
+        font-weight: inherit;
+        &:before, &:after {
+          display: none;
+        }
+      }
+    }
+  }
   .mask {
     @layer daisyui.l1.l2.l3 {
       display: inline-block;
@@ -14076,12 +14433,39 @@
       height: var(--size);
     }
   }
+  .rdp-week_number {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        opacity: 0.6;
+        height: 2.25rem;
+        width: 2.25rem;
+        border: none;
+        border-radius: 100%;
+        text-align: center;
+        font-size: small;
+        font-weight: 400;
+      }
+    }
+  }
   .btn-square {
     @layer daisyui.l1.l2 {
       padding-inline: 0px;
       width: var(--size);
       height: var(--size);
     }
+  }
+  .rdp-day {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        width: 2.25rem;
+        height: 2.25rem;
+        text-align: center;
+      }
+    }
+  }
+  .size-1 {
+    width: calc(var(--spacing) * 1);
+    height: calc(var(--spacing) * 1);
   }
   .size-1\.5 {
     width: calc(var(--spacing) * 1.5);
@@ -14121,6 +14505,9 @@
         font-size: 0.6875rem;
       }
     }
+  }
+  .h-1 {
+    height: calc(var(--spacing) * 1);
   }
   .h-1\.5 {
     height: calc(var(--spacing) * 1.5);
@@ -14305,6 +14692,9 @@
       }
     }
   }
+  .w-1 {
+    width: calc(var(--spacing) * 1);
+  }
   .w-1\/2 {
     width: calc(1/2 * 100%);
   }
@@ -14322,6 +14712,9 @@
   }
   .w-40 {
     width: calc(var(--spacing) * 40);
+  }
+  .w-48 {
+    width: calc(var(--spacing) * 48);
   }
   .w-52 {
     width: calc(var(--spacing) * 52);
@@ -14365,14 +14758,30 @@
   .flex-1 {
     flex: 1;
   }
+  .flex-shrink {
+    flex-shrink: 1;
+  }
   .flex-shrink-0 {
     flex-shrink: 0;
   }
   .shrink-0 {
     flex-shrink: 0;
   }
+  .flex-grow {
+    flex-grow: 1;
+  }
   .grow {
     flex-grow: 1;
+  }
+  .border-collapse {
+    border-collapse: collapse;
+  }
+  .rdp-month_grid {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        border-collapse: collapse;
+      }
+    }
   }
   .dropdown {
     .menu &:focus-within .menu-dropdown-toggle:after {
@@ -14774,6 +15183,24 @@
       }
     }
   }
+  .vc-week__day {
+    .vc  & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+        }
+      }
+    }
+    .vc  button& {
+      @layer daisyui.l1.l2.l3 {
+        cursor: pointer;
+        &:hover {
+          color: var(--color-base-content);
+        }
+      }
+    }
+  }
   .link {
     @layer daisyui.l1.l2.l3 {
       cursor: pointer;
@@ -14798,6 +15225,16 @@
   }
   .cursor-pointer {
     cursor: pointer;
+  }
+  .rdp-focusable {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        cursor: pointer;
+      }
+    }
+  }
+  .resize {
+    resize: both;
   }
   .carousel-horizontal {
     @layer daisyui.l1.l2 {
@@ -14956,6 +15393,9 @@
   .flex-row {
     flex-direction: row;
   }
+  .flex-wrap {
+    flex-wrap: wrap;
+  }
   .items-center {
     align-items: center;
   }
@@ -14967,6 +15407,9 @@
   }
   .justify-center {
     justify-content: center;
+  }
+  .justify-end {
+    justify-content: flex-end;
   }
   .justify-start {
     justify-content: flex-start;
@@ -15048,6 +15491,76 @@
       padding-block: calc(0.25rem * 2);
       font-size: 0.75rem;
       box-shadow: 0 1px 2px 0 oklch(0% 0 0/0.05);
+    }
+  }
+  .rdp-selected {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        font-weight: inherit;
+        font-size: 0.75rem;
+        .rdp-day_button {
+          color: var(--color-base-100);
+          background-color: var(--color-base-content);
+          border-radius: var(--radius-field);
+          border: none;
+          &:hover {
+            background-color: var(--color-base-content);
+          }
+        }
+      }
+    }
+  }
+  .rdp-range_middle {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-200);
+      }
+    }
+    .react-day-picker & .rdp-day_button {
+      @layer daisyui.l1.l2.l3 {
+        border: unset;
+        border-radius: unset;
+        color: inherit;
+        background-color: transparent;
+        &:hover {
+          background-color: transparent;
+        }
+      }
+    }
+  }
+  .rdp-range_end {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+        .rdp-day_button {
+          border-radius: 0 var(--radius-field) var(--radius-field) 0;
+        }
+      }
+    }
+    .react-day-picker & .rdp-day_button {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-content);
+        color: var(--color-base-100);
+      }
+    }
+    .react-day-picker .rdp-range_start& {
+      @layer daisyui.l1.l2.l3 {
+        background: revert;
+      }
+    }
+  }
+  .rdp-range_start {
+    .react-day-picker & .rdp-day_button {
+      @layer daisyui.l1.l2.l3 {
+        border-radius: var(--radius-field) 0 0 var(--radius-field);
+        background-color: var(--color-base-content);
+        color: var(--color-base-100);
+      }
+    }
+    .react-day-picker &.rdp-range_end {
+      @layer daisyui.l1.l2.l3 {
+        background: revert;
+      }
     }
   }
   .menu-lg {
@@ -15379,6 +15892,9 @@
   .border-base-300 {
     border-color: var(--color-base-300);
   }
+  .border-base-content {
+    border-color: var(--color-base-content);
+  }
   .border-base-content\/5 {
     border-color: var(--color-base-content);
     @supports (color: color-mix(in lab, red, red)) {
@@ -15389,6 +15905,13 @@
     border-color: var(--color-base-content);
     @supports (color: color-mix(in lab, red, red)) {
       border-color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+    }
+  }
+  .vc-time {
+    .vc  & {
+      @layer daisyui.l1.l2.l3 {
+        border-color: var(--color-base-200);
+      }
     }
   }
   .menu-active {
@@ -15424,6 +15947,410 @@
     background-image: linear-gradient( 135deg, oklch(100% 0 0 / var(--glass-opacity, 30%)) 0%, oklch(0% 0 0 / 0%) 100% ), linear-gradient( var(--glass-reflect-degree, 100deg), oklch(100% 0 0 / var(--glass-reflect-opacity, 5%)) 25%, oklch(0% 0 0 / 0%) 25% );
     box-shadow: 0 0 0 1px oklch(100% 0 0 / var(--glass-border-opacity, 20%)) inset, 0 0 0 2px oklch(0% 0 0 / 5%);
     text-shadow: 0 1px oklch(0% 0 0 / var(--glass-text-shadow-opacity, 5%));
+  }
+  .vc-date__btn {
+    :is(:is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-month="prev"], :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-month="next"])  & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+        }
+      }
+    }
+    :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-hover]  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-200);
+      }
+    }
+    :is(:is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-hover][data-vc-date-hover="first"], :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-hover][data-vc-date-hover="last"])  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-300);
+        &:hover {
+          background-color: var(--color-base-300);
+        }
+      }
+    }
+    :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-selected]  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-content);
+        color: var(--color-base-100);
+        &:hover {
+          background-color: var(--color-base-content);
+          color: var(--color-base-100);
+        }
+      }
+    }
+    :is(:is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-selected][data-vc-date-month="prev"], :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-selected][data-vc-date-month="next"])  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-300);
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+        }
+        &:hover {
+          background-color: var(--color-base-300);
+          color: var(--color-base-content);
+          @supports (color: color-mix(in lab, red, red)) {
+            color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+          }
+        }
+      }
+    }
+    :is(:is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-selected][data-vc-date-selected="middle"][data-vc-date-month="prev"], :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-selected][data-vc-date-selected="middle"][data-vc-date-month="next"])  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-200);
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+        }
+        &:hover {
+          background-color: var(--color-base-200);
+          color: var(--color-base-content);
+          @supports (color: color-mix(in lab, red, red)) {
+            color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+          }
+        }
+      }
+    }
+    :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-today]  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-primary);
+        color: var(--color-primary-content);
+        font-weight: 700;
+        &:hover {
+          color: var(--color-primary-content);
+        }
+      }
+    }
+    :is(:is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-today][data-vc-date-month="prev"], :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-today][data-vc-date-month="next"])  & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+        }
+      }
+    }
+    :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday]  & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-error);
+        &:hover {
+          background-color: var(--color-error);
+          @supports (color: color-mix(in lab, red, red)) {
+            background-color: color-mix(in oklab, var(--color-error) 10%, transparent);
+          }
+        }
+      }
+    }
+    :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-hover]  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-error);
+        @supports (color: color-mix(in lab, red, red)) {
+          background-color: color-mix(in oklab, var(--color-error) 10%, transparent);
+        }
+      }
+    }
+    :is(:is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-hover][data-vc-date-hover="first"], :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-hover][data-vc-date-hover="last"])  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-error);
+        @supports (color: color-mix(in lab, red, red)) {
+          background-color: color-mix(in oklab, var(--color-error) 20%, transparent);
+        }
+        &:hover {
+          background-color: var(--color-error);
+          @supports (color: color-mix(in lab, red, red)) {
+            background-color: color-mix(in oklab, var(--color-error) 20%, transparent);
+          }
+        }
+      }
+    }
+    :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-disabled]  & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+        }
+        opacity: 0.8;
+      }
+    }
+    :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-today]  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-error);
+        color: var(--color-error-content);
+      }
+    }
+    :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-today][data-vc-date-disabled]  & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+        }
+      }
+    }
+    :is(:is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-today][data-vc-date-month="prev"], :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-today][data-vc-date-month="next"])  & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+        }
+      }
+    }
+    :is(:is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-month="prev"], :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-month="next"])  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-100);
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+        }
+        &:hover {
+          background-color: var(--color-base-200);
+          color: var(--color-base-content);
+          @supports (color: color-mix(in lab, red, red)) {
+            color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+          }
+        }
+      }
+    }
+    :is(:is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-hover][data-vc-date-month="prev"], :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-hover][data-vc-date-month="next"])  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-200);
+      }
+    }
+    :is(:is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-disabled][data-vc-date-month="prev"], :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-disabled][data-vc-date-month="next"])  & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+        }
+        opacity: 0.8;
+      }
+    }
+    :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-selected]  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-error);
+        color: var(--color-error-content);
+        &:hover {
+          background-color: var(--color-error);
+          color: var(--color-error-content);
+        }
+      }
+    }
+    :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-selected][data-vc-date-selected="middle"]  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-error);
+        @supports (color: color-mix(in lab, red, red)) {
+          background-color: color-mix(in oklab, var(--color-error) 75%, transparent);
+        }
+        color: var(--color-error-content);
+        &:hover {
+          background-color: var(--color-error);
+          @supports (color: color-mix(in lab, red, red)) {
+            background-color: color-mix(in oklab, var(--color-error) 75%, transparent);
+          }
+          color: var(--color-error-content);
+        }
+      }
+    }
+    :is(:is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-selected][data-vc-date-month="prev"], :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-selected][data-vc-date-month="next"])  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-300);
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+        }
+        &:hover {
+          background-color: var(--color-base-300);
+          color: var(--color-base-content);
+          @supports (color: color-mix(in lab, red, red)) {
+            color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+          }
+        }
+      }
+    }
+    :is(:is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-selected][data-vc-date-selected="middle"][data-vc-date-month="prev"], :is(.vc [data-vc-date], .vc  .vc-date)[data-vc-date-holiday][data-vc-date-selected][data-vc-date-selected="middle"][data-vc-date-month="next"])  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-200);
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+        }
+        &:hover {
+          background-color: var(--color-base-200);
+          color: var(--color-base-content);
+          @supports (color: color-mix(in lab, red, red)) {
+            color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+          }
+        }
+      }
+    }
+    .vc  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-100);
+        color: var(--color-base-content);
+        &:hover {
+          background-color: var(--color-base-200);
+        }
+      }
+    }
+  }
+  .vc-months__month {
+    .vc  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-100);
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+        }
+        &:hover {
+          background-color: var(--color-base-200);
+          color: var(--color-base-content);
+        }
+        &:disabled {
+          color: var(--color-base-content);
+          @supports (color: color-mix(in lab, red, red)) {
+            color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+          }
+          opacity: 0.8;
+          &:hover {
+            color: var(--color-base-content);
+            @supports (color: color-mix(in lab, red, red)) {
+              color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+            }
+          }
+        }
+        &[data-vc-months-month-selected], &[data-vc-years-year-selected] {
+          background-color: var(--color-primary);
+          color: var(--color-primary-content);
+          &:hover {
+            background-color: var(--color-primary);
+            color: var(--color-primary-content);
+          }
+        }
+      }
+    }
+  }
+  .vc-years__year {
+    .vc  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-100);
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+        }
+        &:hover {
+          background-color: var(--color-base-200);
+          color: var(--color-base-content);
+        }
+        &:disabled {
+          color: var(--color-base-content);
+          @supports (color: color-mix(in lab, red, red)) {
+            color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+          }
+          opacity: 0.8;
+          &:hover {
+            color: var(--color-base-content);
+            @supports (color: color-mix(in lab, red, red)) {
+              color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+            }
+          }
+        }
+        &[data-vc-months-month-selected], &[data-vc-years-year-selected] {
+          background-color: var(--color-primary);
+          color: var(--color-primary-content);
+          &:hover {
+            background-color: var(--color-primary);
+            color: var(--color-primary-content);
+          }
+        }
+      }
+    }
+  }
+  .vc-date-range-tooltip {
+    .vc  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-200);
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+        }
+        box-shadow: 0 1px 4px var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          box-shadow: 0 1px 4px color-mix(in oklab, var(--color-base-content) 20%, transparent);
+        }
+      }
+    }
+  }
+  .vc-date__popup {
+    .vc  & {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-100);
+        color: var(--color-base-content);
+        box-shadow: 0 3px 15px var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          box-shadow: 0 3px 15px color-mix(in oklab, var(--color-base-content) 20%, transparent);
+        }
+      }
+    }
+  }
+  .vc-time__hour {
+    :is(.vc [data-vc-time-input="hour"], .vc  [data-vc-time-input="minute"], .vc  &, .vc  .vc-time__minute)::after {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+      }
+    }
+    .vc  & input {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-100);
+        color: var(--color-base-content);
+        &:hover, &[data-vc-input-focus] {
+          background-color: var(--color-base-200);
+        }
+        &:focus-visible {
+          outline-color: var(--color-primary);
+        }
+        &[data-vc-input-focus] {
+          background-color: var(--color-base-200);
+        }
+      }
+    }
+  }
+  .vc-time__minute {
+    :is(.vc [data-vc-time-input="hour"], .vc  [data-vc-time-input="minute"], .vc  .vc-time__hour, .vc  &)::after {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+      }
+    }
+    .vc  & input {
+      @layer daisyui.l1.l2.l3 {
+        background-color: var(--color-base-100);
+        color: var(--color-base-content);
+        &:hover, &[data-vc-input-focus] {
+          background-color: var(--color-base-200);
+        }
+        &:focus-visible {
+          outline-color: var(--color-primary);
+        }
+        &[data-vc-input-focus] {
+          background-color: var(--color-base-200);
+        }
+      }
+    }
+  }
+  .vc-time__keeping {
+    .vc  & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+        }
+        &:hover {
+          background-color: var(--color-base-200);
+          color: var(--color-base-content);
+        }
+        &:focus-visible {
+          outline-color: var(--color-primary);
+        }
+      }
+    }
   }
   .chat-bubble-accent {
     @layer daisyui.l1.l2 {
@@ -15707,6 +16634,9 @@
   .bg-red-400 {
     background-color: var(--color-red-400);
   }
+  .bg-red-500 {
+    background-color: var(--color-red-500);
+  }
   .bg-red-500\! {
     background-color: var(--color-red-500) !important;
   }
@@ -15836,12 +16766,21 @@
       background-image: repeating-conic-gradient( from var(--aura-angle), oklch(0.3 0 0), oklch(0.9 0 0), oklch(0.6 0 0), oklch(0.9 0 0), oklch(0.5 0 0), oklch(0.3 0 0) 50% );
     }
   }
+  .from-primary {
+    --tw-gradient-from: var(--color-primary);
+    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+  }
   .from-primary\/40 {
     --tw-gradient-from: var(--color-primary);
     @supports (color: color-mix(in lab, red, red)) {
       --tw-gradient-from: color-mix(in oklab, var(--color-primary) 40%, transparent);
     }
     --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+  }
+  .via-secondary {
+    --tw-gradient-via: var(--color-secondary);
+    --tw-gradient-via-stops: var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-via) var(--tw-gradient-via-position), var(--tw-gradient-to) var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-via-stops);
   }
   .via-secondary\/30 {
     --tw-gradient-via: var(--color-secondary);
@@ -15850,6 +16789,10 @@
     }
     --tw-gradient-via-stops: var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-via) var(--tw-gradient-via-position), var(--tw-gradient-to) var(--tw-gradient-to-position);
     --tw-gradient-stops: var(--tw-gradient-via-stops);
+  }
+  .to-accent {
+    --tw-gradient-to: var(--color-accent);
+    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
   }
   .to-accent\/20 {
     --tw-gradient-to: var(--color-accent);
@@ -16013,6 +16956,9 @@
       }
     }
   }
+  .mask-repeat {
+    mask-repeat: repeat;
+  }
   .fill-error {
     fill: var(--color-error);
   }
@@ -16024,6 +16970,17 @@
   }
   .object-cover {
     object-fit: cover;
+  }
+  .rdp-weekday {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        opacity: 0.6;
+        padding: 0.5rem 0rem;
+        text-align: center;
+        font-size: smaller;
+        font-weight: 500;
+      }
+    }
   }
   .checkbox-lg {
     @layer daisyui.l1.l2 {
@@ -16102,6 +17059,14 @@
     &:is([type="radio"]) {
       @layer daisyui.l1.l2 {
         --size: calc(var(--size-selector, 0.25rem) * 4);
+      }
+    }
+  }
+  .rdp-footer {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        border-top: var(--border) solid var(--color-base-200);
+        padding: 0.5rem;
       }
     }
   }
@@ -16906,6 +17871,44 @@
       }
     }
   }
+  .vc-month {
+    .vc  & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+        &:hover {
+          color: var(--color-base-content);
+          @supports (color: color-mix(in lab, red, red)) {
+            color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+          }
+        }
+        &:disabled {
+          color: var(--color-base-content);
+          @supports (color: color-mix(in lab, red, red)) {
+            color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+          }
+        }
+      }
+    }
+  }
+  .vc-year {
+    .vc  & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+        &:hover {
+          color: var(--color-base-content);
+          @supports (color: color-mix(in lab, red, red)) {
+            color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+          }
+        }
+        &:disabled {
+          color: var(--color-base-content);
+          @supports (color: color-mix(in lab, red, red)) {
+            color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+          }
+        }
+      }
+    }
+  }
   .checkbox-accent {
     @layer daisyui.l1.l2 {
       color: var(--color-accent-content);
@@ -17122,6 +18125,22 @@
       --range-thumb: var(--color-warning-content);
     }
   }
+  .vc-week-number {
+    .vc  & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+        }
+        &:hover {
+          color: var(--color-base-content);
+          @supports (color: color-mix(in lab, red, red)) {
+            color: color-mix(in oklab, var(--color-base-content) 80%, transparent);
+          }
+        }
+      }
+    }
+  }
   .progress-accent {
     @layer daisyui.l1.l2 {
       color: var(--color-accent);
@@ -17213,6 +18232,23 @@
   .text-teal-800 {
     color: var(--color-teal-800);
   }
+  .vc-header__content {
+    .vc  & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+      }
+    }
+  }
+  .vc-week-numbers__title {
+    .vc  & {
+      @layer daisyui.l1.l2.l3 {
+        color: var(--color-base-content);
+        @supports (color: color-mix(in lab, red, red)) {
+          color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+        }
+      }
+    }
+  }
   .uppercase {
     text-transform: uppercase;
   }
@@ -17226,6 +18262,11 @@
           text-decoration-line: underline;
         }
       }
+    }
+  }
+  .prose {
+    & :where(a.btn:not(.btn-link)):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+      text-decoration-line: none;
     }
   }
   .underline {
@@ -17263,6 +18304,20 @@
   .opacity-60 {
     opacity: 60%;
   }
+  .rdp-disabled {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        opacity: 0.5;
+      }
+    }
+  }
+  .rdp-outside {
+    .react-day-picker & {
+      @layer daisyui.l1.l2.l3 {
+        opacity: 0.75;
+      }
+    }
+  }
   .shadow {
     --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
@@ -17283,6 +18338,13 @@
     --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 2px 4px -2px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
+  .ring-2 {
+    --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .ring-primary {
+    --tw-ring-color: var(--color-primary);
+  }
   .drawer-button {
     .drawer-toggle:focus-visible ~ .drawer-content label& {
       @layer daisyui.l1.l2 {
@@ -17291,6 +18353,10 @@
       }
     }
   }
+  .outline {
+    outline-style: var(--tw-outline-style);
+    outline-width: 1px;
+  }
   .blur-3xl {
     --tw-blur: blur(var(--blur-3xl));
     filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
@@ -17298,8 +18364,17 @@
   .filter {
     filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
   }
+  .backdrop-filter {
+    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);
+    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);
+  }
   .transition {
     transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, visibility, content-visibility, overlay, pointer-events;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+  .transition-all {
+    transition-property: all;
     transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
     transition-duration: var(--tw-duration, var(--default-transition-duration));
   }
@@ -17324,6 +18399,14 @@
   .duration-12000 {
     --tw-duration: 12000ms;
     transition-duration: 12000ms;
+  }
+  .ease-in-out {
+    --tw-ease: var(--ease-in-out);
+    transition-timing-function: var(--ease-in-out);
+  }
+  .ease-out {
+    --tw-ease: var(--ease-out);
+    transition-timing-function: var(--ease-out);
   }
   .tabs-top {
     @layer daisyui.l1.l2 {
@@ -21564,6 +22647,11 @@
   inherits: false;
   initial-value: 0 0 #0000;
 }
+@property --tw-outline-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
 @property --tw-blur {
   syntax: "*";
   inherits: false;
@@ -21617,7 +22705,47 @@
   syntax: "*";
   inherits: false;
 }
+@property --tw-backdrop-blur {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-brightness {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-contrast {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-grayscale {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-hue-rotate {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-invert {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-opacity {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-saturate {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-backdrop-sepia {
+  syntax: "*";
+  inherits: false;
+}
 @property --tw-duration {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-ease {
   syntax: "*";
   inherits: false;
 }
@@ -21681,6 +22809,7 @@
       --tw-ring-offset-width: 0px;
       --tw-ring-offset-color: #fff;
       --tw-ring-offset-shadow: 0 0 #0000;
+      --tw-outline-style: solid;
       --tw-blur: initial;
       --tw-brightness: initial;
       --tw-contrast: initial;
@@ -21694,7 +22823,17 @@
       --tw-drop-shadow-color: initial;
       --tw-drop-shadow-alpha: 100%;
       --tw-drop-shadow-size: initial;
+      --tw-backdrop-blur: initial;
+      --tw-backdrop-brightness: initial;
+      --tw-backdrop-contrast: initial;
+      --tw-backdrop-grayscale: initial;
+      --tw-backdrop-hue-rotate: initial;
+      --tw-backdrop-invert: initial;
+      --tw-backdrop-opacity: initial;
+      --tw-backdrop-saturate: initial;
+      --tw-backdrop-sepia: initial;
       --tw-duration: initial;
+      --tw-ease: initial;
       --tw-content: "";
       --tw-scale-x: 1;
       --tw-scale-y: 1;

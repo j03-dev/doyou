@@ -3,7 +3,8 @@ use dioxus::prelude::*;
 use crate::components::add_to_playlist::AddToPlaylistDialog;
 use crate::components::music_player::MusicPlayer;
 use crate::context::{
-    AppSettingsProvider, FavoritesProvider, HomeProvider, PlaybackProvider, PlaylistProvider,
+    AppSettingsProvider, FavoritesProvider, HistoryProvider, HomeProvider, PlaybackProvider,
+    PlaylistProvider,
 };
 use crate::route::Route;
 
@@ -20,9 +21,11 @@ pub fn App() -> Element {
                 PlaybackProvider {
                     FavoritesProvider {
                         PlaylistProvider {
-                            Router::<Route> {}
-                            MusicPlayer {}
-                            AddToPlaylistDialog {}
+                            HistoryProvider {
+                                Router::<Route> {}
+                                MusicPlayer {}
+                                AddToPlaylistDialog {}
+                            }
                         }
                     }
                 }

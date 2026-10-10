@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
-use dioxus_free_icons::icons::ld_icons::{LdArrowLeft, LdPlay, LdShuffle};
+use dioxus_free_icons::icons::ld_icons::{LdArrowLeft, LdEllipsis, LdPlay, LdShuffle, LdTrash2};
 use yt::data_api::types::Item;
 
 use crate::components::alert::Alert;
@@ -10,6 +10,7 @@ use crate::components::music_row::MusicRow;
 use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::context::{use_playback, use_playlists};
 use crate::repository::tracks_to_items;
+use crate::route::Route;
 
 #[component]
 pub fn Playlist(id: i32) -> Element {
@@ -61,7 +62,31 @@ pub fn Playlist(id: i32) -> Element {
                 p { class: "btn btn-ghost text-xl", "Playlist" }
             }
             NavBarItem { position: NavBarPos::End,
-                span {}
+                div { class: "dropdown dropdown-end",
+                    div {
+                        tabindex: 0,
+                        role: "button",
+                        class: "btn btn-ghost btn-circle",
+                        "aria-label": "Playlist options",
+                        Icon { icon: LdEllipsis }
+                    }
+                    ul {
+                        tabindex: 0,
+                        class: "dropdown-content menu bg-base-200 rounded-box z-10 w-48 p-2 shadow-lg",
+                        li {
+                            button {
+                                class: "text-error flex items-center gap-2",
+                                onclick: move |_| {
+                                    spawn(async move {
+                                        let _ = document::eval("delete_playlist_modal.showModal()").await;
+                                    });
+                                },
+                                Icon { icon: LdTrash2, class: "size-4" }
+                                "Delete playlist"
+                            }
+                        }
+                    }
+                }
             }
         }
         div { class: format!(
@@ -109,10 +134,46 @@ pub fn Playlist(id: i32) -> Element {
                 } else {
                     ul { class: "list bg-base-100 rounded-box shadow-md mt-3",
                         for (index, item) in items().iter().enumerate() {
-                            MusicRow { item: item.clone(), index }
+                            {
+                                let track_id = item.id.as_string().unwrap_or_default();
+                                rsx! {
+                                    MusicRow {
+                                        item: item.clone(),
+                                        index,
+                                        on_remove: move |_| {
+                                            playlists.remove_track(id, track_id.clone());
+                                        },
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+            }
+        }
+
+        dialog { id: "delete_playlist_modal", class: "modal",
+            div { class: "modal-box w-96 max-w-[calc(100vw-2rem)]",
+                h3 { class: "font-bold text-lg text-error", "Delete Playlist" }
+                p { class: "py-4 text-sm text-base-content/70",
+                    "Are you sure you want to delete this playlist? This action cannot be undone."
+                }
+                div { class: "modal-action flex justify-end gap-2",
+                    form { method: "dialog",
+                        button { class: "btn", "Cancel" }
+                    }
+                    button {
+                        class: "btn btn-error",
+                        onclick: move |_| {
+                            playlists.remove(id);
+                            nav.replace(Route::Home {});
+                        },
+                        "Delete"
+                    }
+                }
+            }
+            form { method: "dialog", class: "modal-backdrop",
+                button { "close" }
             }
         }
     }
