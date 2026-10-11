@@ -20,9 +20,9 @@ pub fn MusicRow(
     let favorites = use_favorites();
     let playlists = use_playlists();
 
-    let mut show_menu = use_signal(|| false);
-
     let item_id = item.id.as_string().unwrap_or_default();
+    let menu_id = format!("music-menu-{index}");
+    let anchor = format!("--music-menu-{index}");
 
     let is_playing_now = use_memo({
         let item_id = item_id.clone();
@@ -123,38 +123,44 @@ pub fn MusicRow(
                     }
                 }
                 div { class: "relative shrink-0",
-                    ButtonGhost { onclick: move |_| show_menu.toggle(),
+                    button {
+                        class: "btn btn-ghost btn-circle",
+                        style: "anchor-name:{anchor}",
+                        "popovertarget": menu_id.clone(),
                         Icon { icon: LdEllipsis }
                     }
-                    if show_menu() {
-                        div { class: "absolute right-0 top-full z-50 mt-1 w-48 rounded-box border border-base-300 bg-base-100 p-1 shadow-lg",
+                    div {
+                        class: "dropdown dropdown-end w-48 rounded-box border border-base-300 bg-base-100 p-1 shadow-lg",
+                        "popover": "auto",
+                        id: menu_id.clone(),
+                        style: "position-anchor:{anchor}",
+                        button {
+                            class: "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-base-200",
+                            "popovertarget": menu_id.clone(),
+                            "popovertargetaction": "hide",
+                            onclick: move |_| {
+                                playlists.open_add(playlist_item.clone());
+                                spawn(async move {
+                                    let _ = document::eval(
+                                            "document.getElementById('add_to_playlist')?.showModal()",
+                                        )
+                                        .await;
+                                });
+                            },
+                            Icon { icon: LdListPlus }
+                            "Add to playlist"
+                        }
+                        if let Some(handler) = on_remove {
                             button {
-                                class: "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-base-200",
-                                onclick: move |_| {
-                                    show_menu.set(false);
-                                    playlists.open_add(playlist_item.clone());
-
-                                    spawn(async move {
-                                        let _ = document::eval(
-                                                "document.getElementById('add_to_playlist')?.showModal()",
-                                            )
-                                            .await;
-                                    });
+                                class: "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-error hover:bg-error/10",
+                                "popovertarget": menu_id.clone(),
+                                "popovertargetaction": "hide",
+                                onclick: move |evt| {
+                                    handler.call(evt);
                                 },
-                                Icon { icon: LdListPlus }
-                                "Add to playlist"
-                            }
-                            if let Some(handler) = on_remove {
-                                button {
-                                    class: "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-error hover:bg-error/10",
-                                    onclick: move |evt| {
-                                        show_menu.set(false);
-                                        handler.call(evt);
-                                    },
 
-                                    Icon { icon: LdTrash2 }
-                                    "Delete"
-                                }
+                                Icon { icon: LdTrash2 }
+                                "Delete"
                             }
                         }
                     }
