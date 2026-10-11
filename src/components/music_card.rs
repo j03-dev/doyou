@@ -92,6 +92,12 @@ pub fn MusicCard(
                     loading: "lazy",
                 }
                 button {
+                    class: "btn btn-circle btn-sm absolute left-2.5 top-2.5 border-none bg-base-100/80 shadow-md backdrop-blur hover:bg-base-100",
+                    "aria-label": "Add to playlist",
+                    onclick: on_more,
+                    Icon { icon: LdEllipsis, class: "text-base-content/70" }
+                }
+                button {
                     class: "btn btn-circle btn-md sm:btn-lg absolute bottom-2.5 right-2.5 border-none bg-primary text-primary-content shadow-md hover:scale-105 hover:bg-primary/90",
                     "aria-label": if is_playing_now() { "Playing" } else { "Play track" },
                     disabled: is_loading(),
@@ -138,12 +144,6 @@ pub fn MusicCard(
                         "aria-label": "Download track",
                         onclick: move |_| {},
                         Icon { icon: LdDownload, class: "text-base-content/70" }
-                    }
-                    button {
-                        class: "btn btn-ghost btn-sm btn-square",
-                        "aria-label": "Add to playlist",
-                        onclick: on_more,
-                        Icon { icon: LdEllipsis, class: "text-base-content/70" }
                     }
                 }
             }
