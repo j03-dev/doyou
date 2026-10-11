@@ -183,8 +183,13 @@ pub fn Playlist(id: i32) -> Element {
                     button {
                         class: "btn btn-error",
                         onclick: move |_| {
-                            playlists.remove(id);
-                            nav.replace(Route::Home {});
+                            spawn(async move {
+                                if playlists.remove(id).await {
+                                    nav.replace(Route::Home {});
+                                } else {
+                                    let _ = document::eval("delete_playlist_modal.close()").await;
+                                }
+                            });
                         },
                         "Delete"
                     }

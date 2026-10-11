@@ -201,7 +201,7 @@ impl PlaylistContext {
         });
     }
 
-    pub fn remove(&self, playlist_id: i32) {
+    pub async fn remove(&self, playlist_id: i32) -> bool {
         let mut items = self.items;
         let mut detail = self.detail;
         let mut is_loading = self.is_loading;
@@ -210,25 +210,33 @@ impl PlaylistContext {
         is_loading.set(true);
         error.set(None);
 
-        spawn(async move {
-            match repository::playlist::remove(playlist_id).await {
-                Ok(_) => {
-                    let is_current = detail
-                        .read()
-                        .as_ref()
-                        .is_some_and(|d| d.playlist.playlist_id == playlist_id);
-                    if is_current {
-                        detail.set(None);
+        let ok = match repository::playlist::remove(playlist_id).await {
+            Ok(_) => {
+                let is_current = detail
+                    .read()
+                    .as_ref()
+                    .is_some_and(|d| d.playlist.playlist_id == playlist_id);
+                if is_current {
+                    detail.set(None);
+                }
+                match repository::playlist::list().await {
+                    Ok(fetched) => {
+                        items.set(fetched);
+                        true
                     }
-                    match repository::playlist::list().await {
-                        Ok(fetched) => items.set(fetched),
-                        Err(err) => error.set(Some(AlertProps::error(err))),
+                    Err(err) => {
+                        error.set(Some(AlertProps::error(err)));
+                        false
                     }
                 }
-                Err(err) => error.set(Some(AlertProps::error(err))),
             }
-            is_loading.set(false);
-        });
+            Err(err) => {
+                error.set(Some(AlertProps::error(err)));
+                false
+            }
+        };
+        is_loading.set(false);
+        ok
     }
 
     pub fn remove_track(&self, playlist_id: i32, track_id: String) {
