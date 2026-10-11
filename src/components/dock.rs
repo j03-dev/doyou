@@ -1,6 +1,9 @@
 use dioxus::prelude::*;
+use dioxus_free_icons::{
+    Icon,
+    icons::ld_icons::{LdCompass, LdHeart, LdSettings},
+};
 
-use crate::components::icons::{FavoriteIcon, HomeIcon, SettingIcon};
 use crate::route::Route;
 
 #[component]
@@ -8,11 +11,15 @@ pub fn Dock() -> Element {
     rsx! {
         Outlet::<Route> {}
         div { class: "dock dock-lg",
-            DockItem { route: Route::Home {}, HomeIcon {} }
-            DockItem { route: Route::Favorite {},
-                FavoriteIcon { class: "fill-transparent stroke-current" }
+            DockItem { route: Route::Home {},
+                Icon { icon: LdCompass }
             }
-            DockItem { route: Route::Setting {}, SettingIcon {} }
+            DockItem { route: Route::Favorite {},
+                Icon { icon: LdHeart }
+            }
+            DockItem { route: Route::Setting {},
+                Icon { icon: LdSettings }
+            }
         }
     }
 }

@@ -1,8 +1,11 @@
 use dioxus::prelude::*;
+use dioxus_free_icons::Icon;
+use dioxus_free_icons::icons::ld_icons::{
+    LdHeart, LdPause, LdPlay, LdSkipBack, LdSkipForward, LdX,
+};
 
 use crate::components::alert::Alert;
 use crate::components::button::ButtonGhost;
-use crate::components::icons::{CloseIcon, FavoriteIcon, NextIcon, PauseIcon, PlayIcon, PrevIcon};
 use crate::components::loading::LoadingSpinner;
 use crate::context::playback::PlaybackContext;
 use crate::context::use_playback;
@@ -63,7 +66,7 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
             ButtonGhost {
                 class: "absolute top-4 right-4 z-10",
                 onclick: on_close_full_player,
-                CloseIcon {}
+                Icon { icon: LdX }
             }
             if let Some(alert_props) = playback_error() {
                 Alert { ..alert_props }
@@ -90,7 +93,7 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
                             }
                         }
                         ButtonGhost {
-                            FavoriteIcon { class: "fill-transparent stroke-current" }
+                            Icon { icon: LdHeart, fill: "transparent" }
                         }
                     }
                     div { class: "w-full max-w-xl mx-auto",
@@ -172,16 +175,16 @@ fn MusicController(playback: PlaybackContext) -> Element {
             button {
                 class: "btn btn-ghosty btn-circle btn-secondary",
                 onclick: move |_| playback.playback_controller(-1),
-                PrevIcon {}
+                Icon { icon: LdSkipBack }
             }
             if !*playback.is_loading.read() {
                 button {
                     class: "btn btn-primary btn-circle btn-xl",
                     onclick: move |_| playback.toggle_play(),
                     if *playback.is_playing.read() {
-                        PauseIcon {}
+                        Icon { icon: LdPause }
                     } else {
-                        PlayIcon {}
+                        Icon { icon: LdPlay }
                     }
                 }
             } else {
@@ -190,7 +193,7 @@ fn MusicController(playback: PlaybackContext) -> Element {
             button {
                 class: "btn btn-ghosty btn-circle btn-secondary",
                 onclick: move |_| playback.playback_controller(1),
-                NextIcon {}
+                Icon { icon: LdSkipForward }
             }
         }
     }

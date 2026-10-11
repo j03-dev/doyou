@@ -1,7 +1,11 @@
 use dioxus::prelude::*;
 
+use crate::components::add_to_playlist::AddToPlaylistDialog;
 use crate::components::music_player::MusicPlayer;
-use crate::context::{AppSettingsProvider, FavoritesProvider, HomeProvider, PlaybackProvider};
+use crate::context::{
+    AppSettingsProvider, FavoritesProvider, HistoryProvider, HomeProvider, PlaybackProvider,
+    PlaylistProvider,
+};
 use crate::route::Route;
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
@@ -16,8 +20,13 @@ pub fn App() -> Element {
             HomeProvider {
                 PlaybackProvider {
                     FavoritesProvider {
-                        Router::<Route> {}
-                        MusicPlayer {}
+                        PlaylistProvider {
+                            HistoryProvider {
+                                Router::<Route> {}
+                                MusicPlayer {}
+                                AddToPlaylistDialog {}
+                            }
+                        }
                     }
                 }
             }
