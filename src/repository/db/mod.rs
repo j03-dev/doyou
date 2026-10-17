@@ -28,6 +28,11 @@ pub async fn get_or_create_track(track: &Track, conn: &Connection) -> Result<Tra
     track.save(conn).await
 }
 
+pub async fn save_track(track: &Track) -> Result<Track, Error> {
+    let conn = conn().await?;
+    get_or_create_track(track, conn).await
+}
+
 pub async fn add_to_favorite(track: Track) -> Result<Track, Error> {
     let conn = conn().await?;
     let track_id = &track.track_id;
@@ -176,6 +181,19 @@ pub async fn add_to_playlist(track: Track, playlist_id: i32) -> Result<Track, Er
     .await?;
 
     Ok(track)
+}
+
+pub async fn get_all_tracks() -> Result<Vec<Track>, Error> {
+    let conn = conn().await?;
+    Track::all(conn).await
+}
+
+pub async fn delete_track(track_id: &str) -> Result<(), Error> {
+    let conn = conn().await?;
+    if let Some(track) = Track::get(kwargs!(track_id = track_id), conn).await? {
+        track.delete(conn).await?;
+    }
+    Ok(())
 }
 
 pub async fn delete_playlist(playlist_id: i32) -> Result<(), Error> {

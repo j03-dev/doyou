@@ -1,20 +1,26 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_free_icons::icons::ld_icons::{
-    LdFlame, LdHistory, LdKey, LdLibrary, LdMenu, LdPlus, LdSearch, LdTrophy, LdX,
+    LdFlame, LdHardDrive, LdHistory, LdKey, LdLibrary, LdMenu, LdMusic, LdPlus, LdRefreshCw,
+    LdSearch, LdTrophy, LdX,
 };
+use yt::data_api::types::Item;
 
 use crate::components::alert::Alert;
 use crate::components::button::ButtonGhost;
+use crate::components::empty_state::EmptyState;
 use crate::components::form::get_value_from;
 use crate::components::loading::LoadingSpinner;
 use crate::components::music_card::MusicCard;
+use crate::components::music_row::MusicRow;
 use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::components::playlist_card::PlaylistCard;
 use crate::components::text_input::TextInput;
 use crate::context::{
-    HomeMode, use_favorites, use_history, use_home, use_playback, use_playlists, use_settings,
+    HomeMode, SourceFilter, use_favorites, use_history, use_home, use_playback, use_playlists,
+    use_settings,
 };
+use crate::repository;
 use crate::route::Route;
 
 #[component]
@@ -44,6 +50,10 @@ pub fn Home() -> Element {
     });
 
     use_effect(move || {
+        home.scan_local();
+    });
+
+    use_effect(move || {
         favorites.fetch_all();
     });
 
@@ -56,14 +66,29 @@ pub fn Home() -> Element {
         history.fetch_all();
     });
 
-    let displayed: Memo<Vec<yt::data_api::types::Item>> = use_memo(move || match mode() {
-        HomeMode::Results => home.results.read().clone(),
-        _ => home.feed.read().clone(),
+    let displayed: Memo<Vec<Item>> = use_memo(move || {
+        let source = match mode() {
+            HomeMode::Results => home.results.read().clone(),
+            _ => home.feed.read().clone(),
+        };
+        match *home.source_filter.read() {
+            SourceFilter::All => source,
+            SourceFilter::Local => source
+                .into_iter()
+                .filter(|item| repository::is_local_id(&item.id.as_string().unwrap_or_default()))
+                .collect(),
+            SourceFilter::YouTube => source
+                .into_iter()
+                .filter(|item| !repository::is_local_id(&item.id.as_string().unwrap_or_default()))
+                .collect(),
+        }
     });
 
-    let recent_items: Memo<Vec<yt::data_api::types::Item>> =
-        use_memo(move || history.recent_items());
-    let most_items: Memo<Vec<yt::data_api::types::Item>> = use_memo(move || history.most_items());
+    let recent_items: Memo<Vec<Item>> = use_memo(move || history.recent_items());
+    let most_items: Memo<Vec<Item>> = use_memo(move || history.most_items());
+
+    let local_items: Memo<Vec<Item>> =
+        use_memo(move || repository::tracks_to_items(&home.local_tracks.read()));
 
     use_effect(move || {
         playback.set_queue(displayed());
@@ -155,6 +180,42 @@ pub fn Home() -> Element {
                 Alert { ..alert_props }
             }
 
+            if mode() != HomeMode::Searching {
+                div { class: "flex justify-center pt-2",
+                    div { class: "join",
+                        button {
+                            class: if *home.source_filter.read() == SourceFilter::All {
+                                "btn btn-sm join-item btn-primary"
+                            } else {
+                                "btn btn-sm join-item"
+                            },
+                            onclick: move |_| home.set_source_filter(SourceFilter::All),
+                            "All"
+                        }
+                        button {
+                            class: if *home.source_filter.read() == SourceFilter::Local {
+                                "btn btn-sm join-item btn-primary"
+                            } else {
+                                "btn btn-sm join-item"
+                            },
+                            onclick: move |_| home.set_source_filter(SourceFilter::Local),
+                            Icon { icon: LdHardDrive, class: "size-4" }
+                            "Local"
+                        }
+                        button {
+                            class: if *home.source_filter.read() == SourceFilter::YouTube {
+                                "btn btn-sm join-item btn-primary"
+                            } else {
+                                "btn btn-sm join-item"
+                            },
+                            onclick: move |_| home.set_source_filter(SourceFilter::YouTube),
+                            Icon { icon: LdFlame, class: "size-4" }
+                            "YouTube"
+                        }
+                    }
+                }
+            }
+
             if mode() == HomeMode::Searching {
                 div { class: "min-h-[60vh]" }
             } else if mode() == HomeMode::Results {
@@ -227,20 +288,68 @@ pub fn Home() -> Element {
                     }
                 }
 
-                div { class: "flex items-center gap-2 px-1 pt-8 sm:pt-10 pb-3",
-                    Icon { icon: LdFlame, class: "size-5 text-error" }
-                    h2 { class: "text-lg font-semibold", "Trending" }
+                div { class: "flex items-center justify-between px-1 pt-8 sm:pt-10 pb-3",
+                    div { class: "flex items-center gap-2",
+                        Icon { icon: LdHardDrive, class: "size-5 text-info" }
+                        h2 { class: "text-lg font-semibold", "Local Music" }
+                        span { class: "badge badge-ghost badge-sm", "{local_items().len()}" }
+                    }
+                    button {
+                        class: "btn btn-ghost btn-sm btn-circle",
+                        title: "Rescan local files",
+                        disabled: *home.is_scanning_local.read(),
+                        onclick: move |_| home.scan_local(),
+                        if *home.is_scanning_local.read() {
+                            span { class: "loading loading-spinner loading-xs" }
+                        } else {
+                            Icon { icon: LdRefreshCw, class: "size-4" }
+                        }
+                    }
                 }
-                div { class: "carousel gap-4 w-full py-4 px-1 mb-2",
-                    for (index, item) in displayed().iter().enumerate() {
-                        div { class: "carousel-item w-56 sm:w-64 md:w-72",
-                            MusicCard {
+                if *home.is_scanning_local.read() && local_items().is_empty() {
+                    div { class: "flex justify-center py-8",
+                        LoadingSpinner { size: 8 }
+                    }
+                } else if local_items().is_empty() {
+                    EmptyState {
+                        title: "No local music found",
+                        message: Some(
+                            "Audio files from your Music and Downloads folders will show up here."
+                                .to_string(),
+                        ),
+                        Icon { icon: LdMusic, class: "size-8" }
+                    }
+                } else {
+                    ul { class: "flex flex-col gap-1 px-1 mb-2",
+                        for (index, item) in local_items().iter().enumerate() {
+                            MusicRow {
                                 item: item.clone(),
                                 index,
                                 on_play: move |idx| {
-                                    playback.set_queue(displayed());
+                                    playback.set_queue(local_items());
                                     playback.start(idx);
                                 },
+                            }
+                        }
+                    }
+                }
+
+                if *home.source_filter.read() != SourceFilter::Local {
+                    div { class: "flex items-center gap-2 px-1 pt-8 sm:pt-10 pb-3",
+                        Icon { icon: LdFlame, class: "size-5 text-error" }
+                        h2 { class: "text-lg font-semibold", "Trending" }
+                    }
+                    div { class: "carousel gap-4 w-full py-4 px-1 mb-2",
+                        for (index, item) in displayed().iter().enumerate() {
+                            div { class: "carousel-item w-56 sm:w-64 md:w-72",
+                                MusicCard {
+                                    item: item.clone(),
+                                    index,
+                                    on_play: move |idx| {
+                                        playback.set_queue(displayed());
+                                        playback.start(idx);
+                                    },
+                                }
                             }
                         }
                     }

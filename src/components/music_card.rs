@@ -2,7 +2,7 @@ use crate::context::{use_favorites, use_playback, use_playlists};
 use dioxus::prelude::*;
 use dioxus_free_icons::{
     Icon,
-    icons::ld_icons::{LdDownload, LdEllipsis, LdHeart, LdPlay},
+    icons::ld_icons::{LdDownload, LdEllipsis, LdHeart, LdMusic, LdPlay},
 };
 use yt::data_api::types::Item;
 
@@ -85,11 +85,17 @@ pub fn MusicCard(
                 },
             ),
             figure { class: "relative aspect-square overflow-hidden rounded-xl bg-base-200",
-                img {
-                    class: "size-full object-cover transition-transform duration-300 hover:scale-105",
-                    src: "{thumbnail}",
-                    alt: "{title}",
-                    loading: "lazy",
+                if thumbnail.is_empty() {
+                    div { class: "flex size-full items-center justify-center bg-base-300 text-base-content/50",
+                        Icon { icon: LdMusic, class: "size-10" }
+                    }
+                } else {
+                    img {
+                        class: "size-full object-cover transition-transform duration-300 hover:scale-105",
+                        src: "{thumbnail}",
+                        alt: "{title}",
+                        loading: "lazy",
+                    }
                 }
                 button {
                     class: "btn btn-circle btn-sm absolute left-2.5 top-2.5 border-none bg-base-100/80 shadow-md backdrop-blur hover:bg-base-100",

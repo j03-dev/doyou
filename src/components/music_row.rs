@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::{
     Icon,
-    icons::ld_icons::{LdDownload, LdEllipsis, LdHeart, LdListPlus, LdTrash2},
+    icons::ld_icons::{LdDownload, LdEllipsis, LdHeart, LdListPlus, LdMusic, LdTrash2},
 };
 use yt::data_api::types::Item;
 
@@ -84,11 +84,17 @@ pub fn MusicRow(
                 class: "size-16 shrink-0 cursor-pointer overflow-hidden rounded-xl md:size-14",
                 onclick: play,
 
-                img {
-                    class: "block size-full object-cover",
-                    src: thumbnail,
-                    alt: "{title}",
-                    loading: "lazy",
+                if thumbnail.is_empty() {
+                    div { class: "flex size-full items-center justify-center bg-base-300 text-base-content/50",
+                        Icon { icon: LdMusic, class: "size-6" }
+                    }
+                } else {
+                    img {
+                        class: "block size-full object-cover",
+                        src: thumbnail,
+                        alt: "{title}",
+                        loading: "lazy",
+                    }
                 }
             }
             div {

@@ -2,6 +2,7 @@
 
 package dev.dioxus.main
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,12 +10,14 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import androidx.core.app.ActivityCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.media3.common.AudioAttributes
@@ -37,20 +40,67 @@ private const val ACTION_NEXT = "dev.dioxus.main.NEXT"
 private const val EXTRA_URL = "dev.dioxus.main.URL"
 private const val EXTRA_TITLE = "dev.dioxus.main.TITLE"
 private const val EXTRA_ARTIST = "dev.dioxus.main.ARTIST"
+private const val REQUEST_AUDIO_PERMISSION = 41
 
 class MainActivity : WryActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         appContext = applicationContext
+        activity = this
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_AUDIO_PERMISSION) {
+            val granted =
+                grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
+            emit(if (granted) "perm:granted" else "perm:denied")
+        }
     }
 
     companion object {
         var appContext: Context? = null
             private set
+        var activity: MainActivity? = null
+            private set
         var trackTitle = ""
         var trackArtist = ""
 
         private val mainHandler = Handler(Looper.getMainLooper())
+
+        private fun audioPermission(): String =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Manifest.permission.READ_MEDIA_AUDIO
+            } else {
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            }
+
+        @JvmStatic
+        fun hasAudioPermission(): Boolean {
+            val context = appContext ?: return false
+            return ContextCompat.checkSelfPermission(context, audioPermission()) ==
+                PackageManager.PERMISSION_GRANTED
+        }
+
+        @JvmStatic
+        fun requestAudioPermission() {
+            mainHandler.post {
+                val current = activity ?: return@post
+                if (hasAudioPermission()) {
+                    emit("perm:granted")
+                    return@post
+                }
+                ActivityCompat.requestPermissions(
+                    current,
+                    arrayOf(audioPermission()),
+                    REQUEST_AUDIO_PERMISSION,
+                )
+            }
+        }
 
         @JvmStatic
         fun playTrack(url: String, title: String, artist: String) {

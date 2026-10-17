@@ -124,7 +124,22 @@ impl PlaybackContext {
             current_time.set(0.0);
             duration.set(0.0);
 
-            match repository::youtube::audio_url(&item.id.as_string().unwrap()).await {
+            let item_id = item.id.as_string().unwrap_or_default();
+
+            let audio = if repository::local::is_local_id(&item_id) {
+                match repository::db::get_track_by_id(&item_id).await {
+                    Ok(Some(track)) => match track.src.as_deref() {
+                        Some(path) => repository::local::src_url(path),
+                        None => Err("Local track is missing its file path".to_string()),
+                    },
+                    Ok(None) => Err("Local file not found".to_string()),
+                    Err(e) => Err(e.to_string()),
+                }
+            } else {
+                repository::youtube::audio_url(&item_id).await
+            };
+
+            match audio {
                 Ok(src) => {
                     platform::media_play(
                         id,

@@ -28,6 +28,11 @@ rusql-alchemy = {version = "0.5.9", features = [
 ] }
 tokio = { version = "1.49.0", features = ["sync"] }
 directories = "6.0.0"
+walkdir = "2"
+percent-encoding = "2"
+
+[target.'cfg(not(target_os = "android"))'.dependencies]
+tiny_http = "0.12"
 
 [features]
 default = ["mobile"]
