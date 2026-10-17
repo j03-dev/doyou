@@ -12,7 +12,6 @@ use crate::components::empty_state::EmptyState;
 use crate::components::form::get_value_from;
 use crate::components::loading::LoadingSpinner;
 use crate::components::music_card::MusicCard;
-use crate::components::music_row::MusicRow;
 use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::components::playlist_card::PlaylistCard;
 use crate::components::text_input::TextInput;
@@ -320,15 +319,18 @@ pub fn Home() -> Element {
                         Icon { icon: LdMusic, class: "size-8" }
                     }
                 } else {
-                    ul { class: "flex flex-col gap-1 px-1 mb-2",
+                    div { class: "carousel gap-4 w-full py-4 px-1 mb-2",
                         for (index, item) in local_items().iter().enumerate() {
-                            MusicRow {
-                                item: item.clone(),
-                                index,
-                                on_play: move |idx| {
-                                    playback.set_queue(local_items());
-                                    playback.start(idx);
-                                },
+                            div { class: "carousel-item w-56 sm:w-64 md:w-72",
+                                MusicCard {
+                                    item: item.clone(),
+                                    index,
+                                    show_extra_actions: false,
+                                    on_play: move |idx| {
+                                        playback.set_queue(local_items());
+                                        playback.start(idx);
+                                    },
+                                }
                             }
                         }
                     }

@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_free_icons::icons::ld_icons::{
-    LdHeart, LdPause, LdPlay, LdSkipBack, LdSkipForward, LdX,
+    LdHeart, LdMusic, LdPause, LdPlay, LdSkipBack, LdSkipForward, LdX,
 };
 
 use crate::components::alert::Alert;
@@ -75,10 +75,16 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
                 div { class: "relative flex-1 flex flex-col items-center justify-center pt-12 md:pt-16 lg:pt-20 mb-8 lg:mb-12",
                     div { class: "relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 mb-10",
                         div { class: "absolute -inset-10 bg-gradient-to-br from-primary/40 via-secondary/30 to-accent/20 blur-3xl rounded-full" }
-                        img {
-                            class: "relative w-full h-full object-cover rounded-3xl",
-                            src: thumbnail,
-                            alt: "Album cover",
+                        if thumbnail.is_empty() {
+                            div { class: "relative flex w-full h-full items-center justify-center rounded-3xl bg-base-300 text-base-content/50",
+                                Icon { icon: LdMusic, class: "size-16 md:size-20" }
+                            }
+                        } else {
+                            img {
+                                class: "relative w-full h-full object-cover rounded-3xl",
+                                src: thumbnail,
+                                alt: "Album cover",
+                            }
                         }
                     }
                     div { class: "flex justify-between",
@@ -136,9 +142,15 @@ fn MiniMusicPlayer(on_open_full_player: EventHandler<()>) -> Element {
                     div {
                         class: "flex items-center gap-3 min-w-0 md:flex-1",
                         onclick: move |_| on_open_full_player.call(()),
-                        img {
-                            class: "w-12 h-12 rounded-lg flex-shrink-0",
-                            src: thumbnail,
+                        if thumbnail.is_empty() {
+                            div { class: "flex w-12 h-12 shrink-0 items-center justify-center rounded-lg bg-base-300 text-base-content/50",
+                                Icon { icon: LdMusic, class: "size-6" }
+                            }
+                        } else {
+                            img {
+                                class: "w-12 h-12 rounded-lg flex-shrink-0",
+                                src: thumbnail,
+                            }
                         }
                         div { class: "min-w-0",
                             h3 {

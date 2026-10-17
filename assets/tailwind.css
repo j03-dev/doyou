@@ -19986,6 +19986,12 @@
       height: calc(var(--spacing) * 14);
     }
   }
+  .md\:size-20 {
+    @media (width >= 48rem) {
+      width: calc(var(--spacing) * 20);
+      height: calc(var(--spacing) * 20);
+    }
+  }
   .md\:h-80 {
     @media (width >= 48rem) {
       height: calc(var(--spacing) * 80);

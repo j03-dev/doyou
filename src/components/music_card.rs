@@ -10,6 +10,7 @@ use yt::data_api::types::Item;
 pub fn MusicCard(
     item: Item,
     index: usize,
+    #[props(default = true)] show_extra_actions: bool,
     #[props(default)] on_play: Option<EventHandler<usize>>,
 ) -> Element {
     let playback = use_playback();
@@ -97,11 +98,13 @@ pub fn MusicCard(
                         loading: "lazy",
                     }
                 }
-                button {
-                    class: "btn btn-circle btn-sm absolute left-2.5 top-2.5 border-none bg-base-100/80 shadow-md backdrop-blur hover:bg-base-100",
-                    "aria-label": "Add to playlist",
-                    onclick: on_more,
-                    Icon { icon: LdEllipsis, class: "text-base-content/70" }
+                if show_extra_actions {
+                    button {
+                        class: "btn btn-circle btn-sm absolute left-2.5 top-2.5 border-none bg-base-100/80 shadow-md backdrop-blur hover:bg-base-100",
+                        "aria-label": "Add to playlist",
+                        onclick: on_more,
+                        Icon { icon: LdEllipsis, class: "text-base-content/70" }
+                    }
                 }
                 button {
                     class: "btn btn-circle btn-md sm:btn-lg absolute bottom-2.5 right-2.5 border-none bg-primary text-primary-content shadow-md hover:scale-105 hover:bg-primary/90",
@@ -145,11 +148,13 @@ pub fn MusicCard(
                             class: if is_favorite() { "fill-error stroke-error" } else { "" },
                         }
                     }
-                    button {
-                        class: "btn btn-ghost btn-sm btn-square",
-                        "aria-label": "Download track",
-                        onclick: move |_| {},
-                        Icon { icon: LdDownload, class: "text-base-content/70" }
+                    if show_extra_actions {
+                        button {
+                            class: "btn btn-ghost btn-sm btn-square",
+                            "aria-label": "Download track",
+                            onclick: move |_| {},
+                            Icon { icon: LdDownload, class: "text-base-content/70" }
+                        }
                     }
                 }
             }
