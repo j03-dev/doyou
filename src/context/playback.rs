@@ -150,7 +150,7 @@ impl PlaybackContext {
 
                     if let Some(track_id) = item.id.as_string() {
                         let track = Track {
-                            track_id,
+                            id: track_id,
                             title: item.snippet.title.clone(),
                             channel_name: item.snippet.channel_title.clone(),
                             thumbnail_url: item.snippet.thumbnails.high.url.clone(),

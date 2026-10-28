@@ -43,7 +43,7 @@ fn track_from_path(path: &Path) -> Track {
         .to_string();
 
     Track {
-        track_id: track_id_for(path),
+        id: track_id_for(path),
         title,
         channel_name,
         thumbnail_url: String::new(),
@@ -52,10 +52,7 @@ fn track_from_path(path: &Path) -> Track {
 }
 
 fn local_tracks(tracks: Vec<Track>) -> Vec<Track> {
-    tracks
-        .into_iter()
-        .filter(|t| is_local_id(&t.track_id))
-        .collect()
+    tracks.into_iter().filter(|t| is_local_id(&t.id)).collect()
 }
 
 /// Scans the local music folders and syncs the database:
@@ -70,7 +67,7 @@ pub async fn scan() -> Result<Vec<Track>, String> {
                 continue;
             }
             let track = track_from_path(path);
-            found.insert(track.track_id.clone(), track);
+            found.insert(track.id.clone(), track);
         }
     }
 
@@ -81,8 +78,8 @@ pub async fn scan() -> Result<Vec<Track>, String> {
     }
 
     for track in &existing {
-        if !found.contains_key(&track.track_id) {
-            db::delete_track(&track.track_id)
+        if !found.contains_key(&track.id) {
+            db::delete_track(&track.id)
                 .await
                 .map_err(|e| e.to_string())?;
         }
@@ -102,7 +99,7 @@ pub async fn search(query: &str) -> Result<Vec<Track>, String> {
         .await
         .map_err(|e| e.to_string())?
         .into_iter()
-        .filter(|t| is_local_id(&t.track_id))
+        .filter(|t| is_local_id(&t.id))
         .filter(|t| {
             t.title.to_lowercase().contains(&query)
                 || t.channel_name.to_lowercase().contains(&query)

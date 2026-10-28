@@ -266,7 +266,7 @@ pub fn Home() -> Element {
                             thumbnails: entry.thumbnails(),
                             count: entry.tracks.len(),
                             to: Route::Playlist {
-                                id: entry.playlist.playlist_id,
+                                id: entry.playlist.id,
                             },
                         }
                     }

@@ -15,7 +15,7 @@ pub fn is_local_id(id: &str) -> bool {
 
 pub fn track_to_item(track: &Track) -> Item {
     Item {
-        id: VideoId::Literal(track.track_id.clone()),
+        id: VideoId::Literal(track.id.clone()),
         snippet: Snippet {
             title: track.title.clone(),
             channel_title: track.channel_name.clone(),

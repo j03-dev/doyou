@@ -49,13 +49,7 @@ pub fn MusicCard(
 
     let is_favorite = use_memo({
         let item_id = item_id.clone();
-        move || {
-            favorites
-                .tracks
-                .read()
-                .iter()
-                .any(|t| t.track_id == item_id)
-        }
+        move || favorites.tracks.read().iter().any(|t| t.id == item_id)
     });
 
     let title = item.snippet.title.clone();

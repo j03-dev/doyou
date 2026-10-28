@@ -116,7 +116,7 @@ impl PlaylistContext {
 
         spawn(async move {
             let track = Track {
-                track_id: item_id,
+                id: item_id,
                 title: item.snippet.title.clone(),
                 channel_name: item.snippet.channel_title.clone(),
                 thumbnail_url: item.snippet.thumbnails.high.url.clone(),
@@ -133,7 +133,7 @@ impl PlaylistContext {
                     let in_detail = detail
                         .read()
                         .as_ref()
-                        .is_some_and(|entry| entry.playlist.playlist_id == playlist_id);
+                        .is_some_and(|entry| entry.playlist.id == playlist_id);
                     if in_detail
                         && let Ok(fetched) = repository::playlist::detail(playlist_id).await
                     {
@@ -174,15 +174,13 @@ impl PlaylistContext {
                     if let Some(item) = pending {
                         if let Some(item_id) = item.id.as_string() {
                             let track = Track {
-                                track_id: item_id,
+                                id: item_id,
                                 title: item.snippet.title.clone(),
                                 channel_name: item.snippet.channel_title.clone(),
                                 thumbnail_url: item.snippet.thumbnails.high.url.clone(),
                                 ..Default::default()
                             };
-                            if let Err(err) =
-                                repository::playlist::add(track, playlist.playlist_id).await
-                            {
+                            if let Err(err) = repository::playlist::add(track, playlist.id).await {
                                 error.set(Some(AlertProps::error(err)));
                             }
                         }
@@ -215,7 +213,7 @@ impl PlaylistContext {
                 let is_current = detail
                     .read()
                     .as_ref()
-                    .is_some_and(|d| d.playlist.playlist_id == playlist_id);
+                    .is_some_and(|d| d.playlist.id == playlist_id);
                 if is_current {
                     detail.set(None);
                 }
@@ -258,7 +256,7 @@ impl PlaylistContext {
                     let in_detail = detail
                         .read()
                         .as_ref()
-                        .is_some_and(|entry| entry.playlist.playlist_id == playlist_id);
+                        .is_some_and(|entry| entry.playlist.id == playlist_id);
                     if in_detail
                         && let Ok(fetched) = repository::playlist::detail(playlist_id).await
                     {

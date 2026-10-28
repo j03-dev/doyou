@@ -22,7 +22,7 @@ async fn conn() -> Result<&'static Connection, Error> {
 }
 
 pub async fn get_or_create_track(track: &Track, conn: &Connection) -> Result<Track, Error> {
-    if let Some(track) = Track::get(kwargs!(track_id = track.track_id), conn).await? {
+    if let Some(track) = Track::get(kwargs!(id = track.id), conn).await? {
         return Ok(track);
     }
     track.save(conn).await
@@ -35,11 +35,11 @@ pub async fn save_track(track: &Track) -> Result<Track, Error> {
 
 pub async fn add_to_favorite(track: Track) -> Result<Track, Error> {
     let conn = conn().await?;
-    let track_id = &track.track_id;
+    let track_id = &track.id;
 
     if !get_favorite_by(track_id, conn).await?.is_some() {
         let track = get_or_create_track(&track, conn).await?;
-        Favorite::create(kwargs!(favorite_fk_track_id = track.track_id), conn).await?;
+        Favorite::create(kwargs!(track_id = track.id), conn).await?;
     }
     Ok(track)
 }
@@ -58,13 +58,13 @@ pub async fn is_favorite(track_id: &str) -> Result<bool, Error> {
 }
 
 async fn get_favorite_by(track_id: &str, conn: &Connection) -> Result<Option<Favorite>, Error> {
-    Favorite::get(kwargs!(favorite_fk_track_id = track_id), conn).await
+    Favorite::get(kwargs!(track_id = track_id), conn).await
 }
 
 pub async fn get_all_favorites() -> Result<Vec<Track>, Error> {
     let conn = conn().await?;
     let results: Vec<Track> = select!(Track, Favorite)
-        .inner_join::<Track, Favorite>(kwargs!(Track.track_id == Favorite.favorite_fk_track_id))
+        .inner_join::<Track, Favorite>(kwargs!(Track.id == Favorite.track_id))
         .fetch_all(conn)
         .await?;
 
@@ -79,7 +79,7 @@ pub async fn record_play(track: Track) -> Result<(), Error> {
         .map(|d| d.as_secs_f64())
         .unwrap_or(0.0);
 
-    match History::get(kwargs!(history_fk_track_id = track.track_id), conn).await? {
+    match History::get(kwargs!(track_id = track.id), conn).await? {
         Some(mut history) => {
             history.play_count += 1;
             history.last_played_at = now;
@@ -87,11 +87,7 @@ pub async fn record_play(track: Track) -> Result<(), Error> {
         }
         None => {
             History::create(
-                kwargs!(
-                    history_fk_track_id = track.track_id,
-                    play_count = 1,
-                    last_played_at = now
-                ),
+                kwargs!(track_id = track.id, play_count = 1, last_played_at = now),
                 conn,
             )
             .await?;
@@ -108,7 +104,7 @@ pub async fn get_all_history() -> Result<Vec<History>, Error> {
 
 pub async fn get_track_by_id(track_id: &str) -> Result<Option<Track>, Error> {
     let conn = conn().await?;
-    Track::get(kwargs!(track_id = track_id), conn).await
+    Track::get(kwargs!(id = track_id), conn).await
 }
 
 pub async fn save_token(token: &str) -> Result<(), Error> {
@@ -143,7 +139,7 @@ pub async fn create_playlist(name: &str) -> Result<Playlist, Error> {
 
 pub async fn get_playlist_by_id(playlist_id: i32) -> Result<Option<Playlist>, Error> {
     let conn = conn().await?;
-    Playlist::get(kwargs!(playlist_id = playlist_id), conn).await
+    Playlist::get(kwargs!(id = playlist_id), conn).await
 }
 
 pub async fn get_all_playlists() -> Result<Vec<Playlist>, Error> {
@@ -155,12 +151,8 @@ pub async fn list_track_playlist(playlist_id: i32) -> Result<Vec<Track>, Error> 
     let conn = conn().await?;
 
     let results: Vec<Track> = select!(Track, TrackPlaylist)
-        .inner_join::<Track, TrackPlaylist>(kwargs!(
-            Track.track_id == TrackPlaylist.track_playlist_fk_track_id
-        ))
-        .r#where(kwargs!(
-            TrackPlaylist.track_playlist_fk_playlist_id == playlist_id
-        ))
+        .inner_join::<Track, TrackPlaylist>(kwargs!(Track.id == TrackPlaylist.track_id))
+        .r#where(kwargs!(TrackPlaylist.playlist_id == playlist_id))
         .fetch_all(conn)
         .await?;
 
@@ -172,10 +164,7 @@ pub async fn add_to_playlist(track: Track, playlist_id: i32) -> Result<Track, Er
     let track = get_or_create_track(&track, conn).await?;
 
     TrackPlaylist::create(
-        kwargs!(
-            track_playlist_fk_track_id = track.track_id,
-            track_playlist_fk_playlist_id = playlist_id
-        ),
+        kwargs!(track_id = track.id, playlist_id = playlist_id),
         conn,
     )
     .await?;
@@ -190,7 +179,7 @@ pub async fn get_all_tracks() -> Result<Vec<Track>, Error> {
 
 pub async fn delete_track(track_id: &str) -> Result<(), Error> {
     let conn = conn().await?;
-    if let Some(track) = Track::get(kwargs!(track_id = track_id), conn).await? {
+    if let Some(track) = Track::get(kwargs!(id = track_id), conn).await? {
         track.delete(conn).await?;
     }
     Ok(())
@@ -199,11 +188,11 @@ pub async fn delete_track(track_id: &str) -> Result<(), Error> {
 pub async fn delete_playlist(playlist_id: i32) -> Result<(), Error> {
     let conn = conn().await?;
     let links: Vec<TrackPlaylist> =
-        TrackPlaylist::filter(kwargs!(track_playlist_fk_playlist_id == playlist_id), conn).await?;
+        TrackPlaylist::filter(kwargs!(playlist_id == playlist_id), conn).await?;
     for link in links {
         link.delete(conn).await?;
     }
-    if let Some(playlist) = Playlist::get(kwargs!(playlist_id = playlist_id), conn).await? {
+    if let Some(playlist) = Playlist::get(kwargs!(id = playlist_id), conn).await? {
         playlist.delete(conn).await?;
     }
     Ok(())
@@ -212,8 +201,7 @@ pub async fn delete_playlist(playlist_id: i32) -> Result<(), Error> {
 pub async fn remove_from_playlist(playlist_id: i32, track_id: &str) -> Result<(), Error> {
     let conn = conn().await?;
     let links: Vec<TrackPlaylist> = TrackPlaylist::filter(
-        kwargs!(track_playlist_fk_playlist_id == playlist_id)
-            .and(kwargs!(track_playlist_fk_track_id == track_id)),
+        kwargs!(playlist_id == playlist_id).and(kwargs!(track_id == track_id)),
         conn,
     )
     .await?;
