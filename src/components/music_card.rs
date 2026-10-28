@@ -147,7 +147,10 @@ pub fn MusicCard(
                             class: "btn btn-ghost btn-sm btn-square",
                             "aria-label": "Download track",
                             onclick: move |_| {},
-                            Icon { icon: LdDownload, class: "text-base-content/70" }
+                            Icon {
+                                icon: LdDownload,
+                                class: "text-base-content/70",
+                            }
                         }
                     }
                 }

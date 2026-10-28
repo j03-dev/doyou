@@ -1,14 +1,13 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_free_icons::icons::ld_icons::{
-    LdFlame, LdHardDrive, LdHistory, LdKey, LdLibrary, LdMenu, LdMusic, LdPlus, LdRefreshCw,
-    LdSearch, LdTrophy, LdX,
+    LdFlame, LdHardDrive, LdHistory, LdKey, LdLibrary, LdMenu, LdPlus, LdRefreshCw, LdSearch,
+    LdTrophy, LdX,
 };
 use yt::data_api::types::Item;
 
 use crate::components::alert::Alert;
 use crate::components::button::ButtonGhost;
-use crate::components::empty_state::EmptyState;
 use crate::components::form::get_value_from;
 use crate::components::loading::LoadingSpinner;
 use crate::components::music_card::MusicCard;
@@ -183,30 +182,18 @@ pub fn Home() -> Element {
                 div { class: "flex justify-center pt-2",
                     div { class: "join",
                         button {
-                            class: if *home.source_filter.read() == SourceFilter::All {
-                                "btn btn-sm join-item btn-primary"
-                            } else {
-                                "btn btn-sm join-item"
-                            },
+                            class: if *home.source_filter.read() == SourceFilter::All { "btn btn-sm join-item btn-primary" } else { "btn btn-sm join-item" },
                             onclick: move |_| home.set_source_filter(SourceFilter::All),
                             "All"
                         }
                         button {
-                            class: if *home.source_filter.read() == SourceFilter::Local {
-                                "btn btn-sm join-item btn-primary"
-                            } else {
-                                "btn btn-sm join-item"
-                            },
+                            class: if *home.source_filter.read() == SourceFilter::Local { "btn btn-sm join-item btn-primary" } else { "btn btn-sm join-item" },
                             onclick: move |_| home.set_source_filter(SourceFilter::Local),
                             Icon { icon: LdHardDrive, class: "size-4" }
                             "Local"
                         }
                         button {
-                            class: if *home.source_filter.read() == SourceFilter::YouTube {
-                                "btn btn-sm join-item btn-primary"
-                            } else {
-                                "btn btn-sm join-item"
-                            },
+                            class: if *home.source_filter.read() == SourceFilter::YouTube { "btn btn-sm join-item btn-primary" } else { "btn btn-sm join-item" },
                             onclick: move |_| home.set_source_filter(SourceFilter::YouTube),
                             Icon { icon: LdFlame, class: "size-4" }
                             "YouTube"
@@ -287,49 +274,42 @@ pub fn Home() -> Element {
                     }
                 }
 
-                div { class: "flex items-center justify-between px-1 pt-8 sm:pt-10 pb-3",
-                    div { class: "flex items-center gap-2",
-                        Icon { icon: LdHardDrive, class: "size-5 text-info" }
-                        h2 { class: "text-lg font-semibold", "Local Music" }
-                        span { class: "badge badge-ghost badge-sm", "{local_items().len()}" }
-                    }
-                    button {
-                        class: "btn btn-ghost btn-sm btn-circle",
-                        title: "Rescan local files",
-                        disabled: *home.is_scanning_local.read(),
-                        onclick: move |_| home.scan_local(),
-                        if *home.is_scanning_local.read() {
-                            span { class: "loading loading-spinner loading-xs" }
-                        } else {
-                            Icon { icon: LdRefreshCw, class: "size-4" }
+                if !local_items().is_empty() || *home.is_scanning_local.read() {
+                    div { class: "flex items-center justify-between px-1 pt-8 sm:pt-10 pb-3",
+                        div { class: "flex items-center gap-2",
+                            Icon { icon: LdHardDrive, class: "size-5 text-info" }
+                            h2 { class: "text-lg font-semibold", "Local Music" }
+                            span { class: "badge badge-ghost badge-sm", "{local_items().len()}" }
+                        }
+                        button {
+                            class: "btn btn-ghost btn-sm btn-circle",
+                            title: "Rescan local files",
+                            disabled: *home.is_scanning_local.read(),
+                            onclick: move |_| home.scan_local(),
+                            if *home.is_scanning_local.read() {
+                                span { class: "loading loading-spinner loading-xs" }
+                            } else {
+                                Icon { icon: LdRefreshCw, class: "size-4" }
+                            }
                         }
                     }
-                }
-                if *home.is_scanning_local.read() && local_items().is_empty() {
-                    div { class: "flex justify-center py-8",
-                        LoadingSpinner { size: 8 }
-                    }
-                } else if local_items().is_empty() {
-                    EmptyState {
-                        title: "No local music found",
-                        message: Some(
-                            "Audio files from your Music and Downloads folders will show up here."
-                                .to_string(),
-                        ),
-                        Icon { icon: LdMusic, class: "size-8" }
-                    }
-                } else {
-                    div { class: "carousel gap-4 w-full py-4 px-1 mb-2",
-                        for (index, item) in local_items().iter().enumerate() {
-                            div { class: "carousel-item w-56 sm:w-64 md:w-72",
-                                MusicCard {
-                                    item: item.clone(),
-                                    index,
-                                    show_extra_actions: false,
-                                    on_play: move |idx| {
-                                        playback.set_queue(local_items());
-                                        playback.start(idx);
-                                    },
+                    if *home.is_scanning_local.read() && local_items().is_empty() {
+                        div { class: "flex justify-center py-8",
+                            LoadingSpinner { size: 8 }
+                        }
+                    } else {
+                        div { class: "carousel gap-4 w-full py-4 px-1 mb-2",
+                            for (index, item) in local_items().iter().enumerate() {
+                                div { class: "carousel-item w-56 sm:w-64 md:w-72",
+                                    MusicCard {
+                                        item: item.clone(),
+                                        index,
+                                        show_extra_actions: false,
+                                        on_play: move |idx| {
+                                            playback.set_queue(local_items());
+                                            playback.start(idx);
+                                        },
+                                    }
                                 }
                             }
                         }

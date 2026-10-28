@@ -77,7 +77,10 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
                         div { class: "absolute -inset-10 bg-gradient-to-br from-primary/40 via-secondary/30 to-accent/20 blur-3xl rounded-full" }
                         if thumbnail.is_empty() {
                             div { class: "relative flex w-full h-full items-center justify-center rounded-3xl bg-base-300 text-base-content/50",
-                                Icon { icon: LdMusic, class: "size-16 md:size-20" }
+                                Icon {
+                                    icon: LdMusic,
+                                    class: "size-16 md:size-20",
+                                }
                             }
                         } else {
                             img {
