@@ -64,15 +64,15 @@ impl FavoritesContext {
             is_loading.set(true);
             error.set(None);
 
-            let is_fav = tracks.read().iter().any(|t| t.track_id == item_id);
+            let is_fav = tracks.read().iter().any(|t| t.id == item_id);
             if is_fav {
                 match repository::favorites::remove(&item_id).await {
-                    Ok(()) => tracks.write().retain(|t| t.track_id != item_id),
+                    Ok(()) => tracks.write().retain(|t| t.id != item_id),
                     Err(err) => error.set(Some(AlertProps::error(err))),
                 }
             } else {
                 let track = Track {
-                    track_id: item_id,
+                    id: item_id,
                     title: item.snippet.title.clone(),
                     channel_name: item.snippet.channel_title.clone(),
                     thumbnail_url: item.snippet.thumbnails.high.url.clone(),
@@ -92,7 +92,7 @@ impl FavoritesContext {
             .read()
             .iter()
             .map(|t| Item {
-                id: VideoId::Literal(t.track_id.clone()),
+                id: VideoId::Literal(t.id.clone()),
                 snippet: Snippet {
                     title: t.title.clone(),
                     channel_title: t.channel_name.clone(),

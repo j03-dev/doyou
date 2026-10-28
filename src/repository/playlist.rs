@@ -36,7 +36,7 @@ pub async fn list() -> Result<Vec<PlaylistWithTracks>, String> {
 
     let mut result = Vec::with_capacity(playlists.len());
     for playlist in playlists {
-        let tracks = db::list_track_playlist(playlist.playlist_id)
+        let tracks = db::list_track_playlist(playlist.id)
             .await
             .map_err(|err| err.to_string())?;
         result.push(PlaylistWithTracks { playlist, tracks });

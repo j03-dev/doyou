@@ -8,13 +8,7 @@ pub async fn record(track: Track) -> Result<(), String> {
 pub async fn recently_played(limit: usize) -> Result<Vec<Track>, String> {
     let mut history = db::get_all_history().await.map_err(|err| err.to_string())?;
     history.sort_by(|a, b| b.last_played_at.total_cmp(&a.last_played_at));
-    load_tracks(
-        history
-            .into_iter()
-            .take(limit)
-            .map(|h| h.history_fk_track_id),
-    )
-    .await
+    load_tracks(history.into_iter().take(limit).map(|h| h.track_id)).await
 }
 
 pub async fn most_played(limit: usize) -> Result<Vec<Track>, String> {
@@ -24,13 +18,7 @@ pub async fn most_played(limit: usize) -> Result<Vec<Track>, String> {
             .cmp(&a.play_count)
             .then_with(|| b.last_played_at.total_cmp(&a.last_played_at))
     });
-    load_tracks(
-        history
-            .into_iter()
-            .take(limit)
-            .map(|h| h.history_fk_track_id),
-    )
-    .await
+    load_tracks(history.into_iter().take(limit).map(|h| h.track_id)).await
 }
 
 async fn load_tracks(ids: impl Iterator<Item = String>) -> Result<Vec<Track>, String> {

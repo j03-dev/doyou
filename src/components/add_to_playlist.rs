@@ -73,7 +73,7 @@ pub fn AddToPlaylistDialog() -> Element {
                     ul { class: "list bg-base-100 rounded-box",
                         for entry in playlist_rows.read().iter() {
                             PlaylistOption {
-                                playlist_id: entry.playlist.playlist_id,
+                                playlist_id: entry.playlist.id,
                                 name: entry.playlist.name.clone(),
                                 thumbnails: entry.thumbnails(),
                                 count: entry.tracks.len(),

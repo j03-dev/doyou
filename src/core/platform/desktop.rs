@@ -7,6 +7,23 @@ pub fn get_config_dir() -> Result<PathBuf, Error> {
         .ok_or_else(|| "Failed to get config directory".into())
 }
 
+pub fn local_music_dirs() -> Vec<PathBuf> {
+    let mut dirs = Vec::new();
+    if let Some(user_dirs) = directories::UserDirs::new() {
+        if let Some(audio) = user_dirs.audio_dir() {
+            dirs.push(audio.to_path_buf());
+        }
+        if let Some(downloads) = user_dirs.download_dir() {
+            dirs.push(downloads.to_path_buf());
+        }
+    }
+    dirs
+}
+
+pub fn local_media_url(path: &str) -> Result<String, Error> {
+    super::local_server::file_url(path)
+}
+
 pub fn media_play(id: &str, src: &str, _title: &str, _artist: &str) {
     let script = format!(
         r#"

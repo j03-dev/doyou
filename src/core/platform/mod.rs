@@ -11,6 +11,9 @@ use crate::core::error::Error;
 #[cfg(not(target_os = "android"))]
 mod desktop;
 
+#[cfg(not(target_os = "android"))]
+mod local_server;
+
 #[cfg(target_os = "android")]
 mod android;
 

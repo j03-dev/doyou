@@ -2,7 +2,7 @@ use crate::context::{use_favorites, use_playback, use_playlists};
 use dioxus::prelude::*;
 use dioxus_free_icons::{
     Icon,
-    icons::ld_icons::{LdDownload, LdEllipsis, LdHeart, LdPlay},
+    icons::ld_icons::{LdDownload, LdEllipsis, LdHeart, LdMusic, LdPlay},
 };
 use yt::data_api::types::Item;
 
@@ -10,6 +10,7 @@ use yt::data_api::types::Item;
 pub fn MusicCard(
     item: Item,
     index: usize,
+    #[props(default = true)] show_extra_actions: bool,
     #[props(default)] on_play: Option<EventHandler<usize>>,
 ) -> Element {
     let playback = use_playback();
@@ -48,13 +49,7 @@ pub fn MusicCard(
 
     let is_favorite = use_memo({
         let item_id = item_id.clone();
-        move || {
-            favorites
-                .tracks
-                .read()
-                .iter()
-                .any(|t| t.track_id == item_id)
-        }
+        move || favorites.tracks.read().iter().any(|t| t.id == item_id)
     });
 
     let title = item.snippet.title.clone();
@@ -85,17 +80,25 @@ pub fn MusicCard(
                 },
             ),
             figure { class: "relative aspect-square overflow-hidden rounded-xl bg-base-200",
-                img {
-                    class: "size-full object-cover transition-transform duration-300 hover:scale-105",
-                    src: "{thumbnail}",
-                    alt: "{title}",
-                    loading: "lazy",
+                if thumbnail.is_empty() {
+                    div { class: "flex size-full items-center justify-center bg-base-300 text-base-content/50",
+                        Icon { icon: LdMusic, class: "size-10" }
+                    }
+                } else {
+                    img {
+                        class: "size-full object-cover transition-transform duration-300 hover:scale-105",
+                        src: "{thumbnail}",
+                        alt: "{title}",
+                        loading: "lazy",
+                    }
                 }
-                button {
-                    class: "btn btn-circle btn-sm absolute left-2.5 top-2.5 border-none bg-base-100/80 shadow-md backdrop-blur hover:bg-base-100",
-                    "aria-label": "Add to playlist",
-                    onclick: on_more,
-                    Icon { icon: LdEllipsis, class: "text-base-content/70" }
+                if show_extra_actions {
+                    button {
+                        class: "btn btn-circle btn-sm absolute left-2.5 top-2.5 border-none bg-base-100/80 shadow-md backdrop-blur hover:bg-base-100",
+                        "aria-label": "Add to playlist",
+                        onclick: on_more,
+                        Icon { icon: LdEllipsis, class: "text-base-content/70" }
+                    }
                 }
                 button {
                     class: "btn btn-circle btn-md sm:btn-lg absolute bottom-2.5 right-2.5 border-none bg-primary text-primary-content shadow-md hover:scale-105 hover:bg-primary/90",
@@ -139,11 +142,16 @@ pub fn MusicCard(
                             class: if is_favorite() { "fill-error stroke-error" } else { "" },
                         }
                     }
-                    button {
-                        class: "btn btn-ghost btn-sm btn-square",
-                        "aria-label": "Download track",
-                        onclick: move |_| {},
-                        Icon { icon: LdDownload, class: "text-base-content/70" }
+                    if show_extra_actions {
+                        button {
+                            class: "btn btn-ghost btn-sm btn-square",
+                            "aria-label": "Download track",
+                            onclick: move |_| {},
+                            Icon {
+                                icon: LdDownload,
+                                class: "text-base-content/70",
+                            }
+                        }
                     }
                 }
             }

@@ -9,7 +9,7 @@ pub mod settings;
 pub use alert::AlertProps;
 pub use favorites::FavoritesProvider;
 pub use history::HistoryProvider;
-pub use home::{HomeMode, HomeProvider};
+pub use home::{HomeMode, HomeProvider, SourceFilter};
 pub use playback::PlaybackProvider;
 pub use playlist::PlaylistProvider;
 pub use settings::AppSettingsProvider;
