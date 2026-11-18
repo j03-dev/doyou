@@ -276,8 +276,8 @@ fn MiniMusicPlayer(on_open_full_player: EventHandler<()>) -> Element {
 
     rsx! {
         div { class: "relative flex items-center gap-3 p-2.5",
-            div { class: "absolute inset-x-0 top-0 h-0.5 bg-base-200",
-                div { class: "h-full bg-primary", style: "width: {progress}%" }
+            div { class: "absolute inset-x-0 top-0 h-1 overflow-hidden rounded-full bg-base-300",
+                div { class: "h-full rounded-full bg-primary", style: "width: {progress}%" }
             }
             div {
                 class: "flex min-w-0 flex-1 cursor-pointer items-center gap-3",
@@ -347,28 +347,19 @@ fn ProgressBar(playback: PlaybackContext, #[props(default)] show_remaining: bool
         let total = seconds.floor().max(0.0) as u64;
         format!("{:02}:{:02}", total / 60, total % 60)
     };
-    let percent = if *duration > 0.0 {
-        (*current_time / *duration * 100.0).clamp(0.0, 100.0)
-    } else {
-        0.0
-    };
     let remaining = (*duration - *current_time).max(0.0);
 
     rsx! {
         div { class: "w-full",
-            div { class: "relative py-2",
+            div { class: "py-2",
                 progress {
-                    class: "progress progress-primary h-1.5 w-full",
+                    class: "progress progress-primary h-2 w-full rounded-full",
                     value: current_time.to_string(),
                     max: duration.to_string(),
                 }
-                div {
-                    class: "pointer-events-none absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-primary/20 bg-base-100 shadow",
-                    style: "left: {percent}%",
-                }
             }
-            div { class: "mt-1 flex items-center justify-between text-[11px] font-mono text-base-content/60",
-                span { class: "font-semibold text-primary", {format_time(*current_time)} }
+            div { class: "flex items-center justify-between text-[11px] font-mono text-base-content/60",
+                span { class: "font-semibold", {format_time(*current_time)} }
                 if show_remaining {
                     span { "-{format_time(remaining)}" }
                 } else {
