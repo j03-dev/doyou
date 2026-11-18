@@ -29,7 +29,7 @@ pub fn MusicPlayer() -> Element {
             if show_full_player() {
                 FullMusicPlayer { on_close_full_player: move |_| show_full_player.set(false) }
             } else {
-                div { class: "fixed bottom-16 left-0 right-0 z-40 px-3 pb-2 pointer-events-none",
+                div { class: "fixed bottom-20 left-0 right-0 z-40 px-3 pb-2 pointer-events-none",
                     if let Some(alert_props) = playback_error() {
                         Alert { ..alert_props }
                     }
@@ -148,14 +148,6 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
                                 alt: "Album cover",
                             }
                         }
-                        div { class: "absolute left-3 top-3 flex items-center gap-1.5 rounded-full border-none bg-base-100/85 px-3 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm backdrop-blur",
-                            span { class: "size-2 rounded-full bg-success animate-pulse" }
-                            if is_favorite() {
-                                "Favorite"
-                            } else {
-                                {source_label.clone()}
-                            }
-                        }
                         div { class: "absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/60 to-transparent px-3 pb-3 pt-10 text-white/90",
                             div { class: "flex items-center gap-1.5 text-xs font-semibold",
                                 Icon { icon: LdVolume2, class: "size-4" }
@@ -179,6 +171,12 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
                             }
                         }
                         div { class: "flex shrink-0 items-center gap-2",
+                            button {
+                                class: "btn btn-circle border-none bg-base-200 text-base-content/70 shadow-sm",
+                                "aria-label": "Shuffle queue",
+                                onclick: on_shuffle,
+                                Icon { icon: LdShuffle, class: "size-5" }
+                            }
                             button {
                                 class: format!(
                                     "btn btn-circle border-none shadow-sm {}",
@@ -205,13 +203,7 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
                         ProgressBar { playback, show_remaining: true }
                     }
 
-                    div { class: "mt-7 flex w-full items-center justify-between gap-2 px-1",
-                        button {
-                            class: "btn btn-ghost btn-circle rounded-full text-base-content/60",
-                            "aria-label": "Shuffle queue",
-                            onclick: on_shuffle,
-                            Icon { icon: LdShuffle, class: "size-6" }
-                        }
+                    div { class: "mt-7 flex w-full items-center justify-center gap-6 px-1",
                         button {
                             class: "btn btn-circle border-none bg-base-200 shadow-sm",
                             "aria-label": "Previous track",
@@ -240,7 +232,6 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
                             onclick: move |_| playback.playback_controller(1),
                             Icon { icon: LdSkipForward, class: "size-7" }
                         }
-                        div { class: "size-12 shrink-0" }
                     }
                 }
             }
