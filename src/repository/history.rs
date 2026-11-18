@@ -1,3 +1,4 @@
+use anyhow::Result;
 use rusql_alchemy::prelude::*;
 use yt::data_api::types::Item;
 
@@ -13,19 +14,22 @@ struct Plays {
     last_played_at: Float,
 }
 
-pub async fn record(item: &Item) -> Result<(), String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
+pub async fn record(item: &Item) -> Result<()> {
+    let conn = db::conn().await.map_err(anyhow::Error::from_boxed)?;
     let track = ensure_track(item).await?;
     let now = now();
 
     match History::get(kwargs!(track_id = track.id.clone()), conn)
         .await
-        .map_err(|err| err.to_string())?
+        .map_err(anyhow::Error::from_boxed)?
     {
         Some(mut history) => {
             history.play_count += 1;
             history.last_played_at = now;
-            history.update(conn).await.map_err(|err| err.to_string())?;
+            history
+                .update(conn)
+                .await
+                .map_err(anyhow::Error::from_boxed)?;
         }
         None => {
             History::create(
@@ -37,14 +41,14 @@ pub async fn record(item: &Item) -> Result<(), String> {
                 conn,
             )
             .await
-            .map_err(|err| err.to_string())?;
+            .map_err(anyhow::Error::from_boxed)?;
         }
     }
 
     Ok(())
 }
 
-pub async fn recently_played(limit: usize) -> Result<Vec<Track>, String> {
+pub async fn recently_played(limit: usize) -> Result<Vec<Track>> {
     let mut plays = grouped_plays().await?;
     plays.sort_by(|a, b| b.last_played_at.total_cmp(&a.last_played_at));
     Ok(plays
@@ -54,7 +58,7 @@ pub async fn recently_played(limit: usize) -> Result<Vec<Track>, String> {
         .collect())
 }
 
-pub async fn most_played(limit: usize) -> Result<Vec<Track>, String> {
+pub async fn most_played(limit: usize) -> Result<Vec<Track>> {
     let mut plays = grouped_plays().await?;
     plays.sort_by(|a, b| {
         b.play_count
@@ -70,7 +74,7 @@ pub async fn most_played(limit: usize) -> Result<Vec<Track>, String> {
 
 /// Groups every variant of the same song into one entry, summing play counts
 /// and keeping the most useful representative (downloads first).
-async fn grouped_plays() -> Result<Vec<Plays>, String> {
+async fn grouped_plays() -> Result<Vec<Plays>> {
     let history = all_history().await?;
     let tracks = all_tracks().await?;
     let mut grouped: Vec<Plays> = Vec::new();
@@ -120,14 +124,14 @@ fn better_representative(
         || (candidate_rank == current_rank && candidate_count > current_count)
 }
 
-async fn all_history() -> Result<Vec<History>, String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
-    History::all(conn).await.map_err(|err| err.to_string())
+async fn all_history() -> Result<Vec<History>> {
+    let conn = db::conn().await.map_err(anyhow::Error::from_boxed)?;
+    History::all(conn).await.map_err(anyhow::Error::from_boxed)
 }
 
-async fn all_tracks() -> Result<Vec<Track>, String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
-    Track::all(conn).await.map_err(|err| err.to_string())
+async fn all_tracks() -> Result<Vec<Track>> {
+    let conn = db::conn().await.map_err(anyhow::Error::from_boxed)?;
+    Track::all(conn).await.map_err(anyhow::Error::from_boxed)
 }
 
 fn now() -> f64 {

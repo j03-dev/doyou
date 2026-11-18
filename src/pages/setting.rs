@@ -70,7 +70,7 @@ pub fn Setting() -> Element {
             let ms = start.elapsed().as_millis();
             match result {
                 Ok(_) => status.set(PingStatus::Success(ms)),
-                Err(err) => status.set(PingStatus::Error(err)),
+                Err(err) => status.set(PingStatus::Error(err.to_string())),
             }
         });
     };

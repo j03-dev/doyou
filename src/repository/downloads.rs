@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::path::{Path, PathBuf};
 
 use doyou_media::AudioFormat;
@@ -16,20 +17,20 @@ pub fn is_downloaded(track: &Track) -> bool {
     TrackSource::from_id(&track.id) == TrackSource::Downloaded
 }
 
-pub async fn find_downloaded(video_id: &str) -> Result<Option<Track>, String> {
+pub async fn find_downloaded(video_id: &str) -> Result<Option<Track>> {
     get(&TrackSource::Downloaded.id(video_id)).await
 }
 
-async fn get(track_id: &str) -> Result<Option<Track>, String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
+async fn get(track_id: &str) -> Result<Option<Track>> {
+    let conn = db::conn().await.map_err(anyhow::Error::from_boxed)?;
     Track::get(kwargs!(id = track_id), conn)
         .await
-        .map_err(|err| err.to_string())
+        .map_err(anyhow::Error::from_boxed)
 }
 
-pub async fn list() -> Result<Vec<Track>, String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
-    let tracks: Vec<Track> = Track::all(conn).await.map_err(|err| err.to_string())?;
+pub async fn list() -> Result<Vec<Track>> {
+    let conn = db::conn().await.map_err(anyhow::Error::from_boxed)?;
+    let tracks: Vec<Track> = Track::all(conn).await.map_err(anyhow::Error::from_boxed)?;
     let mut result = Vec::new();
 
     for track in tracks.into_iter().filter(is_downloaded) {
@@ -40,7 +41,10 @@ pub async fn list() -> Result<Vec<Track>, String> {
 
         let Some(restored) = restore_src(conn, track.clone()).await? else {
             // No file on disk: drop the orphan so it can be downloaded again.
-            track.delete(conn).await.map_err(|err| err.to_string())?;
+            track
+                .delete(conn)
+                .await
+                .map_err(anyhow::Error::from_boxed)?;
             continue;
         };
         result.push(restored);
@@ -49,17 +53,17 @@ pub async fn list() -> Result<Vec<Track>, String> {
     Ok(result)
 }
 
-pub async fn download(item: &Item) -> Result<Track, String> {
+pub async fn download(item: &Item) -> Result<Track> {
     let video_id = item
         .id
         .as_string()
-        .ok_or_else(|| "This track does not have a YouTube id".to_string())?;
+        .ok_or_else(|| anyhow::anyhow!("This track does not have a YouTube id"))?;
     let track_id = TrackSource::Downloaded.id(&video_id);
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
+    let conn = db::conn().await.map_err(anyhow::Error::from_boxed)?;
 
     if let Some(track) = Track::get(kwargs!(id = track_id.clone()), conn)
         .await
-        .map_err(|err| err.to_string())?
+        .map_err(anyhow::Error::from_boxed)?
     {
         if file_exists(&track) {
             return Ok(track);
@@ -71,23 +75,23 @@ pub async fn download(item: &Item) -> Result<Track, String> {
 
     let title = item.snippet.title.clone();
     let artist = item.snippet.channel_title.clone();
-    let directory = platform::downloads_dir().map_err(|err| err.to_string())?;
+    let directory = platform::downloads_dir().map_err(anyhow::Error::from_boxed)?;
     let stem = format!(
         "{} - {}",
         metadata::file_name_part(&title),
         metadata::file_name_part(&artist)
     );
 
-    let extractor = YouTubeExtractor::new().map_err(|err| err.to_string())?;
+    let extractor = YouTubeExtractor::new()?;
     let path = extractor
         .download_audio(&video_id, &directory, &stem)
-        .await
-        .map_err(|err| err.to_string())?;
+        .await?;
 
     // The rest of the app (scanner, media server, player) only understands
     // formats from our enum, so reject anything else before storing it.
-    AudioFormat::from_path(&path)
-        .ok_or_else(|| format!("unsupported downloaded audio format: {}", path.display()))?;
+    AudioFormat::from_path(&path).ok_or_else(|| {
+        anyhow::anyhow!("unsupported downloaded audio format: {}", path.display())
+    })?;
 
     let metadata = metadata::read(&path);
     let cover_path = metadata
@@ -112,11 +116,11 @@ pub async fn download(item: &Item) -> Result<Track, String> {
     })
 }
 
-pub async fn remove(track_id: &str) -> Result<(), String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
+pub async fn remove(track_id: &str) -> Result<()> {
+    let conn = db::conn().await.map_err(anyhow::Error::from_boxed)?;
     let Some(track) = Track::get(kwargs!(id = track_id), conn)
         .await
-        .map_err(|err| err.to_string())?
+        .map_err(anyhow::Error::from_boxed)?
     else {
         return Ok(());
     };
@@ -132,7 +136,7 @@ pub async fn remove(track_id: &str) -> Result<(), String> {
     if let Some(path) = track.cover_path.as_deref() {
         let _ = std::fs::remove_file(path);
     }
-    track.delete(conn).await.map_err(|err| err.to_string())
+    track.delete(conn).await.map_err(anyhow::Error::from_boxed)
 }
 
 fn file_exists(track: &Track) -> bool {
@@ -144,16 +148,15 @@ fn file_exists(track: &Track) -> bool {
 
 /// Older builds could clear `src` when a downloaded track was played or added
 /// to favorites. Recover the path from the original download filename.
-async fn restore_src(conn: &Connection, mut track: Track) -> Result<Option<Track>, String> {
-    let directory = platform::downloads_dir().map_err(|err| err.to_string())?;
+async fn restore_src(conn: &Connection, mut track: Track) -> Result<Option<Track>> {
+    let directory = platform::downloads_dir().map_err(anyhow::Error::from_boxed)?;
     let stem = format!(
         "{} - {}",
         metadata::file_name_part(&track.title),
         metadata::file_name_part(&track.channel_name)
     );
 
-    let found = std::fs::read_dir(directory)
-        .map_err(|err| err.to_string())?
+    let found = std::fs::read_dir(directory)?
         .filter_map(Result::ok)
         .map(|entry| entry.path())
         .find(|path: &PathBuf| {
@@ -166,7 +169,10 @@ async fn restore_src(conn: &Connection, mut track: Track) -> Result<Option<Track
     };
 
     track.src = Some(path.to_string_lossy().to_string());
-    track.update(conn).await.map_err(|err| err.to_string())?;
+    track
+        .update(conn)
+        .await
+        .map_err(anyhow::Error::from_boxed)?;
     Ok(Some(track))
 }
 
