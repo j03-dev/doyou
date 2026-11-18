@@ -43,6 +43,19 @@ impl TrackSource {
     pub fn is_local(&self) -> bool {
         matches!(self, Self::Local | Self::Downloaded)
     }
+
+    /// Returns the YouTube video id for plain and downloaded ids.
+    pub fn video_id(id: &str) -> Option<&str> {
+        if let Some(key) = id
+            .strip_prefix(Self::Local.as_str())
+            .and_then(|rest| rest.strip_prefix(':'))
+        {
+            return key
+                .strip_prefix(Self::Downloaded.as_str())
+                .and_then(|rest| rest.strip_prefix('-'));
+        }
+        (Self::from_id(id) == Self::YouTube).then_some(id)
+    }
 }
 
 #[cfg(test)]
@@ -73,5 +86,18 @@ mod tests {
         let id = TrackSource::Downloaded.id("abc123");
         assert!(TrackSource::from_id(&id).is_local());
         assert!(!TrackSource::from_id("abc123").is_local());
+    }
+
+    #[test]
+    fn video_ids_resolve_from_every_source() {
+        assert_eq!(TrackSource::video_id("abc123"), Some("abc123"));
+        assert_eq!(
+            TrackSource::video_id(&TrackSource::Downloaded.id("abc123")),
+            Some("abc123")
+        );
+        assert_eq!(
+            TrackSource::video_id(&TrackSource::Local.id("abc123")),
+            None
+        );
     }
 }

@@ -2,6 +2,7 @@ pub mod db;
 pub mod downloads;
 pub mod favorites;
 pub mod history;
+pub mod identity;
 pub mod local;
 pub mod metadata;
 pub mod playlist;
@@ -57,6 +58,14 @@ pub async fn ensure_track(item: &Item) -> Result<Track, String> {
             .await?
             .ok_or_else(|| "Local track not found".to_string());
     }
+
+    // A YouTube item with an available download is the same song: record the
+    // offline variant everywhere so favorites, playlists and history don't
+    // accumulate duplicates.
+    if let Some(downloaded) = downloads::find_downloaded(&track.id).await? {
+        return Ok(downloaded);
+    }
+
     upsert_track(&track).await
 }
 

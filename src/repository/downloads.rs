@@ -16,6 +16,17 @@ pub fn is_downloaded(track: &Track) -> bool {
     TrackSource::from_id(&track.id) == TrackSource::Downloaded
 }
 
+pub async fn find_downloaded(video_id: &str) -> Result<Option<Track>, String> {
+    get(&TrackSource::Downloaded.id(video_id)).await
+}
+
+async fn get(track_id: &str) -> Result<Option<Track>, String> {
+    let conn = db::conn().await.map_err(|err| err.to_string())?;
+    Track::get(kwargs!(id = track_id), conn)
+        .await
+        .map_err(|err| err.to_string())
+}
+
 pub async fn list() -> Result<Vec<Track>, String> {
     let conn = db::conn().await.map_err(|err| err.to_string())?;
     let tracks: Vec<Track> = Track::all(conn).await.map_err(|err| err.to_string())?;
