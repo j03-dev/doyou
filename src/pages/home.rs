@@ -246,13 +246,13 @@ pub fn Home() -> Element {
             } else {
                 div { class: "flex items-center justify-between px-1 pt-4 pb-3",
                     div { class: "flex items-center gap-2.5",
-                        div { class: "flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary",
+                        div { class: "flex size-8 items-center justify-center rounded-lg bg-base-200 text-base-content/70",
                             Icon { icon: LdLibrary, class: "size-5" }
                         }
                         h2 { class: "text-base font-bold tracking-tight", "Your Library" }
                     }
                     button {
-                        class: "btn btn-sm btn-ghost gap-1 rounded-full px-3 text-primary",
+                        class: "btn btn-sm btn-ghost gap-1 rounded-full px-3 text-base-content",
                         onclick: move |_| playlists.open_create(),
                         Icon { icon: LdPlus, class: "size-4" }
                         "New playlist"
@@ -280,7 +280,7 @@ pub fn Home() -> Element {
                             class: "card w-36 shrink-0 rounded-2xl border border-dashed border-base-content/20 bg-base-100 p-3 transition-colors hover:bg-base-200/60 sm:w-40",
                             onclick: move |_| playlists.open_create(),
                             div { class: "flex aspect-square flex-col items-center justify-center gap-2 rounded-xl bg-base-200/60",
-                                div { class: "flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary",
+                                div { class: "flex size-10 items-center justify-center rounded-full bg-base-200 text-base-content/70",
                                     Icon { icon: LdPlus, class: "size-6" }
                                 }
                                 span { class: "text-xs font-semibold text-base-content/60", "Add new" }
@@ -296,7 +296,7 @@ pub fn Home() -> Element {
                 if !local_items().is_empty() || *home.is_scanning_local.read() {
                     div { class: "flex items-center justify-between px-1 pt-8 sm:pt-10 pb-3",
                         div { class: "flex items-center gap-2.5",
-                            div { class: "flex size-8 items-center justify-center rounded-lg bg-secondary/10 text-secondary",
+                            div { class: "flex size-8 items-center justify-center rounded-lg bg-base-200 text-base-content/70",
                                 Icon { icon: LdHardDrive, class: "size-5" }
                             }
                             h2 { class: "text-base font-bold tracking-tight", "Local Music" }
@@ -337,7 +337,7 @@ pub fn Home() -> Element {
 
                 if *home.source_filter.read() != SourceFilter::Local {
                     div { class: "flex items-center gap-2.5 px-1 pt-8 sm:pt-10 pb-3",
-                        div { class: "flex size-8 items-center justify-center rounded-lg bg-error/10 text-error",
+                        div { class: "flex size-8 items-center justify-center rounded-lg bg-base-200 text-base-content/70",
                             Icon { icon: LdFlame, class: "size-5" }
                         }
                         h2 { class: "text-base font-bold tracking-tight", "Trending" }
@@ -360,7 +360,7 @@ pub fn Home() -> Element {
 
                 if !recent_items().is_empty() {
                     div { class: "flex items-center gap-2.5 px-1 pt-8 sm:pt-10 pb-3",
-                        div { class: "flex size-8 items-center justify-center rounded-lg bg-secondary/10 text-secondary",
+                        div { class: "flex size-8 items-center justify-center rounded-lg bg-base-200 text-base-content/70",
                             Icon { icon: LdHistory, class: "size-5" }
                         }
                         h2 { class: "text-base font-bold tracking-tight", "Recently Played" }
@@ -383,7 +383,7 @@ pub fn Home() -> Element {
 
                 if !most_items().is_empty() {
                     div { class: "flex items-center gap-2.5 px-1 pt-8 sm:pt-10 pb-3",
-                        div { class: "flex size-8 items-center justify-center rounded-lg bg-warning/10 text-warning",
+                        div { class: "flex size-8 items-center justify-center rounded-lg bg-base-200 text-base-content/70",
                             Icon { icon: LdTrophy, class: "size-5" }
                         }
                         h2 { class: "text-base font-bold tracking-tight", "Most Played" }
@@ -415,7 +415,7 @@ pub fn Home() -> Element {
                         Icon { icon: LdX }
                     }
                 }
-                div { class: "flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary shadow-inner",
+                div { class: "flex size-10 items-center justify-center rounded-full bg-base-200 text-base-content/70 shadow-inner",
                     Icon { icon: LdPlus, class: "size-6" }
                 }
                 h3 { class: "mt-4 text-xl font-extrabold tracking-tight", "New playlist" }
@@ -466,7 +466,7 @@ pub fn Home() -> Element {
                         Icon { icon: LdX }
                     }
                 }
-                div { class: "flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary",
+                div { class: "flex size-10 items-center justify-center rounded-full bg-base-200 text-base-content/70",
                     Icon { icon: LdKey, class: "size-5" }
                 }
                 h3 { class: "mt-4 text-xl font-extrabold tracking-tight", "Connect YouTube" }

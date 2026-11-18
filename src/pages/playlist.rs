@@ -136,7 +136,7 @@ pub fn Playlist(id: i32) -> Element {
                         title: "Tracks".to_string(),
                         badge: Some(entry.tracks.len().to_string()),
                         icon: rsx! {
-                            Icon { icon: LdListMusic, class: "size-4 text-primary" }
+                            Icon { icon: LdListMusic, class: "size-4" }
                         },
                     }
                     div { class: "card mt-2 bg-base-100 border border-base-content/10 shadow-sm rounded-2xl overflow-hidden",

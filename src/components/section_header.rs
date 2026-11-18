@@ -11,7 +11,7 @@ pub fn SectionHeader(
         div { class: "flex items-center justify-between gap-3 px-1",
             div { class: "flex items-center gap-2.5",
                 if let Some(icon) = icon {
-                    div { class: "flex size-8 shrink-0 items-center justify-center rounded-lg bg-base-200 text-primary",
+                    div { class: "flex size-8 shrink-0 items-center justify-center rounded-lg bg-base-200 text-base-content/70",
                         {icon}
                     }
                 }

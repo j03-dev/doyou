@@ -99,7 +99,7 @@ pub fn Favorite() -> Element {
                 subtitle: duration(),
                 thumbnails: thumbnails(),
                 count: count(),
-                accent: "text-error".to_string(),
+                accent: "text-primary".to_string(),
                 button {
                     class: "btn btn-primary rounded-full gap-2 px-6",
                     disabled: items().is_empty(),
@@ -121,7 +121,7 @@ pub fn Favorite() -> Element {
                     title: "Tracks".to_string(),
                     badge: Some(count().to_string()),
                     icon: rsx! {
-                        Icon { icon: LdListMusic, class: "size-4 text-error" }
+                        Icon { icon: LdListMusic, class: "size-4" }
                     },
                 }
                 div { class: "card mt-3 bg-base-100 border border-base-content/10 shadow-sm rounded-2xl overflow-hidden p-1.5",

@@ -104,7 +104,7 @@ pub fn Downloads() -> Element {
                     title: "Offline tracks".to_string(),
                     badge: Some(count().to_string()),
                     icon: rsx! {
-                        Icon { icon: LdListMusic, class: "size-4 text-primary" }
+                        Icon { icon: LdListMusic, class: "size-4" }
                     },
                 }
                 div { class: "card mt-3 bg-base-100 border border-base-content/10 shadow-sm rounded-2xl overflow-hidden p-1.5",
