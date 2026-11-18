@@ -16471,6 +16471,9 @@
   .pb-3 {
     padding-bottom: calc(var(--spacing) * 3);
   }
+  .pb-4 {
+    padding-bottom: calc(var(--spacing) * 4);
+  }
   .pb-8 {
     padding-bottom: calc(var(--spacing) * 8);
   }
@@ -16737,6 +16740,9 @@
       font-size: 1.25rem;
       --otp-size: calc(var(--size-field, 0.25rem) * 6);
     }
+  }
+  .text-\[11px\] {
+    font-size: 11px;
   }
   .leading-4 {
     --tw-leading: calc(var(--spacing) * 4);
@@ -17471,6 +17477,9 @@
         }
       }
     }
+  }
+  .opacity-45 {
+    opacity: 45%;
   }
   .opacity-60 {
     opacity: 60%;
