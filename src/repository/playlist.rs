@@ -3,7 +3,7 @@ use yt::data_api::types::Item;
 
 use super::db;
 use super::db::models::{Playlist, Track, TrackPlaylist};
-use super::{ensure_track, track_thumbnail};
+use super::{ensure_track, identity, track_thumbnail};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PlaylistWithTracks {
@@ -79,16 +79,20 @@ pub async fn remove(playlist_id: i32) -> Result<(), String> {
     Ok(())
 }
 
-pub async fn remove_track(playlist_id: i32, track_id: &str) -> Result<(), String> {
+pub async fn remove_track(playlist_id: i32, item: &Item) -> Result<(), String> {
     let conn = db::conn().await.map_err(|err| err.to_string())?;
-    let links: Vec<TrackPlaylist> = TrackPlaylist::filter(
-        kwargs!(playlist_id == playlist_id).and(kwargs!(track_id == track_id)),
-        conn,
-    )
-    .await
-    .map_err(|err| err.to_string())?;
+    let links: Vec<TrackPlaylist> =
+        TrackPlaylist::filter(kwargs!(playlist_id == playlist_id), conn)
+            .await
+            .map_err(|err| err.to_string())?;
+
     for link in links {
-        link.delete(conn).await.map_err(|err| err.to_string())?;
+        let track = Track::get(kwargs!(id = link.track_id.clone()), conn)
+            .await
+            .map_err(|err| err.to_string())?;
+        if track.is_some_and(|track| identity::same_media(&track, item)) {
+            link.delete(conn).await.map_err(|err| err.to_string())?;
+        }
     }
     Ok(())
 }
@@ -100,5 +104,5 @@ async fn tracks_for(playlist_id: i32, conn: &Connection) -> Result<Vec<Track>, S
         .fetch_all(conn)
         .await
         .map_err(|err| err.to_string())?;
-    Ok(tracks)
+    Ok(identity::dedupe(tracks))
 }

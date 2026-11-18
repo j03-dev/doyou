@@ -20,6 +20,7 @@ use crate::context::{
 };
 use crate::repository;
 use crate::repository::TrackSource;
+use crate::repository::identity;
 use crate::route::Route;
 
 #[component]
@@ -71,7 +72,7 @@ pub fn Home() -> Element {
             _ => home.feed.read().clone(),
         };
         match *home.source_filter.read() {
-            SourceFilter::All => source,
+            SourceFilter::All => identity::dedupe(source),
             SourceFilter::Local => source
                 .into_iter()
                 .filter(|item| {

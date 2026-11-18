@@ -4,6 +4,7 @@ use yt::data_api::types::Item;
 use super::db;
 use super::db::models::{Favorite, Track};
 use super::ensure_track;
+use super::identity;
 
 pub async fn all() -> Result<Vec<Track>, String> {
     let conn = db::conn().await.map_err(|err| err.to_string())?;
@@ -12,7 +13,7 @@ pub async fn all() -> Result<Vec<Track>, String> {
         .fetch_all(conn)
         .await
         .map_err(|err| err.to_string())?;
-    Ok(tracks)
+    Ok(identity::dedupe(tracks))
 }
 
 pub async fn add(item: &Item) -> Result<Track, String> {
@@ -31,13 +32,17 @@ pub async fn add(item: &Item) -> Result<Track, String> {
     Ok(track)
 }
 
-pub async fn remove(track_id: &str) -> Result<(), String> {
+pub async fn remove(item: &Item) -> Result<(), String> {
     let conn = db::conn().await.map_err(|err| err.to_string())?;
-    if let Some(favorite) = Favorite::get(kwargs!(track_id = track_id), conn)
-        .await
-        .map_err(|err| err.to_string())?
-    {
-        favorite.delete(conn).await.map_err(|err| err.to_string())?;
+    let favorites: Vec<Favorite> = Favorite::all(conn).await.map_err(|err| err.to_string())?;
+
+    for favorite in favorites {
+        let track = Track::get(kwargs!(id = favorite.track_id.clone()), conn)
+            .await
+            .map_err(|err| err.to_string())?;
+        if track.is_some_and(|track| identity::same_media(&track, item)) {
+            favorite.delete(conn).await.map_err(|err| err.to_string())?;
+        }
     }
     Ok(())
 }

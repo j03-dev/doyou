@@ -221,7 +221,7 @@ impl PlaylistContext {
         ok
     }
 
-    pub fn remove_track(&self, playlist_id: i32, track_id: String) {
+    pub fn remove_track(&self, playlist_id: i32, item: Item) {
         let mut items = self.items;
         let mut detail = self.detail;
         let mut is_loading = self.is_loading;
@@ -231,7 +231,7 @@ impl PlaylistContext {
         error.set(None);
 
         spawn(async move {
-            match repository::playlist::remove_track(playlist_id, &track_id).await {
+            match repository::playlist::remove_track(playlist_id, &item).await {
                 Ok(_) => {
                     match repository::playlist::list().await {
                         Ok(fetched) => items.set(fetched),

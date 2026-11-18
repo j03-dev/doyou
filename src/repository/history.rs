@@ -4,6 +4,14 @@ use yt::data_api::types::Item;
 use super::db;
 use super::db::models::{History, Track};
 use super::ensure_track;
+use super::identity;
+
+struct Plays {
+    track: Track,
+    representative_count: Integer,
+    play_count: Integer,
+    last_played_at: Float,
+}
 
 pub async fn record(item: &Item) -> Result<(), String> {
     let conn = db::conn().await.map_err(|err| err.to_string())?;
@@ -37,19 +45,79 @@ pub async fn record(item: &Item) -> Result<(), String> {
 }
 
 pub async fn recently_played(limit: usize) -> Result<Vec<Track>, String> {
-    let mut history = all_history().await?;
-    history.sort_by(|a, b| b.last_played_at.total_cmp(&a.last_played_at));
-    load_tracks(history.into_iter().take(limit).map(|h| h.track_id)).await
+    let mut plays = grouped_plays().await?;
+    plays.sort_by(|a, b| b.last_played_at.total_cmp(&a.last_played_at));
+    Ok(plays
+        .into_iter()
+        .take(limit)
+        .map(|play| play.track)
+        .collect())
 }
 
 pub async fn most_played(limit: usize) -> Result<Vec<Track>, String> {
-    let mut history = all_history().await?;
-    history.sort_by(|a, b| {
+    let mut plays = grouped_plays().await?;
+    plays.sort_by(|a, b| {
         b.play_count
             .cmp(&a.play_count)
             .then_with(|| b.last_played_at.total_cmp(&a.last_played_at))
     });
-    load_tracks(history.into_iter().take(limit).map(|h| h.track_id)).await
+    Ok(plays
+        .into_iter()
+        .take(limit)
+        .map(|play| play.track)
+        .collect())
+}
+
+/// Groups every variant of the same song into one entry, summing play counts
+/// and keeping the most useful representative (downloads first).
+async fn grouped_plays() -> Result<Vec<Plays>, String> {
+    let history = all_history().await?;
+    let tracks = all_tracks().await?;
+    let mut grouped: Vec<Plays> = Vec::new();
+
+    for entry in history {
+        let Some(track) = tracks.iter().find(|track| track.id == entry.track_id) else {
+            continue;
+        };
+
+        if let Some(plays) = grouped
+            .iter_mut()
+            .find(|plays| identity::same_media(&plays.track, track))
+        {
+            plays.play_count += entry.play_count;
+            plays.last_played_at = plays.last_played_at.max(entry.last_played_at);
+            if better_representative(
+                track,
+                &plays.track,
+                entry.play_count,
+                plays.representative_count,
+            ) {
+                plays.track = track.clone();
+                plays.representative_count = entry.play_count;
+            }
+        } else {
+            grouped.push(Plays {
+                track: track.clone(),
+                representative_count: entry.play_count,
+                play_count: entry.play_count,
+                last_played_at: entry.last_played_at,
+            });
+        }
+    }
+
+    Ok(grouped)
+}
+
+fn better_representative(
+    candidate: &Track,
+    current: &Track,
+    candidate_count: Integer,
+    current_count: Integer,
+) -> bool {
+    let candidate_rank = identity::rank(candidate);
+    let current_rank = identity::rank(current);
+    candidate_rank > current_rank
+        || (candidate_rank == current_rank && candidate_count > current_count)
 }
 
 async fn all_history() -> Result<Vec<History>, String> {
@@ -57,18 +125,9 @@ async fn all_history() -> Result<Vec<History>, String> {
     History::all(conn).await.map_err(|err| err.to_string())
 }
 
-async fn load_tracks(ids: impl Iterator<Item = String>) -> Result<Vec<Track>, String> {
+async fn all_tracks() -> Result<Vec<Track>, String> {
     let conn = db::conn().await.map_err(|err| err.to_string())?;
-    let mut tracks = Vec::new();
-    for track_id in ids {
-        if let Some(track) = Track::get(kwargs!(id = track_id), conn)
-            .await
-            .map_err(|err| err.to_string())?
-        {
-            tracks.push(track);
-        }
-    }
-    Ok(tracks)
+    Track::all(conn).await.map_err(|err| err.to_string())
 }
 
 fn now() -> f64 {

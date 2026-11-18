@@ -151,13 +151,13 @@ pub fn Playlist(id: i32) -> Element {
                             ul { class: "list divide-y divide-base-content/5",
                                 for (index, item) in items().iter().enumerate() {
                                     {
-                                        let track_id = item.id.as_string().unwrap_or_default();
+                                        let remove_item = item.clone();
                                         rsx! {
                                             MusicRow {
                                                 item: item.clone(),
                                                 index,
                                                 on_remove: move |_| {
-                                                    playlists.remove_track(id, track_id.clone());
+                                                    playlists.remove_track(id, remove_item.clone());
                                                 },
                                             }
                                         }

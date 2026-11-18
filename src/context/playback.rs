@@ -127,15 +127,17 @@ impl PlaybackContext {
 
             let audio = if repository::TrackSource::from_id(&item_id).is_local() {
                 match repository::get_track(&item_id).await {
-                    Ok(Some(track)) => match track.src.as_deref() {
-                        Some(path) => repository::local::src_url(path),
-                        None => Err("Local track is missing its file path".to_string()),
-                    },
+                    Ok(Some(track)) => local_audio(&track),
                     Ok(None) => Err("Local file not found".to_string()),
                     Err(e) => Err(e.to_string()),
                 }
             } else {
-                repository::youtube::audio_url(&item_id).await
+                // A YouTube item with a download plays the offline file.
+                match repository::downloads::find_downloaded(&item_id).await {
+                    Ok(Some(track)) => local_audio(&track),
+                    Ok(None) => repository::youtube::audio_url(&item_id).await,
+                    Err(e) => Err(e),
+                }
             };
 
             match audio {
@@ -236,6 +238,13 @@ impl PlaybackContext {
                 duration.set(len);
             }
         });
+    }
+}
+
+fn local_audio(track: &repository::db::models::Track) -> Result<String, String> {
+    match track.src.as_deref() {
+        Some(path) => repository::local::src_url(path),
+        None => Err("Local track is missing its file path".to_string()),
     }
 }
 

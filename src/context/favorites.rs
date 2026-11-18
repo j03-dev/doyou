@@ -4,6 +4,7 @@ use yt::data_api::types::Item;
 use crate::context::AlertProps;
 use crate::repository;
 use crate::repository::db::models::Track;
+use crate::repository::identity;
 
 #[component]
 pub fn FavoritesProvider(children: Element) -> Element {
@@ -56,18 +57,20 @@ impl FavoritesContext {
         let mut error = self.error;
         let mut tracks = self.tracks;
 
-        let Some(item_id) = item.id.as_string() else {
+        if item.id.as_string().is_none() {
             return;
-        };
+        }
+        let is_fav = self.is_favorite_item(&item);
 
         spawn(async move {
             is_loading.set(true);
             error.set(None);
 
-            let is_fav = tracks.read().iter().any(|t| t.id == item_id);
             if is_fav {
-                match repository::favorites::remove(&item_id).await {
-                    Ok(()) => tracks.write().retain(|t| t.id != item_id),
+                match repository::favorites::remove(&item).await {
+                    Ok(()) => tracks
+                        .write()
+                        .retain(|track| !identity::same_media(track, &item)),
                     Err(err) => error.set(Some(AlertProps::error(err))),
                 }
             } else {
@@ -78,6 +81,13 @@ impl FavoritesContext {
             }
             is_loading.set(false);
         });
+    }
+
+    pub fn is_favorite_item(&self, item: &Item) -> bool {
+        self.tracks
+            .read()
+            .iter()
+            .any(|track| identity::same_media(track, item))
     }
 
     pub fn items(&self) -> Vec<Item> {
