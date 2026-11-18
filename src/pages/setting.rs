@@ -166,7 +166,7 @@ pub fn Setting() -> Element {
                                 }
                             }
                             button {
-                                class: "btn btn-sm btn-outline btn-circle rounded-full shrink-0 px-3",
+                                class: "btn btn-sm btn-outline rounded-full shrink-0 px-3",
                                 r#type: "button",
                                 onclick: move |_| show_form.set(!show_form()),
                                 if show_form() {
@@ -201,7 +201,7 @@ pub fn Setting() -> Element {
                                 }
                             }
                             button {
-                                class: "btn btn-sm btn-primary btn-circle rounded-full shrink-0 gap-1.5 px-3",
+                                class: "btn btn-sm btn-primary rounded-full shrink-0 gap-1.5 px-3",
                                 r#type: "button",
                                 disabled: ping_status() == PingStatus::Testing,
                                 onclick: test_connection,
