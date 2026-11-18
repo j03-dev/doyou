@@ -1,3 +1,4 @@
+use crate::components::downloaded_badge::DownloadedBadge;
 use crate::context::{use_downloads, use_favorites, use_playback, use_playlists};
 use crate::repository::TrackSource;
 use dioxus::prelude::*;
@@ -49,10 +50,8 @@ pub fn MusicCard(
         }
     });
 
-    let is_favorite = use_memo({
-        let item_id = item_id.clone();
-        move || favorites.tracks.read().iter().any(|t| t.id == item_id)
-    });
+    let favorite_item = item.clone();
+    let is_favorite = use_memo(move || favorites.is_favorite_item(&favorite_item));
 
     let is_youtube = TrackSource::from_id(&item_id) == TrackSource::YouTube;
 
@@ -61,18 +60,16 @@ pub fn MusicCard(
         move || downloads.is_pending(&video_id)
     });
 
-    let already_downloaded = use_memo({
-        let video_id = item_id.clone();
-        move || downloads.is_downloaded(&video_id)
-    });
+    let badge_item = item.clone();
+    let already_downloaded = use_memo(move || downloads.is_downloaded_item(&badge_item));
 
     let title = item.snippet.title.clone();
     let artist = item.snippet.channel_title.clone();
     let thumbnail = item.snippet.thumbnails.high.url.clone();
 
-    let favorite_item = item.clone();
+    let toggle_item = item.clone();
     let on_favorite = move |_| {
-        favorites.toggle(&favorite_item);
+        favorites.toggle(&toggle_item);
     };
 
     let more_item = item.clone();
@@ -105,6 +102,9 @@ pub fn MusicCard(
                         alt: "{title}",
                         loading: "lazy",
                     }
+                }
+                if already_downloaded() {
+                    DownloadedBadge { class: "absolute right-2.5 top-2.5 shadow-md" }
                 }
                 if show_extra_actions {
                     button {

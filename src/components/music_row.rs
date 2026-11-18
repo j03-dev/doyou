@@ -8,6 +8,7 @@ use dioxus_free_icons::{
 use yt::data_api::types::Item;
 
 use crate::components::button::ButtonGhost;
+use crate::components::downloaded_badge::DownloadedBadge;
 use crate::context::{use_downloads, use_favorites, use_playback, use_playlists};
 use crate::repository::TrackSource;
 
@@ -57,10 +58,8 @@ pub fn MusicRow(
         }
     });
 
-    let is_favorite = use_memo({
-        let item_id = item_id.clone();
-        move || favorites.tracks.read().iter().any(|t| t.id == item_id)
-    });
+    let favorite_item = item.clone();
+    let is_favorite = use_memo(move || favorites.is_favorite_item(&favorite_item));
 
     let is_youtube = TrackSource::from_id(&item_id) == TrackSource::YouTube;
 
@@ -69,10 +68,8 @@ pub fn MusicRow(
         move || downloads.is_pending(&video_id)
     });
 
-    let already_downloaded = use_memo({
-        let video_id = item_id.clone();
-        move || downloads.is_downloaded(&video_id)
-    });
+    let badge_item = item.clone();
+    let already_downloaded = use_memo(move || downloads.is_downloaded_item(&badge_item));
 
     let title = item.snippet.title.clone();
     let artist = item.snippet.channel_title.clone();
@@ -113,9 +110,14 @@ pub fn MusicRow(
                 class: "flex min-w-0 flex-1 cursor-pointer flex-col justify-center gap-1 overflow-hidden",
                 onclick: play,
 
-                div {
-                    class: if is_playing_now() { "truncate text-sm font-semibold leading-5 text-primary" } else { "truncate text-sm font-medium leading-5" },
-                    dangerous_inner_html: title,
+                div { class: "flex min-w-0 items-center gap-2",
+                    span {
+                        class: if is_playing_now() { "truncate text-sm font-semibold leading-5 text-primary" } else { "truncate text-sm font-medium leading-5" },
+                        dangerous_inner_html: title,
+                    }
+                    if already_downloaded() {
+                        DownloadedBadge {}
+                    }
                 }
                 div {
                     class: "truncate text-xs font-semibold uppercase leading-4 opacity-60",

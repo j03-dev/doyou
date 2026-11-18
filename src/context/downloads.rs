@@ -5,6 +5,7 @@ use crate::context::AlertProps;
 use crate::repository;
 use crate::repository::TrackSource;
 use crate::repository::db::models::Track;
+use crate::repository::identity;
 
 #[component]
 pub fn DownloadsProvider(children: Element) -> Element {
@@ -107,9 +108,30 @@ impl DownloadsContext {
         self.pending.read().iter().any(|id| id == video_id)
     }
 
-    pub fn is_downloaded(&self, video_id: &str) -> bool {
-        let id = TrackSource::Downloaded.id(video_id);
-        self.tracks.read().iter().any(|track| track.id == id)
+    pub fn is_downloaded(&self, id: &str) -> bool {
+        let tracks = self.tracks.read();
+        let downloaded_id = if TrackSource::from_id(id) == TrackSource::YouTube {
+            TrackSource::Downloaded.id(id)
+        } else {
+            id.to_string()
+        };
+        if tracks.iter().any(|track| track.id == downloaded_id) {
+            return true;
+        }
+
+        TrackSource::video_id(id).is_some_and(|video_id| {
+            tracks
+                .iter()
+                .any(|track| TrackSource::video_id(&track.id) == Some(video_id))
+        })
+    }
+
+    /// Badge check that also recognizes local files matching a downloaded song.
+    pub fn is_downloaded_item(&self, item: &Item) -> bool {
+        self.tracks
+            .read()
+            .iter()
+            .any(|track| identity::same_media(track, item))
     }
 
     pub fn items(&self) -> Vec<Item> {

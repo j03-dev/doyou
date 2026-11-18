@@ -4,6 +4,7 @@ pub mod button;
 pub mod collection_hero;
 pub mod cover;
 pub mod dock;
+pub mod downloaded_badge;
 pub mod empty_state;
 pub mod form;
 pub mod loading;
