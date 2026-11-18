@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use yt::data_api::types::{Item, Snippet, Thumb, Thumbnails, VideoId};
+use yt::data_api::types::Item;
 
 use crate::context::AlertProps;
 use crate::repository;
@@ -71,13 +71,7 @@ impl FavoritesContext {
                     Err(err) => error.set(Some(AlertProps::error(err))),
                 }
             } else {
-                let track = Track {
-                    id: item_id,
-                    title: item.snippet.title.clone(),
-                    channel_name: item.snippet.channel_title.clone(),
-                    thumbnail_url: item.snippet.thumbnails.high.url.clone(),
-                    ..Default::default()
-                };
+                let track = repository::item_to_track(&item);
                 match repository::favorites::add(track).await {
                     Ok(new_track) => tracks.write().push(new_track),
                     Err(err) => error.set(Some(AlertProps::error(err))),
@@ -88,21 +82,6 @@ impl FavoritesContext {
     }
 
     pub fn items(&self) -> Vec<Item> {
-        self.tracks
-            .read()
-            .iter()
-            .map(|t| Item {
-                id: VideoId::Literal(t.id.clone()),
-                snippet: Snippet {
-                    title: t.title.clone(),
-                    channel_title: t.channel_name.clone(),
-                    thumbnails: Thumbnails {
-                        high: Thumb {
-                            url: t.thumbnail_url.clone(),
-                        },
-                    },
-                },
-            })
-            .collect()
+        repository::tracks_to_items(&self.tracks.read())
     }
 }

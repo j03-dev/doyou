@@ -1,8 +1,9 @@
-use crate::context::{use_favorites, use_playback, use_playlists};
+use crate::context::{use_downloads, use_favorites, use_playback, use_playlists};
+use crate::repository::TrackSource;
 use dioxus::prelude::*;
 use dioxus_free_icons::{
     Icon,
-    icons::ld_icons::{LdDownload, LdEllipsis, LdHeart, LdMusic, LdPlay},
+    icons::ld_icons::{LdCircleCheck, LdDownload, LdEllipsis, LdHeart, LdMusic, LdPlay},
 };
 use yt::data_api::types::Item;
 
@@ -16,6 +17,7 @@ pub fn MusicCard(
     let playback = use_playback();
     let favorites = use_favorites();
     let playlists = use_playlists();
+    let downloads = use_downloads();
 
     let item_id = item.id.as_string().unwrap_or_default();
 
@@ -50,6 +52,18 @@ pub fn MusicCard(
     let is_favorite = use_memo({
         let item_id = item_id.clone();
         move || favorites.tracks.read().iter().any(|t| t.id == item_id)
+    });
+
+    let is_youtube = TrackSource::from_id(&item_id) == TrackSource::YouTube;
+
+    let download_pending = use_memo({
+        let video_id = item_id.clone();
+        move || downloads.is_pending(&video_id)
+    });
+
+    let already_downloaded = use_memo({
+        let video_id = item_id.clone();
+        move || downloads.is_downloaded(&video_id)
     });
 
     let title = item.snippet.title.clone();
@@ -142,14 +156,18 @@ pub fn MusicCard(
                             class: if is_favorite() { "fill-error stroke-error" } else { "" },
                         }
                     }
-                    if show_extra_actions {
+                    if show_extra_actions && is_youtube {
                         button {
                             class: "btn btn-ghost btn-sm btn-square",
                             "aria-label": "Download track",
-                            onclick: move |_| {},
-                            Icon {
-                                icon: LdDownload,
-                                class: "text-base-content/70",
+                            disabled: download_pending() || already_downloaded(),
+                            onclick: move |_| downloads.download(&item),
+                            if download_pending() {
+                                span { class: "loading loading-spinner loading-sm" }
+                            } else if already_downloaded() {
+                                Icon { icon: LdCircleCheck, class: "text-success" }
+                            } else {
+                                Icon { icon: LdDownload, class: "text-base-content/70" }
                             }
                         }
                     }

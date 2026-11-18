@@ -3,7 +3,6 @@ use yt::data_api::types::Item;
 
 use crate::context::AlertProps;
 use crate::repository;
-use crate::repository::db::models::Track;
 use crate::repository::playlist::PlaylistWithTracks;
 
 #[component]
@@ -101,9 +100,9 @@ impl PlaylistContext {
             return;
         };
 
-        let Some(item_id) = item.id.as_string() else {
+        if item.id.as_string().is_none() {
             return;
-        };
+        }
 
         let mut items = self.items;
         let mut detail = self.detail;
@@ -115,13 +114,7 @@ impl PlaylistContext {
         error.set(None);
 
         spawn(async move {
-            let track = Track {
-                id: item_id,
-                title: item.snippet.title.clone(),
-                channel_name: item.snippet.channel_title.clone(),
-                thumbnail_url: item.snippet.thumbnails.high.url.clone(),
-                ..Default::default()
-            };
+            let track = repository::item_to_track(&item);
 
             match repository::playlist::add(track, playlist_id).await {
                 Ok(_) => {
@@ -172,14 +165,8 @@ impl PlaylistContext {
             match repository::playlist::create(&name).await {
                 Ok(playlist) => {
                     if let Some(item) = pending {
-                        if let Some(item_id) = item.id.as_string() {
-                            let track = Track {
-                                id: item_id,
-                                title: item.snippet.title.clone(),
-                                channel_name: item.snippet.channel_title.clone(),
-                                thumbnail_url: item.snippet.thumbnails.high.url.clone(),
-                                ..Default::default()
-                            };
+                        if item.id.as_string().is_some() {
+                            let track = repository::item_to_track(&item);
                             if let Err(err) = repository::playlist::add(track, playlist.id).await {
                                 error.set(Some(AlertProps::error(err)));
                             }

@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::{
     Icon,
-    icons::ld_icons::{LdCompass, LdHeart, LdSettings},
+    icons::ld_icons::{LdCompass, LdDownload, LdHeart, LdSettings},
 };
 
 use crate::route::Route;
@@ -16,6 +16,9 @@ pub fn Dock() -> Element {
             }
             DockItem { route: Route::Favorite {},
                 Icon { icon: LdHeart }
+            }
+            DockItem { route: Route::Downloads {},
+                Icon { icon: LdDownload }
             }
             DockItem { route: Route::Setting {},
                 Icon { icon: LdSettings }

@@ -1,12 +1,15 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::{
     Icon,
-    icons::ld_icons::{LdDownload, LdEllipsis, LdHeart, LdListPlus, LdMusic, LdTrash2},
+    icons::ld_icons::{
+        LdCircleCheck, LdDownload, LdEllipsis, LdHeart, LdListPlus, LdMusic, LdTrash2,
+    },
 };
 use yt::data_api::types::Item;
 
 use crate::components::button::ButtonGhost;
-use crate::context::{use_favorites, use_playback, use_playlists};
+use crate::context::{use_downloads, use_favorites, use_playback, use_playlists};
+use crate::repository::TrackSource;
 
 #[component]
 pub fn MusicRow(
@@ -15,10 +18,12 @@ pub fn MusicRow(
     #[props(default)] rank: Option<usize>,
     #[props(default)] on_play: Option<EventHandler<usize>>,
     #[props(default)] on_remove: Option<EventHandler<MouseEvent>>,
+    #[props(default)] meta: Option<String>,
 ) -> Element {
     let playback = use_playback();
     let favorites = use_favorites();
     let playlists = use_playlists();
+    let downloads = use_downloads();
 
     let item_id = item.id.as_string().unwrap_or_default();
     let menu_id = format!("music-menu-{index}");
@@ -57,11 +62,24 @@ pub fn MusicRow(
         move || favorites.tracks.read().iter().any(|t| t.id == item_id)
     });
 
+    let is_youtube = TrackSource::from_id(&item_id) == TrackSource::YouTube;
+
+    let download_pending = use_memo({
+        let video_id = item_id.clone();
+        move || downloads.is_pending(&video_id)
+    });
+
+    let already_downloaded = use_memo({
+        let video_id = item_id.clone();
+        move || downloads.is_downloaded(&video_id)
+    });
+
     let title = item.snippet.title.clone();
     let artist = item.snippet.channel_title.clone();
     let thumbnail = item.snippet.thumbnails.high.url.clone();
 
     let playlist_item = item.clone();
+    let download_item = item.clone();
 
     let set_favorite = move |_| {
         favorites.toggle(&item);
@@ -103,6 +121,9 @@ pub fn MusicRow(
                     class: "truncate text-xs font-semibold uppercase leading-4 opacity-60",
                     dangerous_inner_html: artist,
                 }
+                if let Some(meta) = meta.as_deref() {
+                    div { class: "truncate text-[11px] leading-4 opacity-45", "{meta}" }
+                }
             }
             div { class: "flex w-5 shrink-0 items-center justify-center",
                 if is_loading() {
@@ -112,8 +133,19 @@ pub fn MusicRow(
                 }
             }
             div { class: "flex shrink-0 items-center gap-0.5",
-                ButtonGhost {
-                    Icon { icon: LdDownload }
+                if is_youtube {
+                    ButtonGhost {
+                        "aria-label": "Download track",
+                        disabled: download_pending() || already_downloaded(),
+                        onclick: move |_| downloads.download(&download_item),
+                        if download_pending() {
+                            span { class: "loading loading-spinner loading-sm" }
+                        } else if already_downloaded() {
+                            Icon { icon: LdCircleCheck, class: "text-success" }
+                        } else {
+                            Icon { icon: LdDownload }
+                        }
+                    }
                 }
                 ButtonGhost { onclick: set_favorite,
                     Icon {
