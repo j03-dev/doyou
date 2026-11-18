@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 #[component]
 pub fn NavBar(#[props(default)] children: Element) -> Element {
     rsx! {
-        nav { class: "navbar sticky top-0 z-40 min-h-16 border-b border-base-content/10 bg-base-100/85 px-2 shadow-sm backdrop-blur-xl sm:px-4",
+        nav { class: "navbar sticky top-0 z-40 min-h-16 border-b border-base-content/10 bg-base-100 px-2 shadow-sm sm:px-4",
             {children}
         }
     }

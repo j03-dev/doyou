@@ -10,7 +10,7 @@ use crate::route::Route;
 pub fn Dock() -> Element {
     rsx! {
         Outlet::<Route> {}
-        div { class: "dock dock-lg border-t border-base-content/10 bg-base-100/90 backdrop-blur-xl",
+        div { class: "dock dock-lg border-t border-base-content/10 bg-base-100",
             DockItem { route: Route::Home {}, label: "Explore",
                 Icon { icon: LdCompass }
             }
