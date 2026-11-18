@@ -15,12 +15,6 @@ reqwest = { version = "0.13.5", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
 doyou-media = { path = "media" }
 
-[dependencies.rusql-alchemy]
-path  = "../rusql-alchemy/rusql-alchemy"
-features = ["turso"]
-
-[dependencies.yt]
-path = "yt"
 
 [dependencies]
 dioxus = { version = "0.7.10", features = ["router"] }
@@ -28,8 +22,6 @@ dioxus-free-icons = { version = "0.10.0", features = ["lucide"] }
 serde_json.workspace = true
 reqwest.workspace = true
 serde.workspace = true
-ndk-context = "0.1.1"
-jni = "0.22.4"
 tokio = { version = "1.49.0", features = ["sync"] }
 directories = "6.0.0"
 walkdir = "2"
@@ -37,6 +29,16 @@ percent-encoding = "2"
 lofty = "0.25"
 tiny_http = "0.12"
 doyou-media.workspace = true
+yt = { path = "yt" }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rusql-alchemy = { path = "../rusql-alchemy/rusql-alchemy", features = [
+  "turso",
+] }
+
+[target.'cfg(target_os = "android")'.dependencies]
+ndk-context = "0.1.1"
+jni = "0.22.4"
 
 [features]
 default = ["mobile"]
