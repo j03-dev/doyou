@@ -1,8 +1,9 @@
 use rusql_alchemy::prelude::*;
+use yt::data_api::types::Item;
 
 use super::db;
 use super::db::models::{Playlist, Track, TrackPlaylist};
-use super::{track_thumbnail, upsert_track};
+use super::{ensure_track, track_thumbnail};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PlaylistWithTracks {
@@ -23,9 +24,9 @@ pub async fn create(name: &str) -> Result<Playlist, String> {
         .map_err(|err| err.to_string())
 }
 
-pub async fn add(track: Track, playlist_id: i32) -> Result<Track, String> {
+pub async fn add(item: &Item, playlist_id: i32) -> Result<Track, String> {
     let conn = db::conn().await.map_err(|err| err.to_string())?;
-    let track = upsert_track(&track).await?;
+    let track = ensure_track(item).await?;
 
     TrackPlaylist::create(
         kwargs!(track_id = track.id.clone(), playlist_id = playlist_id),

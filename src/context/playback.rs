@@ -147,12 +147,11 @@ impl PlaybackContext {
                         &item.snippet.channel_title,
                     );
 
-                    if item.id.as_string().is_some() {
-                        let track = repository::item_to_track(&item);
-                        if repository::history::record(track).await.is_ok() {
-                            let next = *history_revision.read() + 1;
-                            history_revision.set(next);
-                        }
+                    if item.id.as_string().is_some()
+                        && repository::history::record(&item).await.is_ok()
+                    {
+                        let next = *history_revision.read() + 1;
+                        history_revision.set(next);
                     }
                 }
                 Err(e) => {

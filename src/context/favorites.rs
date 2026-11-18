@@ -71,8 +71,7 @@ impl FavoritesContext {
                     Err(err) => error.set(Some(AlertProps::error(err))),
                 }
             } else {
-                let track = repository::item_to_track(&item);
-                match repository::favorites::add(track).await {
+                match repository::favorites::add(&item).await {
                     Ok(new_track) => tracks.write().push(new_track),
                     Err(err) => error.set(Some(AlertProps::error(err))),
                 }

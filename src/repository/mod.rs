@@ -27,10 +27,12 @@ pub(crate) async fn upsert_track(track: &Track) -> Result<Track, String> {
         existing.title = track.title.clone();
         existing.channel_name = track.channel_name.clone();
         existing.thumbnail_url = track.thumbnail_url.clone();
-        existing.album = track.album.clone();
-        existing.duration = track.duration;
-        existing.cover_path = track.cover_path.clone();
-        existing.src = track.src.clone();
+        // Partial updates (for example from history or favorites) must not erase
+        // the file path or extracted metadata of an existing local track.
+        existing.album = track.album.clone().or(existing.album);
+        existing.duration = track.duration.or(existing.duration);
+        existing.cover_path = track.cover_path.clone().or(existing.cover_path);
+        existing.src = track.src.clone().or(existing.src);
         existing.update(conn).await.map_err(|err| err.to_string())?;
         return Ok(existing);
     }
@@ -42,6 +44,20 @@ pub async fn get_track(track_id: &str) -> Result<Option<Track>, String> {
     Track::get(kwargs!(id = track_id), conn)
         .await
         .map_err(|err| err.to_string())
+}
+
+/// Canonical track for an `Item` coming from the UI.
+///
+/// Local and downloaded rows are authoritative: an `Item` is only a partial
+/// representation and must never overwrite their file path or extracted tags.
+pub async fn ensure_track(item: &Item) -> Result<Track, String> {
+    let track = item_to_track(item);
+    if TrackSource::from_id(&track.id).is_local() {
+        return get_track(&track.id)
+            .await?
+            .ok_or_else(|| "Local track not found".to_string());
+    }
+    upsert_track(&track).await
 }
 
 pub fn item_to_track(item: &Item) -> Track {

@@ -1,12 +1,13 @@
 use rusql_alchemy::prelude::*;
+use yt::data_api::types::Item;
 
 use super::db;
 use super::db::models::{History, Track};
-use super::upsert_track;
+use super::ensure_track;
 
-pub async fn record(track: Track) -> Result<(), String> {
+pub async fn record(item: &Item) -> Result<(), String> {
     let conn = db::conn().await.map_err(|err| err.to_string())?;
-    let track = upsert_track(&track).await?;
+    let track = ensure_track(item).await?;
     let now = now();
 
     match History::get(kwargs!(track_id = track.id.clone()), conn)

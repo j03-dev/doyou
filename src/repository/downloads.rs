@@ -1,3 +1,5 @@
+use std::path::{Path, PathBuf};
+
 use doyou_media::AudioFormat;
 use rusql_alchemy::prelude::*;
 use yt::data_api::types::Item;
@@ -17,7 +19,23 @@ pub fn is_downloaded(track: &Track) -> bool {
 pub async fn list() -> Result<Vec<Track>, String> {
     let conn = db::conn().await.map_err(|err| err.to_string())?;
     let tracks: Vec<Track> = Track::all(conn).await.map_err(|err| err.to_string())?;
-    Ok(tracks.into_iter().filter(is_downloaded).collect())
+    let mut result = Vec::new();
+
+    for track in tracks.into_iter().filter(is_downloaded) {
+        if file_exists(&track) {
+            result.push(track);
+            continue;
+        }
+
+        let Some(restored) = restore_src(conn, track.clone()).await? else {
+            // No file on disk: drop the orphan so it can be downloaded again.
+            track.delete(conn).await.map_err(|err| err.to_string())?;
+            continue;
+        };
+        result.push(restored);
+    }
+
+    Ok(result)
 }
 
 pub async fn download(item: &Item) -> Result<Track, String> {
@@ -26,9 +44,18 @@ pub async fn download(item: &Item) -> Result<Track, String> {
         .as_string()
         .ok_or_else(|| "This track does not have a YouTube id".to_string())?;
     let track_id = TrackSource::Downloaded.id(&video_id);
+    let conn = db::conn().await.map_err(|err| err.to_string())?;
 
-    if let Some(track) = crate::repository::get_track(&track_id).await? {
-        return Ok(track);
+    if let Some(track) = Track::get(kwargs!(id = track_id.clone()), conn)
+        .await
+        .map_err(|err| err.to_string())?
+    {
+        if file_exists(&track) {
+            return Ok(track);
+        }
+        if let Some(restored) = restore_src(conn, track).await? {
+            return Ok(restored);
+        }
     }
 
     let title = item.snippet.title.clone();
@@ -95,6 +122,41 @@ pub async fn remove(track_id: &str) -> Result<(), String> {
         let _ = std::fs::remove_file(path);
     }
     track.delete(conn).await.map_err(|err| err.to_string())
+}
+
+fn file_exists(track: &Track) -> bool {
+    track
+        .src
+        .as_deref()
+        .is_some_and(|path| Path::new(path).is_file())
+}
+
+/// Older builds could clear `src` when a downloaded track was played or added
+/// to favorites. Recover the path from the original download filename.
+async fn restore_src(conn: &Connection, mut track: Track) -> Result<Option<Track>, String> {
+    let directory = platform::downloads_dir().map_err(|err| err.to_string())?;
+    let stem = format!(
+        "{} - {}",
+        metadata::file_name_part(&track.title),
+        metadata::file_name_part(&track.channel_name)
+    );
+
+    let found = std::fs::read_dir(directory)
+        .map_err(|err| err.to_string())?
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .find(|path: &PathBuf| {
+            AudioFormat::from_path(path).is_some()
+                && path.file_stem().and_then(|stem| stem.to_str()) == Some(stem.as_str())
+        });
+
+    let Some(path) = found else {
+        return Ok(None);
+    };
+
+    track.src = Some(path.to_string_lossy().to_string());
+    track.update(conn).await.map_err(|err| err.to_string())?;
+    Ok(Some(track))
 }
 
 fn now() -> f64 {

@@ -9,6 +9,14 @@ use crate::repository::db::models::Track;
 #[component]
 pub fn DownloadsProvider(children: Element) -> Element {
     use_context_provider(DownloadsContext::new);
+    let downloads = use_downloads();
+
+    // Repairs older rows with a cleared file path and keeps download
+    // indicators correct before the Downloads page is ever opened.
+    use_effect(move || {
+        downloads.fetch_all();
+    });
+
     rsx! {
         {children}
     }

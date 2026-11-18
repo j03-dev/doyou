@@ -114,9 +114,7 @@ impl PlaylistContext {
         error.set(None);
 
         spawn(async move {
-            let track = repository::item_to_track(&item);
-
-            match repository::playlist::add(track, playlist_id).await {
+            match repository::playlist::add(&item, playlist_id).await {
                 Ok(_) => {
                     pending_track.set(None);
                     match repository::playlist::list().await {
@@ -165,11 +163,10 @@ impl PlaylistContext {
             match repository::playlist::create(&name).await {
                 Ok(playlist) => {
                     if let Some(item) = pending {
-                        if item.id.as_string().is_some() {
-                            let track = repository::item_to_track(&item);
-                            if let Err(err) = repository::playlist::add(track, playlist.id).await {
-                                error.set(Some(AlertProps::error(err)));
-                            }
+                        if item.id.as_string().is_some()
+                            && let Err(err) = repository::playlist::add(&item, playlist.id).await
+                        {
+                            error.set(Some(AlertProps::error(err)));
                         }
                         pending_track.set(None);
                     }

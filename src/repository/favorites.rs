@@ -1,8 +1,9 @@
 use rusql_alchemy::prelude::*;
+use yt::data_api::types::Item;
 
 use super::db;
 use super::db::models::{Favorite, Track};
-use super::upsert_track;
+use super::ensure_track;
 
 pub async fn all() -> Result<Vec<Track>, String> {
     let conn = db::conn().await.map_err(|err| err.to_string())?;
@@ -14,9 +15,9 @@ pub async fn all() -> Result<Vec<Track>, String> {
     Ok(tracks)
 }
 
-pub async fn add(track: Track) -> Result<Track, String> {
+pub async fn add(item: &Item) -> Result<Track, String> {
     let conn = db::conn().await.map_err(|err| err.to_string())?;
-    let track = upsert_track(&track).await?;
+    let track = ensure_track(item).await?;
 
     if Favorite::get(kwargs!(track_id = track.id.clone()), conn)
         .await
