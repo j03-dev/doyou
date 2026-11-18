@@ -1,11 +1,12 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_free_icons::icons::ld_icons::{
-    LdEllipsis, LdHeart, LdListPlus, LdMusic, LdPause, LdPlay, LdShuffle, LdSkipBack,
-    LdSkipForward, LdVolume2, LdX,
+    LdEllipsis, LdHeart, LdListPlus, LdPause, LdPlay, LdShuffle, LdSkipBack, LdSkipForward,
+    LdVolume2, LdX,
 };
 
 use crate::components::alert::Alert;
+use crate::components::artwork::Artwork;
 use crate::context::playback::PlaybackContext;
 use crate::context::{use_favorites, use_playback, use_playlists};
 use crate::repository::TrackSource;
@@ -137,16 +138,11 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
                 div { class: "mx-auto flex w-full max-w-sm flex-col",
                     div { class: "relative mx-auto aspect-square w-full max-w-xs overflow-hidden rounded-3xl bg-base-300 shadow-2xl",
                         div { class: "absolute -inset-3 -z-10 rounded-3xl bg-primary/25 blur-3xl" }
-                        if thumbnail.is_empty() {
-                            div { class: "flex size-full items-center justify-center bg-base-300 text-base-content/40",
-                                Icon { icon: LdMusic, class: "size-16" }
-                            }
-                        } else {
-                            img {
-                                class: "size-full object-cover",
-                                src: thumbnail,
-                                alt: "Album cover",
-                            }
+                        Artwork {
+                            src: thumbnail,
+                            alt: "Album cover".to_string(),
+                            class: "size-full object-cover",
+                            icon_class: "size-16",
                         }
                         div { class: "absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/60 to-transparent px-3 pb-3 pt-10 text-white/90",
                             div { class: "flex items-center gap-1.5 text-xs font-semibold",
@@ -180,7 +176,11 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
                             button {
                                 class: format!(
                                     "btn btn-circle border-none shadow-sm {}",
-                                    if is_favorite() { "bg-primary/10 text-primary" } else { "bg-base-200 text-base-content/70" },
+                                    if is_favorite() {
+                                        "bg-primary/10 text-primary"
+                                    } else {
+                                        "bg-base-200 text-base-content/70"
+                                    },
                                 ),
                                 "aria-label": if is_favorite() { "Remove from favorites" } else { "Add to favorites" },
                                 onclick: on_favorite,
@@ -268,21 +268,19 @@ fn MiniMusicPlayer(on_open_full_player: EventHandler<()>) -> Element {
     rsx! {
         div { class: "relative flex items-center gap-3 p-2.5",
             div { class: "absolute inset-x-0 top-0 h-1 overflow-hidden rounded-full bg-base-300",
-                div { class: "h-full rounded-full bg-primary", style: "width: {progress}%" }
+                div {
+                    class: "h-full rounded-full bg-primary",
+                    style: "width: {progress}%",
+                }
             }
             div {
                 class: "flex min-w-0 flex-1 cursor-pointer items-center gap-3",
                 onclick: move |_| on_open_full_player.call(()),
-                if thumbnail.is_empty() {
-                    div { class: "flex size-10 shrink-0 items-center justify-center rounded-xl bg-base-300 text-base-content/50",
-                        Icon { icon: LdMusic, class: "size-5" }
-                    }
-                } else {
-                    img {
-                        class: "size-10 shrink-0 rounded-xl object-cover",
-                        src: thumbnail,
-                        alt: "Album cover",
-                    }
+                Artwork {
+                    src: thumbnail,
+                    alt: "Album cover".to_string(),
+                    class: "size-10 shrink-0 rounded-xl object-cover",
+                    icon_class: "size-5",
                 }
                 div { class: "min-w-0",
                     h3 {

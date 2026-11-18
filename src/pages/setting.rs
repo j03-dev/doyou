@@ -98,7 +98,9 @@ pub fn Setting() -> Element {
                 BrandTitle { title: "Settings" }
             }
             NavBarItem { position: NavBarPos::End,
-                span { class: "text-xs font-semibold text-base-content/40 font-mono tracking-widest uppercase", "doyou" }
+                span { class: "text-xs font-semibold text-base-content/40 font-mono tracking-widest uppercase",
+                    "doyou"
+                }
             }
         }
 

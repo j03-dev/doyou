@@ -197,7 +197,11 @@ pub fn Home() -> Element {
                         button {
                             class: format!(
                                 "btn btn-sm flex-1 gap-1.5 rounded-full {}",
-                                if *home.source_filter.read() == SourceFilter::All { "btn-primary" } else { "btn-ghost" },
+                                if *home.source_filter.read() == SourceFilter::All {
+                                    "btn-primary"
+                                } else {
+                                    "btn-ghost"
+                                },
                             ),
                             onclick: move |_| home.set_source_filter(SourceFilter::All),
                             Icon { icon: LdLayers, class: "size-4" }
@@ -206,7 +210,11 @@ pub fn Home() -> Element {
                         button {
                             class: format!(
                                 "btn btn-sm flex-1 gap-1.5 rounded-full {}",
-                                if *home.source_filter.read() == SourceFilter::Local { "btn-primary" } else { "btn-ghost" },
+                                if *home.source_filter.read() == SourceFilter::Local {
+                                    "btn-primary"
+                                } else {
+                                    "btn-ghost"
+                                },
                             ),
                             onclick: move |_| home.set_source_filter(SourceFilter::Local),
                             Icon { icon: LdHardDrive, class: "size-4" }
@@ -215,7 +223,11 @@ pub fn Home() -> Element {
                         button {
                             class: format!(
                                 "btn btn-sm flex-1 gap-1.5 rounded-full {}",
-                                if *home.source_filter.read() == SourceFilter::YouTube { "btn-primary" } else { "btn-ghost" },
+                                if *home.source_filter.read() == SourceFilter::YouTube {
+                                    "btn-primary"
+                                } else {
+                                    "btn-ghost"
+                                },
                             ),
                             onclick: move |_| home.set_source_filter(SourceFilter::YouTube),
                             Icon { icon: LdFlame, class: "size-4" }
@@ -290,7 +302,9 @@ pub fn Home() -> Element {
                                 div { class: "flex size-10 items-center justify-center rounded-full bg-base-200 text-base-content/70",
                                     Icon { icon: LdPlus, class: "size-6" }
                                 }
-                                span { class: "text-xs font-semibold text-base-content/60", "Add new" }
+                                span { class: "text-xs font-semibold text-base-content/60",
+                                    "Add new"
+                                }
                             }
                             div { class: "px-0.5 pt-2 pb-1 text-left",
                                 p { class: "text-sm font-bold", "New playlist" }
@@ -348,10 +362,16 @@ pub fn Home() -> Element {
                                         show_all_local.set(expanded);
                                     },
                                     if show_all_local() {
-                                        Icon { icon: LdChevronUp, class: "size-4" }
+                                        Icon {
+                                            icon: LdChevronUp,
+                                            class: "size-4",
+                                        }
                                         span { "Show less" }
                                     } else {
-                                        Icon { icon: LdChevronDown, class: "size-4" }
+                                        Icon {
+                                            icon: LdChevronDown,
+                                            class: "size-4",
+                                        }
                                         span { "Show all" }
                                     }
                                 }
@@ -449,7 +469,9 @@ pub fn Home() -> Element {
                 }
                 form { class: "mt-5", onsubmit: submit_playlist,
                     fieldset { class: "fieldset",
-                        legend { class: "fieldset-legend text-xs font-bold uppercase tracking-wider text-base-content/60", "Playlist name" }
+                        legend { class: "fieldset-legend text-xs font-bold uppercase tracking-wider text-base-content/60",
+                            "Playlist name"
+                        }
                         TextInput {
                             name: "playlist_name",
                             r#type: "text",
@@ -470,7 +492,9 @@ pub fn Home() -> Element {
                             },
                             "Cancel"
                         }
-                        button { class: "btn btn-primary rounded-full gap-2 px-6", r#type: "submit",
+                        button {
+                            class: "btn btn-primary rounded-full gap-2 px-6",
+                            r#type: "submit",
                             Icon { icon: LdCheck, class: "size-4" }
                             "Create"
                         }
@@ -520,7 +544,11 @@ pub fn Home() -> Element {
                             }
                         }
                     }
-                    button { class: "btn btn-primary mt-3 w-full rounded-full", r#type: "submit", "Save & Continue" }
+                    button {
+                        class: "btn btn-primary mt-3 w-full rounded-full",
+                        r#type: "submit",
+                        "Save & Continue"
+                    }
                 }
             }
             form { method: "dialog", class: "modal-backdrop",

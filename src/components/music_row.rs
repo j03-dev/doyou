@@ -1,12 +1,11 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::{
     Icon,
-    icons::ld_icons::{
-        LdCircleCheck, LdDownload, LdEllipsis, LdHeart, LdListPlus, LdMusic, LdTrash2,
-    },
+    icons::ld_icons::{LdCircleCheck, LdDownload, LdEllipsis, LdHeart, LdListPlus, LdTrash2},
 };
 use yt::data_api::types::Item;
 
+use crate::components::artwork::Artwork;
 use crate::components::button::ButtonGhost;
 use crate::context::{use_downloads, use_favorites, use_playback, use_playlists};
 use crate::repository::TrackSource;
@@ -92,17 +91,11 @@ pub fn MusicRow(
                 class: "size-12 shrink-0 cursor-pointer overflow-hidden rounded-lg shadow-sm",
                 onclick: play,
 
-                if thumbnail.is_empty() {
-                    div { class: "flex size-full items-center justify-center bg-base-300 text-base-content/50",
-                        Icon { icon: LdMusic, class: "size-6" }
-                    }
-                } else {
-                    img {
-                        class: "block size-full object-cover",
-                        src: thumbnail,
-                        alt: "{title}",
-                        loading: "lazy",
-                    }
+                Artwork {
+                    src: thumbnail,
+                    alt: title.clone(),
+                    class: "block size-full object-cover",
+                    icon_class: "size-6",
                 }
             }
             div {
@@ -121,7 +114,9 @@ pub fn MusicRow(
                         dangerous_inner_html: artist,
                     }
                     if let Some(meta) = meta.as_deref() {
-                        span { class: "shrink-0 rounded bg-base-200 px-1 text-[10px] text-base-content/50", "{meta}" }
+                        span { class: "shrink-0 rounded bg-base-200 px-1 text-[10px] text-base-content/50",
+                            "{meta}"
+                        }
                     }
                 }
             }

@@ -138,9 +138,7 @@ pub fn Downloads() -> Element {
                                             item: item.clone(),
                                             index,
                                             meta,
-                                            on_remove: remove_id.map(|id| EventHandler::new(move |_| {
-                                                downloads.remove(&id)
-                                            })),
+                                            on_remove: remove_id.map(|id| EventHandler::new(move |_| { downloads.remove(&id) })),
                                         }
                                     }
                                 }

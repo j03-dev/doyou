@@ -11,7 +11,6 @@ use crate::core::error::Error;
 #[cfg(not(target_os = "android"))]
 mod desktop;
 
-#[cfg(not(target_os = "android"))]
 mod local_server;
 
 #[cfg(target_os = "android")]
@@ -37,4 +36,13 @@ pub fn downloads_dir() -> Result<PathBuf, Error> {
 /// App-private folder for artwork extracted from local audio files.
 pub fn covers_dir() -> Result<PathBuf, Error> {
     app_subdir("covers")
+}
+
+/// WebView-loadable URL for a local image.
+///
+/// Android's `file://` URLs work for ExoPlayer but not for `<img>` in the WebView,
+/// so artwork is served over loopback on every platform. Audio keeps using
+/// `local_media_url`, which is platform-specific.
+pub fn local_image_url(path: &str) -> Result<String, Error> {
+    local_server::file_url(path)
 }

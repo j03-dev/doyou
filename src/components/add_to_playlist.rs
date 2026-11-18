@@ -3,6 +3,7 @@ use dioxus_free_icons::Icon;
 use dioxus_free_icons::icons::ld_icons::LdPlus;
 
 use crate::components::alert::Alert;
+use crate::components::artwork::Artwork;
 use crate::components::cover::CoverCollage;
 use crate::components::form::get_value_from;
 use crate::components::text_input::TextInput;
@@ -29,10 +30,10 @@ pub fn AddToPlaylistDialog() -> Element {
 
                 if let Some(item) = pending() {
                     div { class: "flex items-center gap-3 py-2",
-                        img {
-                            class: "size-10 rounded-box object-cover",
+                        Artwork {
                             src: item.snippet.thumbnails.high.url.clone(),
-                            alt: "",
+                            class: "size-10 rounded-box object-cover",
+                            icon_class: "size-5",
                         }
                         div { class: "min-w-0",
                             div {
