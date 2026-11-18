@@ -9,6 +9,7 @@ pub mod playlist;
 pub mod settings;
 pub mod source;
 pub mod youtube;
+use anyhow::Result;
 
 pub use source::TrackSource;
 
@@ -19,12 +20,9 @@ use db::models::Track;
 use yt::data_api::types::{Item, Snippet, Thumb, Thumbnails, VideoId};
 
 /// Shared upsert: insert a track, refreshing mutable metadata if it exists.
-pub(crate) async fn upsert_track(track: &Track) -> Result<Track, String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
-    if let Some(mut existing) = Track::get(kwargs!(id = track.id.clone()), conn)
-        .await
-        .map_err(|err| err.to_string())?
-    {
+pub(crate) async fn upsert_track(track: &Track) -> Result<Track> {
+    let conn = db::conn().await?;
+    if let Some(mut existing) = Track::get(kwargs!(id = track.id.clone()), conn).await? {
         existing.title = track.title.clone();
         existing.channel_name = track.channel_name.clone();
         existing.thumbnail_url = track.thumbnail_url.clone();
@@ -34,29 +32,27 @@ pub(crate) async fn upsert_track(track: &Track) -> Result<Track, String> {
         existing.duration = track.duration.or(existing.duration);
         existing.cover_path = track.cover_path.clone().or(existing.cover_path);
         existing.src = track.src.clone().or(existing.src);
-        existing.update(conn).await.map_err(|err| err.to_string())?;
+        existing.update(conn).await?;
         return Ok(existing);
     }
-    track.save(conn).await.map_err(|err| err.to_string())
+    Ok(track.save(conn).await?)
 }
 
-pub async fn get_track(track_id: &str) -> Result<Option<Track>, String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
-    Track::get(kwargs!(id = track_id), conn)
-        .await
-        .map_err(|err| err.to_string())
+pub async fn get_track(track_id: &str) -> Result<Option<Track>> {
+    let conn = db::conn().await?;
+    Ok(Track::get(kwargs!(id = track_id), conn).await?)
 }
 
 /// Canonical track for an `Item` coming from the UI.
 ///
 /// Local and downloaded rows are authoritative: an `Item` is only a partial
 /// representation and must never overwrite their file path or extracted tags.
-pub async fn ensure_track(item: &Item) -> Result<Track, String> {
+pub async fn ensure_track(item: &Item) -> Result<Track> {
     let track = item_to_track(item);
     if TrackSource::from_id(&track.id).is_local() {
         return get_track(&track.id)
             .await?
-            .ok_or_else(|| "Local track not found".to_string());
+            .ok_or_else(|| anyhow::anyhow!("Local track not found"));
     }
 
     // A YouTube item with an available download is the same song: record the

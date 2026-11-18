@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::path::Path;
 
 use lofty::file::{AudioFile, TaggedFileExt};
@@ -106,14 +107,14 @@ pub fn read(path: &Path) -> TrackMetadata {
 }
 
 /// Persists embedded artwork next to the app database and returns its file path.
-pub fn save_cover(track_id: &str, cover: &CoverArt) -> Result<String, String> {
-    let directory = platform::covers_dir().map_err(|err| err.to_string())?;
+pub fn save_cover(track_id: &str, cover: &CoverArt) -> Result<String> {
+    let directory = platform::covers_dir()?;
     let path = directory.join(format!(
         "{}.{}",
         file_name_part(track_id),
         cover.format.as_str()
     ));
-    std::fs::write(&path, &cover.data).map_err(|err| err.to_string())?;
+    std::fs::write(&path, &cover.data)?;
     Ok(path.to_string_lossy().to_string())
 }
 

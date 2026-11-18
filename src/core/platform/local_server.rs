@@ -48,7 +48,7 @@ fn server_port() -> Result<u16, crate::core::error::Error> {
 
     let listener = TcpListener::bind("127.0.0.1:0")?;
     let port = listener.local_addr()?.port();
-    let server = Server::from_listener(listener, None)?;
+    let server = Server::from_listener(listener, None).map_err(anyhow::Error::from_boxed)?;
     std::thread::spawn(move || {
         for request in server.incoming_requests() {
             handle_request(request);

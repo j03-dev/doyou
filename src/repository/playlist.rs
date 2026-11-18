@@ -1,3 +1,4 @@
+use anyhow::Result;
 use rusql_alchemy::prelude::*;
 use yt::data_api::types::Item;
 
@@ -17,30 +18,27 @@ impl PlaylistWithTracks {
     }
 }
 
-pub async fn create(name: &str) -> Result<Playlist, String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
-    Playlist::create(kwargs!(name = name), conn)
-        .await
-        .map_err(|err| err.to_string())
+pub async fn create(name: &str) -> Result<Playlist> {
+    let conn = db::conn().await?;
+    Ok(Playlist::create(kwargs!(name = name), conn).await?)
 }
 
-pub async fn add(item: &Item, playlist_id: i32) -> Result<Track, String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
+pub async fn add(item: &Item, playlist_id: i32) -> Result<Track> {
+    let conn = db::conn().await?;
     let track = ensure_track(item).await?;
 
     TrackPlaylist::create(
         kwargs!(track_id = track.id.clone(), playlist_id = playlist_id),
         conn,
     )
-    .await
-    .map_err(|err| err.to_string())?;
+    .await?;
 
     Ok(track)
 }
 
-pub async fn list() -> Result<Vec<PlaylistWithTracks>, String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
-    let playlists: Vec<Playlist> = Playlist::all(conn).await.map_err(|err| err.to_string())?;
+pub async fn list() -> Result<Vec<PlaylistWithTracks>> {
+    let conn = db::conn().await?;
+    let playlists: Vec<Playlist> = Playlist::all(conn).await?;
 
     let mut result = Vec::with_capacity(playlists.len());
     for playlist in playlists {
@@ -50,59 +48,48 @@ pub async fn list() -> Result<Vec<PlaylistWithTracks>, String> {
     Ok(result)
 }
 
-pub async fn detail(playlist_id: i32) -> Result<PlaylistWithTracks, String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
+pub async fn detail(playlist_id: i32) -> Result<PlaylistWithTracks> {
+    let conn = db::conn().await?;
     let playlist = Playlist::get(kwargs!(id = playlist_id), conn)
-        .await
-        .map_err(|err| err.to_string())?
-        .ok_or_else(|| "Playlist not found".to_string())?;
+        .await?
+        .ok_or_else(|| anyhow::anyhow!("Playlist not found"))?;
     let tracks = tracks_for(playlist_id, conn).await?;
 
     Ok(PlaylistWithTracks { playlist, tracks })
 }
 
-pub async fn remove(playlist_id: i32) -> Result<(), String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
+pub async fn remove(playlist_id: i32) -> Result<()> {
+    let conn = db::conn().await?;
     let links: Vec<TrackPlaylist> =
-        TrackPlaylist::filter(kwargs!(playlist_id == playlist_id), conn)
-            .await
-            .map_err(|err| err.to_string())?;
+        TrackPlaylist::filter(kwargs!(playlist_id == playlist_id), conn).await?;
     for link in links {
-        link.delete(conn).await.map_err(|err| err.to_string())?;
+        link.delete(conn).await?;
     }
-    if let Some(playlist) = Playlist::get(kwargs!(id = playlist_id), conn)
-        .await
-        .map_err(|err| err.to_string())?
-    {
-        playlist.delete(conn).await.map_err(|err| err.to_string())?;
+    if let Some(playlist) = Playlist::get(kwargs!(id = playlist_id), conn).await? {
+        playlist.delete(conn).await?;
     }
     Ok(())
 }
 
-pub async fn remove_track(playlist_id: i32, item: &Item) -> Result<(), String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
+pub async fn remove_track(playlist_id: i32, item: &Item) -> Result<()> {
+    let conn = db::conn().await?;
     let links: Vec<TrackPlaylist> =
-        TrackPlaylist::filter(kwargs!(playlist_id == playlist_id), conn)
-            .await
-            .map_err(|err| err.to_string())?;
+        TrackPlaylist::filter(kwargs!(playlist_id == playlist_id), conn).await?;
 
     for link in links {
-        let track = Track::get(kwargs!(id = link.track_id.clone()), conn)
-            .await
-            .map_err(|err| err.to_string())?;
+        let track = Track::get(kwargs!(id = link.track_id.clone()), conn).await?;
         if track.is_some_and(|track| identity::same_media(&track, item)) {
-            link.delete(conn).await.map_err(|err| err.to_string())?;
+            link.delete(conn).await?;
         }
     }
     Ok(())
 }
 
-async fn tracks_for(playlist_id: i32, conn: &Connection) -> Result<Vec<Track>, String> {
+async fn tracks_for(playlist_id: i32, conn: &Connection) -> Result<Vec<Track>> {
     let tracks: Vec<Track> = select!(Track, TrackPlaylist)
         .inner_join::<Track, TrackPlaylist>(kwargs!(Track.id == TrackPlaylist.track_id))
         .r#where(kwargs!(TrackPlaylist.playlist_id == playlist_id))
         .fetch_all(conn)
-        .await
-        .map_err(|err| err.to_string())?;
+        .await?;
     Ok(identity::dedupe(tracks))
 }

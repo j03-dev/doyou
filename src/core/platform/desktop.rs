@@ -4,7 +4,7 @@ use std::path::PathBuf;
 pub fn get_config_dir() -> Result<PathBuf, Error> {
     directories::ProjectDirs::from("com", "doyou", "doyou")
         .map(|dirs| dirs.config_dir().to_path_buf())
-        .ok_or_else(|| "Failed to get config directory".into())
+        .ok_or_else(|| anyhow::anyhow!("Failed to get config directory"))
 }
 
 pub fn local_music_dirs() -> Vec<PathBuf> {

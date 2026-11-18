@@ -17,6 +17,7 @@ doyou-media = { path = "media" }
 
 
 [dependencies]
+anyhow = "1.0.100"
 dioxus = { version = "0.7.10", features = ["router"] }
 dioxus-free-icons = { version = "0.10.0", features = ["lucide"] }
 serde_json.workspace = true

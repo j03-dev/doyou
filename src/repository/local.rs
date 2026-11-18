@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::path::Path;
@@ -61,14 +62,14 @@ fn local_tracks(tracks: Vec<Track>) -> Vec<Track> {
         .collect()
 }
 
-async fn all_db_tracks() -> Result<Vec<Track>, String> {
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
-    Track::all(conn).await.map_err(|err| err.to_string())
+async fn all_db_tracks() -> Result<Vec<Track>> {
+    let conn = db::conn().await?;
+    Ok(Track::all(conn).await?)
 }
 
 /// Scans the local music folders and syncs the database:
 /// inserts tracks that are new on disk, deletes rows whose file is gone.
-pub async fn scan() -> Result<Vec<Track>, String> {
+pub async fn scan() -> Result<Vec<Track>> {
     let mut found: HashMap<String, Track> = HashMap::new();
     for dir in platform::local_music_dirs() {
         let entries = WalkDir::new(dir).follow_links(false).max_depth(6);
@@ -88,29 +89,27 @@ pub async fn scan() -> Result<Vec<Track>, String> {
         upsert_track(track).await?;
     }
 
-    let conn = db::conn().await.map_err(|err| err.to_string())?;
+    let conn = db::conn().await?;
     for track in &existing {
         // Downloads live in the app-private folder and are not scanned.
         if track.downloaded_at.is_some() {
             continue;
         }
         if !found.contains_key(&track.id)
-            && let Some(stored) = Track::get(kwargs!(id = track.id.clone()), conn)
-                .await
-                .map_err(|err| err.to_string())?
+            && let Some(stored) = Track::get(kwargs!(id = track.id.clone()), conn).await?
         {
-            stored.delete(conn).await.map_err(|err| err.to_string())?;
+            stored.delete(conn).await?;
         }
     }
 
     all().await
 }
 
-pub async fn all() -> Result<Vec<Track>, String> {
+pub async fn all() -> Result<Vec<Track>> {
     Ok(local_tracks(all_db_tracks().await?))
 }
 
-pub async fn search(query: &str) -> Result<Vec<Track>, String> {
+pub async fn search(query: &str) -> Result<Vec<Track>> {
     let query = query.to_lowercase();
     let tracks = all_db_tracks()
         .await?
@@ -129,6 +128,6 @@ pub async fn search(query: &str) -> Result<Vec<Track>, String> {
     Ok(tracks)
 }
 
-pub fn src_url(path: &str) -> Result<String, String> {
-    platform::local_media_url(path).map_err(|e| e.to_string())
+pub fn src_url(path: &str) -> Result<String> {
+    platform::local_media_url(path)
 }

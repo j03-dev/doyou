@@ -9,26 +9,26 @@ pub struct AlertProps {
 }
 
 impl AlertProps {
-    pub fn error(message: String) -> Self {
+    pub fn error(message: impl ToString) -> Self {
         Self {
             level: AlertLevel::Error,
-            message,
+            message: message.to_string(),
             duration: 3000,
         }
     }
 
-    pub fn warning(message: String) -> Self {
+    pub fn warning(message: impl ToString) -> Self {
         Self {
             level: AlertLevel::Warning,
-            message,
+            message: message.to_string(),
             duration: 3000,
         }
     }
 
-    pub fn info(message: String) -> Self {
+    pub fn info(message: impl ToString) -> Self {
         Self {
             level: AlertLevel::Info,
-            message,
+            message: message.to_string(),
             duration: 3000,
         }
     }

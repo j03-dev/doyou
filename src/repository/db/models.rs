@@ -4,26 +4,18 @@ use rusql_alchemy::prelude::*;
 pub struct Track {
     #[field(primary_key = true, size = 64)]
     pub id: String,
-
     #[field(size = 255)]
     pub title: String,
-
     #[field(size = 255)]
     pub channel_name: String,
-
     #[field(size = 500)]
     pub thumbnail_url: String,
-
     #[field(size = 255)]
     pub album: Option<String>,
-
     pub duration: Option<Float>,
-
     #[field(size = 500)]
     pub cover_path: Option<String>,
-
     pub downloaded_at: Option<Float>,
-
     pub src: Option<String>,
 }
 
@@ -31,10 +23,8 @@ pub struct Track {
 pub struct TrackPlaylist {
     #[field(primary_key = true, auto = true)]
     pub id: Option<Integer>,
-
     #[field(foreign_key = Track.id, on_delete = "cascade")]
     pub track_id: String,
-
     #[field(foreign_key = Playlist.id, on_delete = "cascade")]
     pub playlist_id: Integer,
 }
@@ -43,7 +33,6 @@ pub struct TrackPlaylist {
 pub struct Playlist {
     #[field(primary_key = true, auto = true)]
     pub id: Integer,
-
     pub name: String,
 }
 
@@ -51,7 +40,6 @@ pub struct Playlist {
 pub struct Favorite {
     #[field(primary_key = true, auto = true)]
     pub id: Option<Integer>,
-
     #[field(foreign_key = Track.id, on_delete = "cascade", unique = true, size = 11)]
     pub track_id: String,
 }
@@ -60,12 +48,9 @@ pub struct Favorite {
 pub struct History {
     #[field(primary_key = true, auto = true)]
     pub id: Option<Integer>,
-
     #[field(foreign_key = Track.id, on_delete = "cascade", unique = true, size = 11)]
     pub track_id: String,
-
     pub play_count: Integer,
-
     pub last_played_at: Float,
 }
 
@@ -73,10 +58,8 @@ pub struct History {
 pub struct AppSettings {
     #[field(primary_key = true)]
     pub id: Integer,
-
     #[field(size = 255)]
     pub youtube_token: Option<String>,
-
     #[field(size = 50, default = "Lofi")]
     pub theme: String,
 }
