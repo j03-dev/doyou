@@ -84,7 +84,7 @@ pub fn track_thumbnail(track: &Track) -> String {
     track
         .cover_path
         .as_deref()
-        .and_then(|path| platform::local_media_url(path).ok())
+        .and_then(|path| platform::local_image_url(path).ok())
         .unwrap_or_else(|| track.thumbnail_url.clone())
 }
 

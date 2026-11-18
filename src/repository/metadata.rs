@@ -22,11 +22,49 @@ pub struct CoverArt {
     pub format: ImageFormat,
 }
 
-/// Reads tags, duration and embedded artwork from a local audio file.
+/// Album art is often stored beside the audio file instead of inside its tags,
+/// especially for music copied from an SD card. Case variants cover files that
+/// were named on Windows or by a desktop ripper.
+const SIBLING_COVER_NAMES: &[&str] = &[
+    "cover.jpg",
+    "cover.jpeg",
+    "cover.png",
+    "cover.webp",
+    "Cover.jpg",
+    "Cover.png",
+    "COVER.JPG",
+    "folder.jpg",
+    "folder.jpeg",
+    "folder.png",
+    "Folder.jpg",
+    "FOLDER.JPG",
+    "album.jpg",
+    "album.png",
+    "Album.jpg",
+    "front.jpg",
+    "front.png",
+    "art.jpg",
+];
+
+fn sibling_cover(path: &Path) -> Option<CoverArt> {
+    let parent = path.parent()?;
+
+    SIBLING_COVER_NAMES.iter().find_map(|name| {
+        let candidate = parent.join(name);
+        let format = ImageFormat::from_path(&candidate)?;
+        let data = std::fs::read(&candidate).ok()?;
+        Some(CoverArt { data, format })
+    })
+}
+
+/// Reads tags, duration and artwork from a local audio file.
 /// Unreadable or unsupported files simply yield no metadata.
 pub fn read(path: &Path) -> TrackMetadata {
     let Ok(tagged) = lofty::read_from_path(path) else {
-        return TrackMetadata::default();
+        return TrackMetadata {
+            picture: sibling_cover(path),
+            ..Default::default()
+        };
     };
 
     let tag = tagged
@@ -41,6 +79,7 @@ pub fn read(path: &Path) -> TrackMetadata {
     let Some(tag) = tag else {
         return TrackMetadata {
             duration,
+            picture: sibling_cover(path),
             ..Default::default()
         };
     };
@@ -54,7 +93,8 @@ pub fn read(path: &Path) -> TrackMetadata {
                 .mime_type()
                 .and_then(|mime| ImageFormat::from_mime(mime.as_str()))
                 .unwrap_or(ImageFormat::Jpeg),
-        });
+        })
+        .or_else(|| sibling_cover(path));
 
     TrackMetadata {
         title: non_empty(tag.get_string(ItemKey::TrackTitle)),
@@ -111,5 +151,50 @@ mod tests {
     fn drops_blank_tag_values() {
         assert_eq!(non_empty(Some("  ")), None);
         assert_eq!(non_empty(Some(" Title ")).as_deref(), Some("Title"));
+    }
+
+    #[test]
+    fn sibling_cover_names_are_images() {
+        for name in SIBLING_COVER_NAMES {
+            assert!(
+                ImageFormat::from_path(Path::new(name)).is_some(),
+                "{name} is not a recognised image"
+            );
+        }
+    }
+
+    #[test]
+    fn finds_album_art_beside_the_audio_file() {
+        let directory = std::env::temp_dir().join(format!(
+            "doyou-sibling-cover-{}-{}",
+            std::process::id(),
+            "finds_album_art_beside_the_audio_file"
+        ));
+        let _ = std::fs::remove_dir_all(&directory);
+        std::fs::create_dir_all(&directory).expect("test directory");
+
+        std::fs::write(directory.join("folder.jpg"), b"cover bytes").expect("cover file");
+
+        let cover = sibling_cover(&directory.join("song.mp3")).expect("sibling cover");
+
+        assert_eq!(cover.format, ImageFormat::Jpeg);
+        assert_eq!(cover.data, b"cover bytes");
+
+        let _ = std::fs::remove_dir_all(&directory);
+    }
+
+    #[test]
+    fn missing_sibling_art_yields_none() {
+        let directory = std::env::temp_dir().join(format!(
+            "doyou-sibling-cover-{}-{}",
+            std::process::id(),
+            "missing_sibling_art_yields_none"
+        ));
+        let _ = std::fs::remove_dir_all(&directory);
+        std::fs::create_dir_all(&directory).expect("test directory");
+
+        assert!(sibling_cover(&directory.join("song.mp3")).is_none());
+
+        let _ = std::fs::remove_dir_all(&directory);
     }
 }

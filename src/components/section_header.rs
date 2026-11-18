@@ -15,9 +15,7 @@ pub fn SectionHeader(
                         {icon}
                     }
                 }
-                h2 { class: "text-sm font-bold tracking-tight text-base-content",
-                    {title}
-                }
+                h2 { class: "text-sm font-bold tracking-tight text-base-content", {title} }
                 if let Some(badge) = badge {
                     span { class: "badge badge-sm badge-ghost font-semibold", {badge} }
                 }

@@ -1,5 +1,7 @@
 use dioxus::prelude::*;
 
+use crate::components::artwork::Artwork;
+
 #[component]
 pub fn CoverCollage(
     #[props(default)] thumbnails: Vec<String>,
@@ -12,11 +14,10 @@ pub fn CoverCollage(
             ),
             for index in 0..4 {
                 if let Some(url) = thumbnails.get(index) {
-                    img {
+                    Artwork {
+                        src: url.clone(),
                         class: "size-full object-cover",
-                        src: "{url}",
-                        alt: "",
-                        loading: "lazy",
+                        icon_class: "size-8",
                     }
                 } else {
                     div { class: "bg-base-200" }

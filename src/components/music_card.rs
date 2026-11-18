@@ -1,9 +1,10 @@
+use crate::components::artwork::Artwork;
 use crate::context::{use_downloads, use_favorites, use_playback, use_playlists};
 use crate::repository::TrackSource;
 use dioxus::prelude::*;
 use dioxus_free_icons::{
     Icon,
-    icons::ld_icons::{LdCircleCheck, LdDownload, LdEllipsis, LdHeart, LdMusic, LdPlay},
+    icons::ld_icons::{LdCircleCheck, LdDownload, LdEllipsis, LdHeart, LdPlay},
 };
 use yt::data_api::types::Item;
 
@@ -90,17 +91,11 @@ pub fn MusicCard(
                 },
             ),
             figure { class: "relative aspect-video overflow-hidden rounded-xl bg-base-300 shadow-inner",
-                if thumbnail.is_empty() {
-                    div { class: "flex size-full items-center justify-center bg-base-300 text-base-content/40",
-                        Icon { icon: LdMusic, class: "size-10" }
-                    }
-                } else {
-                    img {
-                        class: "size-full object-cover transition-transform duration-300 hover:scale-105",
-                        src: "{thumbnail}",
-                        alt: "{title}",
-                        loading: "lazy",
-                    }
+                Artwork {
+                    src: thumbnail,
+                    alt: title.clone(),
+                    class: "size-full object-cover transition-transform duration-300 hover:scale-105",
+                    icon_class: "size-10",
                 }
                 div { class: "pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" }
                 if show_extra_actions {
@@ -162,9 +157,15 @@ pub fn MusicCard(
                             if download_pending() {
                                 span { class: "loading loading-spinner loading-sm" }
                             } else if already_downloaded() {
-                                Icon { icon: LdCircleCheck, class: "text-success" }
+                                Icon {
+                                    icon: LdCircleCheck,
+                                    class: "text-success",
+                                }
                             } else {
-                                Icon { icon: LdDownload, class: "text-base-content/70" }
+                                Icon {
+                                    icon: LdDownload,
+                                    class: "text-base-content/70",
+                                }
                             }
                         }
                     }

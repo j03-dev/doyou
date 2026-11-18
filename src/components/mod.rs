@@ -1,5 +1,6 @@
 pub mod add_to_playlist;
 pub mod alert;
+pub mod artwork;
 pub mod button;
 pub mod collection_hero;
 pub mod cover;
