@@ -10,7 +10,7 @@ use crate::components::collection_hero::CollectionHero;
 use crate::components::empty_state::EmptyState;
 use crate::components::loading::LoadingSpinner;
 use crate::components::music_row::MusicRow;
-use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
+use crate::components::navbar::{BrandTitle, NavBar, NavBarItem, NavBarPos};
 use crate::components::section_header::SectionHeader;
 use crate::context::{use_playback, use_playlists};
 use crate::repository::tracks_to_items;
@@ -66,7 +66,7 @@ pub fn Playlist(id: i32) -> Element {
                 }
             }
             NavBarItem { position: NavBarPos::Center,
-                p { class: "btn btn-ghost text-xl", "Playlist" }
+                BrandTitle { title: "Playlist" }
             }
             NavBarItem { position: NavBarPos::End,
                 div { class: "dropdown dropdown-end",
@@ -112,6 +112,7 @@ pub fn Playlist(id: i32) -> Element {
                 CollectionHero {
                     name: entry.playlist.name.clone(),
                     eyebrow: Some("Playlist".to_string()),
+                    subtitle: Some("Your mix".to_string()),
                     thumbnails: entry.thumbnails(),
                     count: entry.tracks.len(),
                     button {
@@ -122,7 +123,7 @@ pub fn Playlist(id: i32) -> Element {
                         span { "Play All" }
                     }
                     button {
-                        class: "btn btn-outline rounded-full gap-2 px-5",
+                        class: "btn btn-ghost rounded-full gap-2 px-5",
                         disabled: items().is_empty(),
                         onclick: shuffle,
                         Icon { icon: LdShuffle }

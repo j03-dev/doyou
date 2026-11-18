@@ -10,17 +10,17 @@ use crate::route::Route;
 pub fn Dock() -> Element {
     rsx! {
         Outlet::<Route> {}
-        div { class: "dock dock-lg",
-            DockItem { route: Route::Home {},
+        div { class: "dock dock-lg border-t border-base-content/10 bg-base-100/90 backdrop-blur-xl",
+            DockItem { route: Route::Home {}, label: "Explore",
                 Icon { icon: LdCompass }
             }
-            DockItem { route: Route::Favorite {},
+            DockItem { route: Route::Favorite {}, label: "Favorites",
                 Icon { icon: LdHeart }
             }
-            DockItem { route: Route::Downloads {},
+            DockItem { route: Route::Downloads {}, label: "Downloads",
                 Icon { icon: LdDownload }
             }
-            DockItem { route: Route::Setting {},
+            DockItem { route: Route::Setting {}, label: "Settings",
                 Icon { icon: LdSettings }
             }
         }
@@ -28,8 +28,14 @@ pub fn Dock() -> Element {
 }
 
 #[component]
-fn DockItem(route: Route, children: Element) -> Element {
+fn DockItem(route: Route, label: &'static str, children: Element) -> Element {
     rsx! {
-        Link { to: route, active_class: "dock-active", {children} }
+        Link {
+            to: route,
+            class: "gap-0.5",
+            active_class: "dock-active text-primary",
+            {children}
+            span { class: "dock-label text-[10px] font-semibold", {label} }
+        }
     }
 }

@@ -88,9 +88,9 @@ pub fn MusicRow(
     };
 
     rsx! {
-        li { class: if is_playing_now() { "flex w-full min-w-0 flex-nowrap items-center gap-3 overflow-hidden rounded-xl bg-primary/10 px-2 py-2 transition-colors" } else { "flex w-full min-w-0 flex-nowrap items-center gap-3 overflow-hidden rounded-xl px-2 py-2 transition-colors hover:bg-base-200/60" },
+        li { class: if is_playing_now() { "flex h-16 w-full min-w-0 flex-nowrap items-center gap-3 overflow-hidden rounded-xl bg-primary/10 px-2 transition-colors" } else { "flex h-16 w-full min-w-0 flex-nowrap items-center gap-3 overflow-hidden rounded-xl px-2 transition-colors hover:bg-base-200/60" },
             div {
-                class: "size-16 shrink-0 cursor-pointer overflow-hidden rounded-xl md:size-14",
+                class: "size-12 shrink-0 cursor-pointer overflow-hidden rounded-lg shadow-sm",
                 onclick: play,
 
                 if thumbnail.is_empty() {
@@ -112,19 +112,21 @@ pub fn MusicRow(
 
                 div { class: "flex min-w-0 items-center gap-2",
                     span {
-                        class: if is_playing_now() { "truncate text-sm font-semibold leading-5 text-primary" } else { "truncate text-sm font-medium leading-5" },
+                        class: if is_playing_now() { "truncate text-sm font-bold leading-5 text-primary" } else { "truncate text-sm font-bold leading-5" },
                         dangerous_inner_html: title,
                     }
                     if already_downloaded() {
                         DownloadedBadge {}
                     }
                 }
-                div {
-                    class: "truncate text-xs font-semibold uppercase leading-4 opacity-60",
-                    dangerous_inner_html: artist,
-                }
-                if let Some(meta) = meta.as_deref() {
-                    div { class: "truncate text-[11px] leading-4 opacity-45", "{meta}" }
+                div { class: "flex min-w-0 items-center gap-1.5",
+                    span {
+                        class: "truncate text-xs text-base-content/60",
+                        dangerous_inner_html: artist,
+                    }
+                    if let Some(meta) = meta.as_deref() {
+                        span { class: "shrink-0 rounded bg-base-200 px-1 text-[10px] text-base-content/50", "{meta}" }
+                    }
                 }
             }
             div { class: "flex w-5 shrink-0 items-center justify-center",

@@ -9,7 +9,7 @@ use dioxus_free_icons::icons::ld_icons::{
 
 use crate::components::alert::Alert;
 use crate::components::form::get_value_from;
-use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
+use crate::components::navbar::{BrandTitle, NavBar, NavBarItem, NavBarPos};
 use crate::components::text_input::TextInput;
 use crate::context::{use_playback, use_settings};
 use crate::repository;
@@ -95,10 +95,10 @@ pub fn Setting() -> Element {
                 }
             }
             NavBarItem { position: NavBarPos::Center,
-                p { class: "btn btn-ghost text-xl", "Settings" }
+                BrandTitle { title: "Settings" }
             }
             NavBarItem { position: NavBarPos::End,
-                span {}
+                span { class: "text-xs font-semibold text-base-content/40 font-mono tracking-widest uppercase", "doyou" }
             }
         }
 
@@ -166,7 +166,7 @@ pub fn Setting() -> Element {
                                 }
                             }
                             button {
-                                class: "btn btn-sm btn-outline shrink-0",
+                                class: "btn btn-sm btn-outline btn-circle rounded-full shrink-0 px-3",
                                 r#type: "button",
                                 onclick: move |_| show_form.set(!show_form()),
                                 if show_form() {
@@ -201,7 +201,7 @@ pub fn Setting() -> Element {
                                 }
                             }
                             button {
-                                class: "btn btn-sm btn-primary shrink-0 gap-1.5",
+                                class: "btn btn-sm btn-primary btn-circle rounded-full shrink-0 gap-1.5 px-3",
                                 r#type: "button",
                                 disabled: ping_status() == PingStatus::Testing,
                                 onclick: test_connection,
@@ -295,8 +295,8 @@ pub fn Setting() -> Element {
                                         onclick: move |_| settings.save_theme(theme_str.clone()),
                                         div { class: "flex items-center gap-2.5 min-w-0",
                                             div { class: "flex items-center shrink-0",
-                                                div { class: format!("size-3 rounded-full border border-base-content/10 {}", col1) }
-                                                div { class: format!("size-3 rounded-full border border-base-content/10 -ml-1 {}", col2) }
+                                                div { class: format!("size-4 rounded-full border border-base-content/10 {}", col1) }
+                                                div { class: format!("size-4 rounded-full border border-base-content/10 -ml-1 {}", col2) }
                                             }
                                             span { class: "text-sm truncate", "{name}" }
                                         }

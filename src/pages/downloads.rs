@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
-use dioxus_free_icons::icons::ld_icons::{LdDownload, LdListMusic, LdPlay};
+use dioxus_free_icons::icons::ld_icons::{LdDownload, LdListMusic, LdPlay, LdShuffle};
 use yt::data_api::types::Item;
 
 use crate::components::alert::Alert;
@@ -8,7 +8,7 @@ use crate::components::collection_hero::CollectionHero;
 use crate::components::empty_state::EmptyState;
 use crate::components::loading::LoadingSpinner;
 use crate::components::music_row::MusicRow;
-use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
+use crate::components::navbar::{BrandTitle, NavBar, NavBarItem, NavBarPos};
 use crate::components::section_header::SectionHeader;
 use crate::context::{use_downloads, use_playback};
 use crate::repository;
@@ -51,13 +51,17 @@ pub fn Downloads() -> Element {
         playback.start(0);
     };
 
+    let shuffle = move |_: Event<MouseData>| {
+        playback.start_shuffled(items());
+    };
+
     rsx! {
         NavBar {
             NavBarItem { position: NavBarPos::Start,
                 span {}
             }
             NavBarItem { position: NavBarPos::Center,
-                p { class: "btn btn-ghost text-xl", "Downloads" }
+                BrandTitle { title: "Downloads" }
             }
             NavBarItem { position: NavBarPos::End,
                 span {}
@@ -65,7 +69,7 @@ pub fn Downloads() -> Element {
         }
         div {
             class: format!(
-                "px-4 pt-4 mx-auto w-full max-w-4xl sm:pt-6 {}",
+                "px-3 pt-5 mx-auto w-full max-w-4xl sm:pt-6 {}",
                 if playback.playing.read().is_some() { "pb-48" } else { "pb-28" },
             ),
             if let Some(alert_props) = error() {
@@ -74,6 +78,8 @@ pub fn Downloads() -> Element {
 
             CollectionHero {
                 name: "Downloads".to_string(),
+                eyebrow: Some("Offline library".to_string()),
+                subtitle: Some("Ready anytime".to_string()),
                 thumbnails: thumbnails(),
                 count: count(),
                 accent: "text-primary".to_string(),
@@ -84,9 +90,16 @@ pub fn Downloads() -> Element {
                     Icon { icon: LdPlay }
                     span { "Play All" }
                 }
+                button {
+                    class: "btn btn-ghost rounded-full gap-2 px-5",
+                    disabled: items().is_empty(),
+                    onclick: shuffle,
+                    Icon { icon: LdShuffle }
+                    span { "Shuffle" }
+                }
             }
 
-            div { class: "mt-8",
+            div { class: "mt-10",
                 SectionHeader {
                     title: "Offline tracks".to_string(),
                     badge: Some(count().to_string()),
@@ -94,7 +107,7 @@ pub fn Downloads() -> Element {
                         Icon { icon: LdListMusic, class: "size-4 text-primary" }
                     },
                 }
-                div { class: "card mt-2 bg-base-100 border border-base-content/10 shadow-sm rounded-2xl overflow-hidden",
+                div { class: "card mt-3 bg-base-100 border border-base-content/10 shadow-sm rounded-2xl overflow-hidden p-1.5",
                     if is_loading() {
                         div { class: "flex h-40 items-center justify-center",
                             LoadingSpinner { size: 8 }
@@ -108,7 +121,7 @@ pub fn Downloads() -> Element {
                             },
                         }
                     } else {
-                        ul { class: "list divide-y divide-base-content/5",
+                        ul { class: "list",
                             for (index, item) in items().iter().enumerate() {
                                 {
                                     let track = downloads.tracks.read().get(index).cloned();

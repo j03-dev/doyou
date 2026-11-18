@@ -83,16 +83,16 @@ pub fn MusicCard(
     rsx! {
         div {
             class: format!(
-                "card w-full min-w-0 p-3 rounded-2xl transition-all {}",
+                "card w-full min-w-0 rounded-2xl p-3 transition-all {}",
                 if is_playing_now() {
-                    "ring-2 ring-primary bg-primary/10 shadow-lg"
+                    "bg-primary/10 ring-2 ring-primary shadow-lg"
                 } else {
-                    "bg-base-200 hover:bg-base-300/60"
+                    "bg-base-100 shadow-sm hover:bg-base-200/60"
                 },
             ),
-            figure { class: "relative aspect-square overflow-hidden rounded-xl bg-base-200",
+            figure { class: "relative aspect-video overflow-hidden rounded-xl bg-base-300 shadow-inner",
                 if thumbnail.is_empty() {
-                    div { class: "flex size-full items-center justify-center bg-base-300 text-base-content/50",
+                    div { class: "flex size-full items-center justify-center bg-base-300 text-base-content/40",
                         Icon { icon: LdMusic, class: "size-10" }
                     }
                 } else {
@@ -103,19 +103,20 @@ pub fn MusicCard(
                         loading: "lazy",
                     }
                 }
+                div { class: "pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" }
                 if already_downloaded() {
-                    DownloadedBadge { class: "absolute right-2.5 top-2.5 shadow-md" }
+                    DownloadedBadge { class: "absolute left-3 top-3 shadow-md" }
                 }
                 if show_extra_actions {
                     button {
-                        class: "btn btn-circle btn-sm absolute left-2.5 top-2.5 border-none bg-base-100/80 shadow-md backdrop-blur hover:bg-base-100",
+                        class: "btn btn-ghost btn-circle btn-sm absolute right-3 top-3 border-none bg-base-100/80 shadow-md backdrop-blur",
                         "aria-label": "Add to playlist",
                         onclick: on_more,
                         Icon { icon: LdEllipsis, class: "text-base-content/70" }
                     }
                 }
                 button {
-                    class: "btn btn-circle btn-md sm:btn-lg absolute bottom-2.5 right-2.5 border-none bg-primary text-primary-content shadow-md hover:scale-105 hover:bg-primary/90",
+                    class: "btn btn-primary btn-circle btn-md absolute bottom-3 right-3 border-none shadow-lg",
                     "aria-label": if is_playing_now() { "Playing" } else { "Play track" },
                     disabled: is_loading(),
                     onclick: move |_| match on_play {
@@ -126,28 +127,28 @@ pub fn MusicCard(
                     if is_loading() {
                         span { class: "loading loading-spinner loading-sm" }
                     } else if is_playing_now() {
-                        span { class: "text-sm sm:text-base font-bold", "Ⅱ" }
+                        span { class: "text-sm font-bold", "Ⅱ" }
                     } else {
                         Icon { icon: LdPlay }
                     }
                 }
             }
-            div { class: "flex min-w-0 items-center gap-2 px-1 pt-2.5 pb-1",
+            div { class: "flex min-w-0 items-center justify-between gap-3 pt-3",
                 div { class: "flex min-w-0 flex-1 flex-col gap-1",
                     h2 {
-                        class: "truncate text-sm sm:text-base font-semibold leading-tight",
+                        class: "truncate text-sm font-bold leading-tight",
                         title: "{title}",
                         dangerous_inner_html: title,
                     }
                     p {
-                        class: "truncate text-xs sm:text-sm text-base-content/60",
+                        class: "truncate text-xs text-base-content/60",
                         title: "{artist}",
                         dangerous_inner_html: artist,
                     }
                 }
-                div { class: "flex shrink-0 items-center gap-1",
+                div { class: "flex shrink-0 items-center gap-0.5",
                     button {
-                        class: "btn btn-ghost btn-sm btn-square",
+                        class: "btn btn-ghost btn-sm btn-circle",
                         "aria-label": if is_favorite() { "Remove from favorites" } else { "Add to favorites" },
                         onclick: on_favorite,
                         Icon {
@@ -158,7 +159,7 @@ pub fn MusicCard(
                     }
                     if show_extra_actions && is_youtube {
                         button {
-                            class: "btn btn-ghost btn-sm btn-square",
+                            class: "btn btn-ghost btn-sm btn-circle",
                             "aria-label": "Download track",
                             disabled: download_pending() || already_downloaded(),
                             onclick: move |_| downloads.download(&item),

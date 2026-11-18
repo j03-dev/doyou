@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_free_icons::icons::ld_icons::{
-    LdFlame, LdHardDrive, LdHistory, LdKey, LdLibrary, LdMenu, LdPlus, LdRefreshCw, LdSearch,
-    LdTrophy, LdX,
+    LdCheck, LdFlame, LdHardDrive, LdHistory, LdKey, LdLibrary, LdMenu, LdPlus, LdRefreshCw,
+    LdSearch, LdTrophy, LdX,
 };
 use yt::data_api::types::Item;
 
@@ -11,7 +11,7 @@ use crate::components::button::ButtonGhost;
 use crate::components::form::get_value_from;
 use crate::components::loading::LoadingSpinner;
 use crate::components::music_card::MusicCard;
-use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
+use crate::components::navbar::{BrandTitle, NavBar, NavBarItem, NavBarPos};
 use crate::components::playlist_card::PlaylistCard;
 use crate::components::text_input::TextInput;
 use crate::context::{
@@ -141,7 +141,7 @@ pub fn Home() -> Element {
             NavBarItem { position: NavBarPos::Start, ThemeController {} }
             NavBarItem { position: NavBarPos::Center,
                 if mode() == HomeMode::Feed {
-                    p { class: "btn btn-ghost text-xl", "DoYou" }
+                    BrandTitle { title: "Explore" }
                 } else {
                     form { onsubmit: search,
                         TextInput {
@@ -168,7 +168,7 @@ pub fn Home() -> Element {
 
         div {
             class: format!(
-                "px-2 pt-2 mx-auto w-full max-w-6xl {}",
+                "px-3 pt-4 mx-auto w-full max-w-6xl {}",
                 if playback.playing.read().is_some() { "pb-48" } else { "pb-28" },
             ),
             if let Some(alert_props) = home_error() {
@@ -185,21 +185,31 @@ pub fn Home() -> Element {
             }
 
             if mode() != HomeMode::Searching {
-                div { class: "flex justify-center pt-2 pb-4 mb-2",
-                    div { class: "join",
+                div { class: "flex justify-center pb-4",
+                    div { class: "flex w-full max-w-md items-center gap-1 rounded-full bg-base-200 p-1 shadow-sm",
                         button {
-                            class: if *home.source_filter.read() == SourceFilter::All { "btn btn-sm join-item btn-primary" } else { "btn btn-sm join-item" },
+                            class: format!(
+                                "btn btn-sm flex-1 gap-1.5 rounded-full {}",
+                                if *home.source_filter.read() == SourceFilter::All { "btn-primary" } else { "btn-ghost" },
+                            ),
                             onclick: move |_| home.set_source_filter(SourceFilter::All),
+                            span { class: "size-1.5 rounded-full bg-current" }
                             "All"
                         }
                         button {
-                            class: if *home.source_filter.read() == SourceFilter::Local { "btn btn-sm join-item btn-primary" } else { "btn btn-sm join-item" },
+                            class: format!(
+                                "btn btn-sm flex-1 gap-1.5 rounded-full {}",
+                                if *home.source_filter.read() == SourceFilter::Local { "btn-primary" } else { "btn-ghost" },
+                            ),
                             onclick: move |_| home.set_source_filter(SourceFilter::Local),
                             Icon { icon: LdHardDrive, class: "size-4" }
                             "Local"
                         }
                         button {
-                            class: if *home.source_filter.read() == SourceFilter::YouTube { "btn btn-sm join-item btn-primary" } else { "btn btn-sm join-item" },
+                            class: format!(
+                                "btn btn-sm flex-1 gap-1.5 rounded-full {}",
+                                if *home.source_filter.read() == SourceFilter::YouTube { "btn-primary" } else { "btn-ghost" },
+                            ),
                             onclick: move |_| home.set_source_filter(SourceFilter::YouTube),
                             Icon { icon: LdFlame, class: "size-4" }
                             "YouTube"
@@ -234,19 +244,21 @@ pub fn Home() -> Element {
                     LoadingSpinner { size: 20 }
                 }
             } else {
-                div { class: "flex items-center justify-between px-1 pt-4 pb-2",
-                    div { class: "flex items-center gap-2",
-                        Icon { icon: LdLibrary, class: "size-5 text-primary" }
-                        h2 { class: "text-lg font-semibold", "Your Library" }
+                div { class: "flex items-center justify-between px-1 pt-4 pb-3",
+                    div { class: "flex items-center gap-2.5",
+                        div { class: "flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary",
+                            Icon { icon: LdLibrary, class: "size-5" }
+                        }
+                        h2 { class: "text-base font-bold tracking-tight", "Your Library" }
                     }
                     button {
-                        class: "btn btn-sm btn-ghost gap-1",
+                        class: "btn btn-sm btn-ghost gap-1 rounded-full px-3 text-primary",
                         onclick: move |_| playlists.open_create(),
                         Icon { icon: LdPlus, class: "size-4" }
                         "New playlist"
                     }
                 }
-                div { class: "carousel carousel-end gap-3 w-full py-3 px-1 mb-2",
+                div { class: "carousel carousel-end w-full gap-3 py-2",
                     PlaylistCard {
                         name: "Favorites".to_string(),
                         thumbnails: favorite_thumbnails(),
@@ -265,16 +277,17 @@ pub fn Home() -> Element {
                     }
                     div { class: "carousel-item",
                         button {
-                            class: "card w-36 shrink-0 border border-dashed border-base-content/30 bg-base-100 transition-colors hover:bg-base-200/60 sm:w-40",
+                            class: "card w-36 shrink-0 rounded-2xl border border-dashed border-base-content/20 bg-base-100 p-3 transition-colors hover:bg-base-200/60 sm:w-40",
                             onclick: move |_| playlists.open_create(),
-                            div { class: "flex aspect-square items-center justify-center",
-                                Icon {
-                                    icon: LdPlus,
-                                    class: "size-8 text-base-content/50",
+                            div { class: "flex aspect-square flex-col items-center justify-center gap-2 rounded-xl bg-base-200/60",
+                                div { class: "flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary",
+                                    Icon { icon: LdPlus, class: "size-6" }
                                 }
+                                span { class: "text-xs font-semibold text-base-content/60", "Add new" }
                             }
-                            div { class: "px-1 pt-2 pb-1",
-                                p { class: "text-sm font-semibold", "New playlist" }
+                            div { class: "px-0.5 pt-2 pb-1 text-left",
+                                p { class: "text-sm font-bold", "New playlist" }
+                                p { class: "text-xs text-base-content/60", "Custom mix" }
                             }
                         }
                     }
@@ -282,10 +295,12 @@ pub fn Home() -> Element {
 
                 if !local_items().is_empty() || *home.is_scanning_local.read() {
                     div { class: "flex items-center justify-between px-1 pt-8 sm:pt-10 pb-3",
-                        div { class: "flex items-center gap-2",
-                            Icon { icon: LdHardDrive, class: "size-5 text-info" }
-                            h2 { class: "text-lg font-semibold", "Local Music" }
-                            span { class: "badge badge-ghost badge-sm", "{local_items().len()}" }
+                        div { class: "flex items-center gap-2.5",
+                            div { class: "flex size-8 items-center justify-center rounded-lg bg-secondary/10 text-secondary",
+                                Icon { icon: LdHardDrive, class: "size-5" }
+                            }
+                            h2 { class: "text-base font-bold tracking-tight", "Local Music" }
+                            span { class: "badge badge-sm badge-ghost", "{local_items().len()}" }
                         }
                         button {
                             class: "btn btn-ghost btn-sm btn-circle",
@@ -304,18 +319,16 @@ pub fn Home() -> Element {
                             LoadingSpinner { size: 8 }
                         }
                     } else {
-                        div { class: "carousel gap-4 w-full py-4 px-1 mb-2",
+                        div { class: "grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3",
                             for (index, item) in local_items().iter().enumerate() {
-                                div { class: "carousel-item w-56 sm:w-64 md:w-72",
-                                    MusicCard {
-                                        item: item.clone(),
-                                        index,
-                                        show_extra_actions: false,
-                                        on_play: move |idx| {
-                                            playback.set_queue(local_items());
-                                            playback.start(idx);
-                                        },
-                                    }
+                                MusicCard {
+                                    item: item.clone(),
+                                    index,
+                                    show_extra_actions: false,
+                                    on_play: move |idx| {
+                                        playback.set_queue(local_items());
+                                        playback.start(idx);
+                                    },
                                 }
                             }
                         }
@@ -323,11 +336,13 @@ pub fn Home() -> Element {
                 }
 
                 if *home.source_filter.read() != SourceFilter::Local {
-                    div { class: "flex items-center gap-2 px-1 pt-8 sm:pt-10 pb-3",
-                        Icon { icon: LdFlame, class: "size-5 text-error" }
-                        h2 { class: "text-lg font-semibold", "Trending" }
+                    div { class: "flex items-center gap-2.5 px-1 pt-8 sm:pt-10 pb-3",
+                        div { class: "flex size-8 items-center justify-center rounded-lg bg-error/10 text-error",
+                            Icon { icon: LdFlame, class: "size-5" }
+                        }
+                        h2 { class: "text-base font-bold tracking-tight", "Trending" }
                     }
-                    div { class: "carousel gap-4 w-full py-4 px-1 mb-2",
+                    div { class: "carousel gap-4 w-full py-2",
                         for (index, item) in displayed().iter().enumerate() {
                             div { class: "carousel-item w-56 sm:w-64 md:w-72",
                                 MusicCard {
@@ -344,11 +359,13 @@ pub fn Home() -> Element {
                 }
 
                 if !recent_items().is_empty() {
-                    div { class: "flex items-center gap-2 px-1 pt-8 sm:pt-10 pb-3",
-                        Icon { icon: LdHistory, class: "size-5 text-secondary" }
-                        h2 { class: "text-lg font-semibold", "Recently Played" }
+                    div { class: "flex items-center gap-2.5 px-1 pt-8 sm:pt-10 pb-3",
+                        div { class: "flex size-8 items-center justify-center rounded-lg bg-secondary/10 text-secondary",
+                            Icon { icon: LdHistory, class: "size-5" }
+                        }
+                        h2 { class: "text-base font-bold tracking-tight", "Recently Played" }
                     }
-                    div { class: "carousel gap-4 w-full py-4 px-1 mb-2",
+                    div { class: "carousel gap-4 w-full py-2",
                         for (index, item) in recent_items().iter().enumerate() {
                             div { class: "carousel-item w-56 sm:w-64 md:w-72",
                                 MusicCard {
@@ -365,11 +382,13 @@ pub fn Home() -> Element {
                 }
 
                 if !most_items().is_empty() {
-                    div { class: "flex items-center gap-2 px-1 pt-8 sm:pt-10 pb-3",
-                        Icon { icon: LdTrophy, class: "size-5 text-warning" }
-                        h2 { class: "text-lg font-semibold", "Most Played" }
+                    div { class: "flex items-center gap-2.5 px-1 pt-8 sm:pt-10 pb-3",
+                        div { class: "flex size-8 items-center justify-center rounded-lg bg-warning/10 text-warning",
+                            Icon { icon: LdTrophy, class: "size-5" }
+                        }
+                        h2 { class: "text-base font-bold tracking-tight", "Most Played" }
                     }
-                    div { class: "carousel gap-4 w-full py-4 px-1 mb-2",
+                    div { class: "carousel gap-4 w-full py-2",
                         for (index, item) in most_items().iter().enumerate() {
                             div { class: "carousel-item w-56 sm:w-64 md:w-72",
                                 MusicCard {
@@ -388,22 +407,48 @@ pub fn Home() -> Element {
         }
 
         dialog { id: "create_playlist", class: "modal",
-            div { class: "modal-box w-96 max-w-[calc(100vw-2rem)]",
-                h3 { class: "font-bold text-lg", "New playlist" }
-                form { onsubmit: submit_playlist,
+            div { class: "modal-box w-sm max-w-[calc(100vw-2rem)] rounded-2xl p-6",
+                form { method: "dialog",
+                    button {
+                        class: "btn btn-ghost btn-sm btn-circle absolute right-3 top-3",
+                        "aria-label": "Close",
+                        Icon { icon: LdX }
+                    }
+                }
+                div { class: "flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary shadow-inner",
+                    Icon { icon: LdPlus, class: "size-6" }
+                }
+                h3 { class: "mt-4 text-xl font-extrabold tracking-tight", "New playlist" }
+                p { class: "mt-1 text-sm text-base-content/60",
+                    "Curate your personal sonic journey with custom flow."
+                }
+                form { class: "mt-5", onsubmit: submit_playlist,
                     fieldset { class: "fieldset",
-                        legend { class: "fieldset-legend", "Playlist name" }
+                        legend { class: "fieldset-legend text-xs font-bold uppercase tracking-wider text-base-content/60", "Playlist name" }
                         TextInput {
                             name: "playlist_name",
                             r#type: "text",
                             placeholder: "My playlist",
                         }
+                        p { class: "label text-xs text-base-content/50",
+                            "Tip: You can add songs directly while playing."
+                        }
                     }
-                    button { class: "btn btn-primary mt-3", r#type: "submit", "Create" }
-                }
-                div { class: "modal-action",
-                    form { method: "dialog",
-                        button { class: "btn", "Cancel" }
+                    div { class: "modal-action mt-5 justify-end gap-2",
+                        button {
+                            class: "btn btn-ghost rounded-full px-5",
+                            r#type: "button",
+                            onclick: move |_| {
+                                spawn(async move {
+                                    let _ = document::eval("create_playlist.close()").await;
+                                });
+                            },
+                            "Cancel"
+                        }
+                        button { class: "btn btn-primary rounded-full gap-2 px-6", r#type: "submit",
+                            Icon { icon: LdCheck, class: "size-4" }
+                            "Create"
+                        }
                     }
                 }
             }
@@ -413,27 +458,23 @@ pub fn Home() -> Element {
         }
 
         dialog { id: "token_form", class: "modal",
-            div { class: "modal-box w-96 max-w-[calc(100vw-2rem)]",
+            div { class: "modal-box w-sm max-w-[calc(100vw-2rem)] rounded-2xl p-6",
                 form { method: "dialog",
                     button {
-                        class: "btn btn-sm btn-circle btn-ghost absolute right-3 top-3",
+                        class: "btn btn-ghost btn-sm btn-circle absolute right-3 top-3",
                         "aria-label": "Close",
                         Icon { icon: LdX }
                     }
                 }
-                div { class: "flex items-center gap-3 pb-2",
-                    div { class: "flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary",
-                        Icon { icon: LdKey, class: "size-5" }
-                    }
-                    div { class: "min-w-0",
-                        h3 { class: "text-lg font-bold", "Connect YouTube" }
-                        p { class: "text-sm text-base-content/60", "Add your API key to load music." }
-                    }
+                div { class: "flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary",
+                    Icon { icon: LdKey, class: "size-5" }
                 }
+                h3 { class: "mt-4 text-xl font-extrabold tracking-tight", "Connect YouTube" }
+                p { class: "mt-1 text-sm text-base-content/60", "Add your API key to load music." }
                 if let Some(alert_props) = settings_error() {
                     Alert { ..alert_props }
                 }
-                form { class: "flex flex-col gap-3 pt-2", onsubmit: submit_token,
+                form { class: "mt-5 flex flex-col", onsubmit: submit_token,
                     fieldset { class: "fieldset",
                         legend { class: "fieldset-legend", "YouTube Data API key" }
                         TextInput {
@@ -454,14 +495,13 @@ pub fn Home() -> Element {
                             }
                         }
                     }
-                    button { class: "btn btn-primary w-full", r#type: "submit", "Save & Continue" }
+                    button { class: "btn btn-primary mt-3 w-full rounded-full", r#type: "submit", "Save & Continue" }
                 }
             }
             form { method: "dialog", class: "modal-backdrop",
                 button { "close" }
             }
         }
-
     }
 }
 
@@ -475,12 +515,13 @@ fn ThemeController() -> Element {
             div {
                 tabindex: 0,
                 role: "button",
-                class: "btn btn-ghost btn-circle",
+                class: "btn btn-ghost btn-circle rounded-full",
+                "aria-label": "Theme menu",
                 Icon { icon: LdMenu }
             }
             ul {
                 tabindex: -1,
-                class: "dropdown-content bg-base-300 rounded-box z-1 w-52 p-2 shadow-2xl",
+                class: "dropdown-content bg-base-200 rounded-2xl z-1 w-52 p-2 shadow-2xl",
                 for theme in themes {
                     ThemeItem {
                         name: theme,

@@ -12,8 +12,8 @@ pub struct TextInputPropos {
 
 pub fn TextInput(props: TextInputPropos) -> Element {
     rsx! {
-        div { class: "flex flex-row jusify-center w-full gap-2",
-            label { class: "input input-md input-primary w-full",
+        div { class: "flex w-full flex-row items-center justify-center gap-2",
+            label { class: "input input-md input-primary w-full rounded-xl",
                 {props.children}
                 input { class: "grow", ..props.attributes }
             }
