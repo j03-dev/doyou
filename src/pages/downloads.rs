@@ -1,6 +1,8 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
-use dioxus_free_icons::icons::ld_icons::{LdDownload, LdListMusic, LdPlay, LdShuffle};
+use dioxus_free_icons::icons::ld_icons::{
+    LdChevronDown, LdDownload, LdListMusic, LdPlay, LdShuffle,
+};
 use yt::data_api::types::Item;
 
 use crate::components::alert::Alert;
@@ -34,6 +36,10 @@ pub fn Downloads() -> Element {
             .collect::<Vec<_>>()
     });
     let count = use_memo(move || downloads.tracks.read().len());
+    let mut visible_count = use_signal(|| 50usize);
+
+    let total = items().len();
+    let visible = visible_count().min(total);
 
     use_effect(move || {
         playback.set_queue(items());
@@ -122,7 +128,7 @@ pub fn Downloads() -> Element {
                         }
                     } else {
                         ul { class: "list",
-                            for (index, item) in items().iter().enumerate() {
+                            for (index, item) in items().iter().take(visible).enumerate() {
                                 {
                                     let track = downloads.tracks.read().get(index).cloned();
                                     let meta = track.as_ref().and_then(track_meta);
@@ -139,6 +145,20 @@ pub fn Downloads() -> Element {
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+                if total > visible {
+                    div { class: "mt-3 flex justify-center",
+                        button {
+                            class: "btn btn-sm btn-ghost gap-1 rounded-full px-4",
+                            onclick: move |_| {
+                                let next = visible_count() + 50;
+                                visible_count.set(next);
+                            },
+                            Icon { icon: LdChevronDown, class: "size-4" }
+                            span { "Load more" }
+                            span { class: "text-base-content/50", {format!("({})", total - visible)} }
                         }
                     }
                 }

@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::Icon;
 use dioxus_free_icons::icons::ld_icons::{
-    LdCheck, LdFlame, LdHardDrive, LdHistory, LdKey, LdLibrary, LdMenu, LdPlus, LdRefreshCw,
-    LdSearch, LdTrophy, LdX,
+    LdCheck, LdChevronDown, LdChevronUp, LdFlame, LdHardDrive, LdHistory, LdKey, LdLayers,
+    LdLibrary, LdMenu, LdPlus, LdRefreshCw, LdSearch, LdTrophy, LdX,
 };
 use yt::data_api::types::Item;
 
@@ -31,6 +31,7 @@ pub fn Home() -> Element {
     let favorites = use_favorites();
     let playlists = use_playlists();
     let history = use_history();
+    let mut show_all_local = use_signal(|| false);
 
     let mode = home.mode;
     let home_error = home.error;
@@ -93,6 +94,12 @@ pub fn Home() -> Element {
 
     let local_items: Memo<Vec<Item>> =
         use_memo(move || repository::tracks_to_items(&home.local_tracks.read()));
+    let local_count = local_items().len();
+    let local_limit = if show_all_local() {
+        local_count
+    } else {
+        local_count.min(8)
+    };
 
     use_effect(move || {
         playback.set_queue(displayed());
@@ -193,7 +200,7 @@ pub fn Home() -> Element {
                                 if *home.source_filter.read() == SourceFilter::All { "btn-primary" } else { "btn-ghost" },
                             ),
                             onclick: move |_| home.set_source_filter(SourceFilter::All),
-                            span { class: "size-1.5 rounded-full bg-current" }
+                            Icon { icon: LdLayers, class: "size-4" }
                             "All"
                         }
                         button {
@@ -277,7 +284,7 @@ pub fn Home() -> Element {
                     }
                     div { class: "carousel-item",
                         button {
-                            class: "card w-36 shrink-0 rounded-2xl border border-dashed border-base-content/20 bg-base-100 p-3 transition-colors hover:bg-base-200/60 sm:w-40",
+                            class: "card w-44 shrink-0 rounded-2xl border border-dashed border-base-content/20 bg-base-100 p-3 transition-colors hover:bg-base-200/60 sm:w-48",
                             onclick: move |_| playlists.open_create(),
                             div { class: "flex aspect-square flex-col items-center justify-center gap-2 rounded-xl bg-base-200/60",
                                 div { class: "flex size-10 items-center justify-center rounded-full bg-base-200 text-base-content/70",
@@ -320,7 +327,7 @@ pub fn Home() -> Element {
                         }
                     } else {
                         div { class: "grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3",
-                            for (index, item) in local_items().iter().enumerate() {
+                            for (index, item) in local_items().iter().take(local_limit).enumerate() {
                                 MusicCard {
                                     item: item.clone(),
                                     index,
@@ -329,6 +336,24 @@ pub fn Home() -> Element {
                                         playback.set_queue(local_items());
                                         playback.start(idx);
                                     },
+                                }
+                            }
+                        }
+                        if local_count > 8 {
+                            div { class: "flex justify-center pt-4",
+                                button {
+                                    class: "btn btn-sm btn-ghost gap-1 rounded-full px-4",
+                                    onclick: move |_| {
+                                        let expanded = !show_all_local();
+                                        show_all_local.set(expanded);
+                                    },
+                                    if show_all_local() {
+                                        Icon { icon: LdChevronUp, class: "size-4" }
+                                        span { "Show less" }
+                                    } else {
+                                        Icon { icon: LdChevronDown, class: "size-4" }
+                                        span { "Show all" }
+                                    }
                                 }
                             }
                         }
@@ -344,7 +369,7 @@ pub fn Home() -> Element {
                     }
                     div { class: "carousel gap-4 w-full py-2",
                         for (index, item) in displayed().iter().enumerate() {
-                            div { class: "carousel-item w-56 sm:w-64 md:w-72",
+                            div { class: "carousel-item w-64 sm:w-72 md:w-80",
                                 MusicCard {
                                     item: item.clone(),
                                     index,
@@ -367,7 +392,7 @@ pub fn Home() -> Element {
                     }
                     div { class: "carousel gap-4 w-full py-2",
                         for (index, item) in recent_items().iter().enumerate() {
-                            div { class: "carousel-item w-56 sm:w-64 md:w-72",
+                            div { class: "carousel-item w-64 sm:w-72 md:w-80",
                                 MusicCard {
                                     item: item.clone(),
                                     index,
@@ -390,7 +415,7 @@ pub fn Home() -> Element {
                     }
                     div { class: "carousel gap-4 w-full py-2",
                         for (index, item) in most_items().iter().enumerate() {
-                            div { class: "carousel-item w-56 sm:w-64 md:w-72",
+                            div { class: "carousel-item w-64 sm:w-72 md:w-80",
                                 MusicCard {
                                     item: item.clone(),
                                     index,

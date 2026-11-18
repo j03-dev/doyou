@@ -13,7 +13,7 @@ pub fn PlaylistCard(
     rsx! {
         Link {
             to,
-            class: "carousel-item card w-36 shrink-0 rounded-2xl border border-base-content/10 bg-base-100 p-3 shadow-sm transition-transform hover:-translate-y-0.5 sm:w-40",
+            class: "carousel-item card w-44 shrink-0 rounded-2xl border border-base-content/10 bg-base-100 p-3 shadow-sm transition-transform hover:-translate-y-0.5 sm:w-48",
             CoverCollage { thumbnails, class: "rounded-xl" }
             div { class: "px-0.5 pt-2 pb-1",
                 h2 {
