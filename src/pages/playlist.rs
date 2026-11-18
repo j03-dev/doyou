@@ -10,7 +10,7 @@ use crate::components::collection_hero::CollectionHero;
 use crate::components::empty_state::EmptyState;
 use crate::components::loading::LoadingSpinner;
 use crate::components::music_row::MusicRow;
-use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
+use crate::components::navbar::{BrandTitle, NavBar, NavBarItem, NavBarPos};
 use crate::components::section_header::SectionHeader;
 use crate::context::{use_playback, use_playlists};
 use crate::repository::tracks_to_items;
@@ -66,7 +66,7 @@ pub fn Playlist(id: i32) -> Element {
                 }
             }
             NavBarItem { position: NavBarPos::Center,
-                p { class: "btn btn-ghost text-xl", "Playlist" }
+                BrandTitle { title: "Playlist" }
             }
             NavBarItem { position: NavBarPos::End,
                 div { class: "dropdown dropdown-end",
@@ -112,6 +112,7 @@ pub fn Playlist(id: i32) -> Element {
                 CollectionHero {
                     name: entry.playlist.name.clone(),
                     eyebrow: Some("Playlist".to_string()),
+                    subtitle: Some("Your mix".to_string()),
                     thumbnails: entry.thumbnails(),
                     count: entry.tracks.len(),
                     button {
@@ -122,7 +123,7 @@ pub fn Playlist(id: i32) -> Element {
                         span { "Play All" }
                     }
                     button {
-                        class: "btn btn-outline rounded-full gap-2 px-5",
+                        class: "btn btn-ghost rounded-full gap-2 px-5",
                         disabled: items().is_empty(),
                         onclick: shuffle,
                         Icon { icon: LdShuffle }
@@ -135,7 +136,7 @@ pub fn Playlist(id: i32) -> Element {
                         title: "Tracks".to_string(),
                         badge: Some(entry.tracks.len().to_string()),
                         icon: rsx! {
-                            Icon { icon: LdListMusic, class: "size-4 text-primary" }
+                            Icon { icon: LdListMusic, class: "size-4" }
                         },
                     }
                     div { class: "card mt-2 bg-base-100 border border-base-content/10 shadow-sm rounded-2xl overflow-hidden",
@@ -151,13 +152,13 @@ pub fn Playlist(id: i32) -> Element {
                             ul { class: "list divide-y divide-base-content/5",
                                 for (index, item) in items().iter().enumerate() {
                                     {
-                                        let track_id = item.id.as_string().unwrap_or_default();
+                                        let remove_item = item.clone();
                                         rsx! {
                                             MusicRow {
                                                 item: item.clone(),
                                                 index,
                                                 on_remove: move |_| {
-                                                    playlists.remove_track(id, track_id.clone());
+                                                    playlists.remove_track(id, remove_item.clone());
                                                 },
                                             }
                                         }

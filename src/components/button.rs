@@ -15,7 +15,7 @@ pub struct ButtonProps {
 pub fn ButtonGhost(props: ButtonProps) -> Element {
     rsx! {
         button {
-            class: "btn btn-ghost btn-circle",
+            class: "btn btn-ghost btn-circle rounded-full",
             onclick: props.onclick,
             ..props.attributes,
             {props.children}

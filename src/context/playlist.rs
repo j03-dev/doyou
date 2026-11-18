@@ -3,7 +3,6 @@ use yt::data_api::types::Item;
 
 use crate::context::AlertProps;
 use crate::repository;
-use crate::repository::db::models::Track;
 use crate::repository::playlist::PlaylistWithTracks;
 
 #[component]
@@ -101,9 +100,9 @@ impl PlaylistContext {
             return;
         };
 
-        let Some(item_id) = item.id.as_string() else {
+        if item.id.as_string().is_none() {
             return;
-        };
+        }
 
         let mut items = self.items;
         let mut detail = self.detail;
@@ -115,15 +114,7 @@ impl PlaylistContext {
         error.set(None);
 
         spawn(async move {
-            let track = Track {
-                id: item_id,
-                title: item.snippet.title.clone(),
-                channel_name: item.snippet.channel_title.clone(),
-                thumbnail_url: item.snippet.thumbnails.high.url.clone(),
-                ..Default::default()
-            };
-
-            match repository::playlist::add(track, playlist_id).await {
+            match repository::playlist::add(&item, playlist_id).await {
                 Ok(_) => {
                     pending_track.set(None);
                     match repository::playlist::list().await {
@@ -172,17 +163,10 @@ impl PlaylistContext {
             match repository::playlist::create(&name).await {
                 Ok(playlist) => {
                     if let Some(item) = pending {
-                        if let Some(item_id) = item.id.as_string() {
-                            let track = Track {
-                                id: item_id,
-                                title: item.snippet.title.clone(),
-                                channel_name: item.snippet.channel_title.clone(),
-                                thumbnail_url: item.snippet.thumbnails.high.url.clone(),
-                                ..Default::default()
-                            };
-                            if let Err(err) = repository::playlist::add(track, playlist.id).await {
-                                error.set(Some(AlertProps::error(err)));
-                            }
+                        if item.id.as_string().is_some()
+                            && let Err(err) = repository::playlist::add(&item, playlist.id).await
+                        {
+                            error.set(Some(AlertProps::error(err)));
                         }
                         pending_track.set(None);
                     }
@@ -237,7 +221,7 @@ impl PlaylistContext {
         ok
     }
 
-    pub fn remove_track(&self, playlist_id: i32, track_id: String) {
+    pub fn remove_track(&self, playlist_id: i32, item: Item) {
         let mut items = self.items;
         let mut detail = self.detail;
         let mut is_loading = self.is_loading;
@@ -247,7 +231,7 @@ impl PlaylistContext {
         error.set(None);
 
         spawn(async move {
-            match repository::playlist::remove_track(playlist_id, &track_id).await {
+            match repository::playlist::remove_track(playlist_id, &item).await {
                 Ok(_) => {
                     match repository::playlist::list().await {
                         Ok(fetched) => items.set(fetched),

@@ -1,9 +1,10 @@
 use dioxus::prelude::*;
-use yt::data_api::types::{Item, Snippet, Thumb, Thumbnails, VideoId};
+use yt::data_api::types::Item;
 
 use crate::context::AlertProps;
 use crate::repository;
 use crate::repository::db::models::Track;
+use crate::repository::identity;
 
 #[component]
 pub fn FavoritesProvider(children: Element) -> Element {
@@ -56,29 +57,24 @@ impl FavoritesContext {
         let mut error = self.error;
         let mut tracks = self.tracks;
 
-        let Some(item_id) = item.id.as_string() else {
+        if item.id.as_string().is_none() {
             return;
-        };
+        }
+        let is_fav = self.is_favorite_item(&item);
 
         spawn(async move {
             is_loading.set(true);
             error.set(None);
 
-            let is_fav = tracks.read().iter().any(|t| t.id == item_id);
             if is_fav {
-                match repository::favorites::remove(&item_id).await {
-                    Ok(()) => tracks.write().retain(|t| t.id != item_id),
+                match repository::favorites::remove(&item).await {
+                    Ok(()) => tracks
+                        .write()
+                        .retain(|track| !identity::same_media(track, &item)),
                     Err(err) => error.set(Some(AlertProps::error(err))),
                 }
             } else {
-                let track = Track {
-                    id: item_id,
-                    title: item.snippet.title.clone(),
-                    channel_name: item.snippet.channel_title.clone(),
-                    thumbnail_url: item.snippet.thumbnails.high.url.clone(),
-                    ..Default::default()
-                };
-                match repository::favorites::add(track).await {
+                match repository::favorites::add(&item).await {
                     Ok(new_track) => tracks.write().push(new_track),
                     Err(err) => error.set(Some(AlertProps::error(err))),
                 }
@@ -87,22 +83,14 @@ impl FavoritesContext {
         });
     }
 
-    pub fn items(&self) -> Vec<Item> {
+    pub fn is_favorite_item(&self, item: &Item) -> bool {
         self.tracks
             .read()
             .iter()
-            .map(|t| Item {
-                id: VideoId::Literal(t.id.clone()),
-                snippet: Snippet {
-                    title: t.title.clone(),
-                    channel_title: t.channel_name.clone(),
-                    thumbnails: Thumbnails {
-                        high: Thumb {
-                            url: t.thumbnail_url.clone(),
-                        },
-                    },
-                },
-            })
-            .collect()
+            .any(|track| identity::same_media(track, item))
+    }
+
+    pub fn items(&self) -> Vec<Item> {
+        repository::tracks_to_items(&self.tracks.read())
     }
 }

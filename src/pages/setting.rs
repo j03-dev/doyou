@@ -9,7 +9,7 @@ use dioxus_free_icons::icons::ld_icons::{
 
 use crate::components::alert::Alert;
 use crate::components::form::get_value_from;
-use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
+use crate::components::navbar::{BrandTitle, NavBar, NavBarItem, NavBarPos};
 use crate::components::text_input::TextInput;
 use crate::context::{use_playback, use_settings};
 use crate::repository;
@@ -95,10 +95,10 @@ pub fn Setting() -> Element {
                 }
             }
             NavBarItem { position: NavBarPos::Center,
-                p { class: "btn btn-ghost text-xl", "Settings" }
+                BrandTitle { title: "Settings" }
             }
             NavBarItem { position: NavBarPos::End,
-                span {}
+                span { class: "text-xs font-semibold text-base-content/40 font-mono tracking-widest uppercase", "doyou" }
             }
         }
 
@@ -115,7 +115,7 @@ pub fn Setting() -> Element {
             div { class: "flex flex-col gap-2.5",
                 div { class: "flex items-center justify-between px-1",
                     div { class: "flex items-center gap-2",
-                        Icon { icon: LdKey, class: "size-4 text-primary" }
+                        Icon { icon: LdKey, class: "size-4 text-base-content/70" }
                         h2 { class: "text-xs font-bold uppercase tracking-wider text-base-content/60",
                             "YouTube Integration"
                         }
@@ -135,7 +135,7 @@ pub fn Setting() -> Element {
                 div { class: "card bg-base-100 border border-base-content/10 shadow-sm rounded-2xl overflow-hidden",
                     ul { class: "list divide-y divide-base-content/5",
                         li { class: "list-row flex items-center justify-between p-3.5 sm:p-4 gap-3",
-                            div { class: "flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-primary",
+                            div { class: "flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-base-content/70",
                                 Icon { icon: LdCast, class: "size-5" }
                             }
                             div { class: "min-w-0 flex-1",
@@ -145,7 +145,7 @@ pub fn Setting() -> Element {
                                 }
                             }
                             if has_token() {
-                                span { class: "badge badge-soft badge-success text-xs shrink-0 font-medium",
+                                span { class: "badge badge-ghost text-xs shrink-0 font-medium",
                                     "Active"
                                 }
                             } else {
@@ -156,7 +156,7 @@ pub fn Setting() -> Element {
                         }
 
                         li { class: "list-row flex items-center justify-between p-3.5 sm:p-4 gap-3",
-                            div { class: "flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-primary",
+                            div { class: "flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-base-content/70",
                                 Icon { icon: LdKey, class: "size-5" }
                             }
                             div { class: "min-w-0 flex-1",
@@ -166,7 +166,7 @@ pub fn Setting() -> Element {
                                 }
                             }
                             button {
-                                class: "btn btn-sm btn-outline shrink-0",
+                                class: "btn btn-sm btn-outline rounded-full shrink-0 px-3",
                                 r#type: "button",
                                 onclick: move |_| show_form.set(!show_form()),
                                 if show_form() {
@@ -178,7 +178,7 @@ pub fn Setting() -> Element {
                         }
 
                         li { class: "list-row flex items-center justify-between p-3.5 sm:p-4 gap-3",
-                            div { class: "flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-primary",
+                            div { class: "flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-base-content/70",
                                 Icon { icon: LdActivity, class: "size-5" }
                             }
                             div { class: "min-w-0 flex-1",
@@ -201,7 +201,7 @@ pub fn Setting() -> Element {
                                 }
                             }
                             button {
-                                class: "btn btn-sm btn-primary shrink-0 gap-1.5",
+                                class: "btn btn-sm btn-primary rounded-full shrink-0 gap-1.5 px-3",
                                 r#type: "button",
                                 disabled: ping_status() == PingStatus::Testing,
                                 onclick: test_connection,
@@ -269,7 +269,7 @@ pub fn Setting() -> Element {
             // Section 2: Appearance & Theme
             div { class: "flex flex-col gap-2.5",
                 div { class: "flex items-center gap-2 px-1",
-                    Icon { icon: LdPalette, class: "size-4 text-secondary" }
+                    Icon { icon: LdPalette, class: "size-4 text-base-content/70" }
                     h2 { class: "text-xs font-bold uppercase tracking-wider text-base-content/60",
                         "Appearance & Theme"
                     }
@@ -295,8 +295,8 @@ pub fn Setting() -> Element {
                                         onclick: move |_| settings.save_theme(theme_str.clone()),
                                         div { class: "flex items-center gap-2.5 min-w-0",
                                             div { class: "flex items-center shrink-0",
-                                                div { class: format!("size-3 rounded-full border border-base-content/10 {}", col1) }
-                                                div { class: format!("size-3 rounded-full border border-base-content/10 -ml-1 {}", col2) }
+                                                div { class: format!("size-4 rounded-full border border-base-content/10 {}", col1) }
+                                                div { class: format!("size-4 rounded-full border border-base-content/10 -ml-1 {}", col2) }
                                             }
                                             span { class: "text-sm truncate", "{name}" }
                                         }
@@ -314,7 +314,7 @@ pub fn Setting() -> Element {
             // Section 3: Audio & Engine
             div { class: "flex flex-col gap-2.5",
                 div { class: "flex items-center gap-2 px-1",
-                    Icon { icon: LdCpu, class: "size-4 text-accent" }
+                    Icon { icon: LdCpu, class: "size-4 text-base-content/70" }
                     h2 { class: "text-xs font-bold uppercase tracking-wider text-base-content/60",
                         "Audio Engine & Pipeline"
                     }
@@ -323,7 +323,7 @@ pub fn Setting() -> Element {
                 div { class: "card bg-base-100 border border-base-content/10 shadow-sm rounded-2xl overflow-hidden",
                     ul { class: "list divide-y divide-base-content/5",
                         li { class: "list-row flex items-center justify-between p-3.5 sm:p-4 gap-3",
-                            div { class: "flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-accent",
+                            div { class: "flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-base-content/70",
                                 Icon { icon: LdVolume2, class: "size-5" }
                             }
                             div { class: "min-w-0 flex-1",
@@ -338,7 +338,7 @@ pub fn Setting() -> Element {
                         }
 
                         li { class: "list-row flex items-center justify-between p-3.5 sm:p-4 gap-3",
-                            div { class: "flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-accent",
+                            div { class: "flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-base-content/70",
                                 Icon { icon: LdCpu, class: "size-5" }
                             }
                             div { class: "min-w-0 flex-1",
@@ -347,7 +347,7 @@ pub fn Setting() -> Element {
                                     "Direct Opus / AAC stream extractor"
                                 }
                             }
-                            span { class: "badge badge-soft badge-success text-xs font-medium shrink-0",
+                            span { class: "badge badge-ghost text-xs font-medium shrink-0",
                                 "Optimized"
                             }
                         }
@@ -358,7 +358,7 @@ pub fn Setting() -> Element {
             // Section 4: About & Links
             div { class: "flex flex-col gap-2.5",
                 div { class: "flex items-center gap-2 px-1",
-                    Icon { icon: LdInfo, class: "size-4 text-info" }
+                    Icon { icon: LdInfo, class: "size-4 text-base-content/70" }
                     h2 { class: "text-xs font-bold uppercase tracking-wider text-base-content/60",
                         "About & Resources"
                     }
@@ -371,7 +371,7 @@ pub fn Setting() -> Element {
                                 class: "flex w-full items-center justify-between gap-3 group",
                                 href: "https://github.com/j03-dev/doyou",
                                 target: "_blank",
-                                div { class: "flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-info transition-colors group-hover:bg-primary/10 group-hover:text-primary",
+                                div { class: "flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-base-content/70 transition-colors group-hover:bg-primary/10 group-hover:text-primary",
                                     Icon { icon: LdExternalLink, class: "size-5" }
                                 }
                                 div { class: "min-w-0 flex-1",
@@ -394,11 +394,11 @@ pub fn Setting() -> Element {
                                 class: "flex w-full items-center justify-between gap-3 group",
                                 href: "https://github.com/j03-dev/doyou/issues",
                                 target: "_blank",
-                                div { class: "flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-info transition-colors group-hover:bg-error/10 group-hover:text-error",
+                                div { class: "flex size-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-base-content/70 transition-colors group-hover:bg-primary/10 group-hover:text-primary",
                                     Icon { icon: LdInfo, class: "size-5" }
                                 }
                                 div { class: "min-w-0 flex-1",
-                                    div { class: "text-sm font-semibold group-hover:text-error transition-colors",
+                                    div { class: "text-sm font-semibold group-hover:text-primary transition-colors",
                                         "Report an Issue"
                                     }
                                     div { class: "text-xs text-base-content/60 truncate",
@@ -407,7 +407,7 @@ pub fn Setting() -> Element {
                                 }
                                 Icon {
                                     icon: LdChevronRight,
-                                    class: "size-4 text-base-content/40 group-hover:text-error group-hover:translate-x-0.5 transition-all shrink-0",
+                                    class: "size-4 text-base-content/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0",
                                 }
                             }
                         }

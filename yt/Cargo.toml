@@ -9,7 +9,11 @@ anyhow = "1.0.100"
 reqwest = { workspace = true, features = ["json", "rustls"] }
 serde_json.workspace = true
 serde.workspace = true
+doyou-media.workspace = true
 regex = "1.12.2"
+
+[dev-dependencies]
+tokio = { version = "1.49.0", features = ["macros", "rt"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 rustls = { version = "0.23", features = ["aws-lc-rs"] }

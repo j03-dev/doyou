@@ -1,0 +1,8 @@
+[package]
+name = "doyou-media"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "doyou_media"
+path = "src/lib.rs"

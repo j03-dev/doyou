@@ -8,9 +8,10 @@ use crate::components::collection_hero::CollectionHero;
 use crate::components::empty_state::EmptyState;
 use crate::components::loading::LoadingSpinner;
 use crate::components::music_row::MusicRow;
-use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
+use crate::components::navbar::{BrandTitle, NavBar, NavBarItem, NavBarPos};
 use crate::components::section_header::SectionHeader;
 use crate::context::{use_favorites, use_playback, use_playlists};
+use crate::repository;
 
 #[component]
 pub fn Favorite() -> Element {
@@ -29,10 +30,23 @@ pub fn Favorite() -> Element {
             .read()
             .iter()
             .take(4)
-            .map(|t| t.thumbnail_url.clone())
+            .map(repository::track_thumbnail)
             .collect::<Vec<_>>()
     });
     let count = use_memo(move || favorites.tracks.read().len());
+    let duration = use_memo(move || {
+        let seconds: f64 = favorites
+            .tracks
+            .read()
+            .iter()
+            .filter_map(|track| track.duration)
+            .sum();
+        if seconds <= 0.0 {
+            None
+        } else {
+            Some(format!("{} min", (seconds / 60.0).ceil().max(1.0) as u64))
+        }
+    });
 
     use_effect(move || {
         playback.set_queue(items());
@@ -61,7 +75,7 @@ pub fn Favorite() -> Element {
                 span {}
             }
             NavBarItem { position: NavBarPos::Center,
-                p { class: "btn btn-ghost text-xl", "Favorites" }
+                BrandTitle { title: "Favorites" }
             }
             NavBarItem { position: NavBarPos::End,
                 span {}
@@ -69,7 +83,7 @@ pub fn Favorite() -> Element {
         }
         div {
             class: format!(
-                "px-4 pt-4 mx-auto w-full max-w-4xl sm:pt-6 {}",
+                "px-3 pt-5 mx-auto w-full max-w-4xl sm:pt-6 {}",
                 if playback.playing.read().is_some() { "pb-48" } else { "pb-28" },
             ),
             if let Some(alert_props) = favorite_error() {
@@ -81,9 +95,11 @@ pub fn Favorite() -> Element {
 
             CollectionHero {
                 name: "Favorites".to_string(),
+                eyebrow: Some("Collection".to_string()),
+                subtitle: duration(),
                 thumbnails: thumbnails(),
                 count: count(),
-                accent: "text-error".to_string(),
+                accent: "text-primary".to_string(),
                 button {
                     class: "btn btn-primary rounded-full gap-2 px-6",
                     disabled: items().is_empty(),
@@ -92,7 +108,7 @@ pub fn Favorite() -> Element {
                     span { "Play All" }
                 }
                 button {
-                    class: "btn btn-outline rounded-full gap-2 px-5",
+                    class: "btn btn-ghost rounded-full gap-2 px-5",
                     disabled: items().is_empty(),
                     onclick: shuffle,
                     Icon { icon: LdShuffle }
@@ -100,15 +116,15 @@ pub fn Favorite() -> Element {
                 }
             }
 
-            div { class: "mt-8",
+            div { class: "mt-10",
                 SectionHeader {
                     title: "Tracks".to_string(),
                     badge: Some(count().to_string()),
                     icon: rsx! {
-                        Icon { icon: LdListMusic, class: "size-4 text-error" }
+                        Icon { icon: LdListMusic, class: "size-4" }
                     },
                 }
-                div { class: "card mt-2 bg-base-100 border border-base-content/10 shadow-sm rounded-2xl overflow-hidden",
+                div { class: "card mt-3 bg-base-100 border border-base-content/10 shadow-sm rounded-2xl overflow-hidden p-1.5",
                     if favorite_is_loading() {
                         div { class: "flex h-40 items-center justify-center",
                             LoadingSpinner { size: 8 }
@@ -122,7 +138,7 @@ pub fn Favorite() -> Element {
                             },
                         }
                     } else {
-                        ul { class: "list divide-y divide-base-content/5",
+                        ul { class: "list",
                             for (index, item) in items().iter().enumerate() {
                                 MusicRow { item: item.clone(), index }
                             }

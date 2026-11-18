@@ -2,17 +2,27 @@ use rusql_alchemy::prelude::*;
 
 #[derive(Debug, Clone, PartialEq, Model, serde::Deserialize)]
 pub struct Track {
-    #[field(primary_key = true, size = 11)]
+    #[field(primary_key = true, size = 64)]
     pub id: String,
 
     #[field(size = 255)]
     pub title: String,
 
-    #[field(size = 100)]
+    #[field(size = 255)]
     pub channel_name: String,
 
     #[field(size = 500)]
     pub thumbnail_url: String,
+
+    #[field(size = 255)]
+    pub album: Option<String>,
+
+    pub duration: Option<Float>,
+
+    #[field(size = 500)]
+    pub cover_path: Option<String>,
+
+    pub downloaded_at: Option<Float>,
 
     pub src: Option<String>,
 }

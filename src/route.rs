@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::components::dock::Dock;
-use crate::pages::{Favorite, Home, Playlist, Setting};
+use crate::pages::{Downloads, Favorite, Home, Playlist, Setting};
 
 #[derive(Routable, PartialEq, Clone)]
 pub enum Route {
@@ -11,6 +11,9 @@ pub enum Route {
 
     #[route("/favorite")]
     Favorite {},
+
+    #[route("/downloads")]
+    Downloads {},
 
     #[route("/playlist/:id")]
     Playlist { id: i32 },

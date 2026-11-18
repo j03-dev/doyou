@@ -5,14 +5,39 @@ use std::sync::OnceLock;
 use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, percent_decode_str, utf8_percent_encode};
 use tiny_http::{Response, Server};
 
-const AUDIO_EXTENSIONS: [&str; 7] = ["mp3", "m4a", "flac", "ogg", "opus", "wav", "aac"];
-
-const PATH_SET: &AsciiSet = &NON_ALPHANUMERIC.remove(b'/');
+const PATH_SET: &AsciiSet = &NON_ALPHANUMERIC
+    .remove(b'/')
+    .remove(b'.')
+    .remove(b'-')
+    .remove(b'_')
+    .remove(b'~');
 
 pub fn file_url(path: &str) -> Result<String, crate::core::error::Error> {
     let port = server_port()?;
-    let encoded = utf8_percent_encode(path, PATH_SET).to_string();
-    Ok(format!("http://127.0.0.1:{port}/{encoded}"))
+    Ok(format!(
+        "http://127.0.0.1:{port}/?path={}",
+        encoded_path(path)
+    ))
+}
+
+/// Encode the path as a query value so Unix and Windows absolute paths both
+/// survive decoding unchanged (no leading-slash rewriting needed).
+fn encoded_path(path: &str) -> String {
+    utf8_percent_encode(path, PATH_SET).to_string()
+}
+
+fn path_from_url(url: &str) -> PathBuf {
+    let Some((_, query)) = url.split_once('?') else {
+        return PathBuf::new();
+    };
+    let Some(raw) = query.split('&').find_map(|pair| pair.strip_prefix("path=")) else {
+        return PathBuf::new();
+    };
+
+    percent_decode_str(raw)
+        .decode_utf8()
+        .map(|path| PathBuf::from(path.as_ref()))
+        .unwrap_or_default()
 }
 
 fn server_port() -> Result<u16, crate::core::error::Error> {
@@ -34,13 +59,9 @@ fn server_port() -> Result<u16, crate::core::error::Error> {
 }
 
 fn handle_request(request: tiny_http::Request) {
-    let raw_path = request.url().split('?').next().unwrap_or("/");
-    let decoded = percent_decode_str(raw_path.trim_start_matches('/'))
-        .decode_utf8()
-        .map(|path| PathBuf::from(path.as_ref()))
-        .unwrap_or_default();
+    let decoded = path_from_url(request.url());
 
-    match audio_file_response(&decoded) {
+    match media_file_response(&decoded) {
         Some(response) => {
             let _ = request.respond(response);
         }
@@ -50,20 +71,8 @@ fn handle_request(request: tiny_http::Request) {
     }
 }
 
-fn audio_file_response(path: &Path) -> Option<Response<std::io::Cursor<Vec<u8>>>> {
-    let extension = path.extension()?.to_string_lossy().to_lowercase();
-    if !AUDIO_EXTENSIONS.contains(&extension.as_str()) {
-        return None;
-    }
-
-    let mime = match extension.as_str() {
-        "mp3" => "audio/mpeg",
-        "m4a" => "audio/mp4",
-        "flac" => "audio/flac",
-        "ogg" | "opus" => "audio/ogg",
-        "wav" => "audio/wav",
-        _ => "audio/aac",
-    };
+fn media_file_response(path: &Path) -> Option<Response<std::io::Cursor<Vec<u8>>>> {
+    let mime = doyou_media::MediaFormat::from_path(path)?.mime_type();
 
     let data = std::fs::read(path).ok()?;
     let mut response = Response::from_data(data);
@@ -71,4 +80,25 @@ fn audio_file_response(path: &Path) -> Option<Response<std::io::Cursor<Vec<u8>>>
         response = response.with_header(header);
     }
     Some(response)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn paths_round_trip_through_url_query() {
+        for path in [
+            "/home/user/My Music/song.mp3",
+            r"C:\Users\me\Music\song.mp3",
+        ] {
+            let url = format!("/?path={}", encoded_path(path));
+            assert_eq!(path_from_url(&url), PathBuf::from(path));
+        }
+    }
+
+    #[test]
+    fn missing_path_parameter_is_empty() {
+        assert_eq!(path_from_url("/?other=value"), PathBuf::new());
+    }
 }

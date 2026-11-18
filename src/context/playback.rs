@@ -5,7 +5,6 @@ use yt::data_api::types::Item;
 use crate::context::AlertProps;
 use crate::core::platform;
 use crate::repository;
-use crate::repository::db::models::Track;
 
 #[component]
 pub fn PlaybackProvider(children: Element) -> Element {
@@ -126,17 +125,19 @@ impl PlaybackContext {
 
             let item_id = item.id.as_string().unwrap_or_default();
 
-            let audio = if repository::local::is_local_id(&item_id) {
-                match repository::db::get_track_by_id(&item_id).await {
-                    Ok(Some(track)) => match track.src.as_deref() {
-                        Some(path) => repository::local::src_url(path),
-                        None => Err("Local track is missing its file path".to_string()),
-                    },
+            let audio = if repository::TrackSource::from_id(&item_id).is_local() {
+                match repository::get_track(&item_id).await {
+                    Ok(Some(track)) => local_audio(&track),
                     Ok(None) => Err("Local file not found".to_string()),
                     Err(e) => Err(e.to_string()),
                 }
             } else {
-                repository::youtube::audio_url(&item_id).await
+                // A YouTube item with a download plays the offline file.
+                match repository::downloads::find_downloaded(&item_id).await {
+                    Ok(Some(track)) => local_audio(&track),
+                    Ok(None) => repository::youtube::audio_url(&item_id).await,
+                    Err(e) => Err(e),
+                }
             };
 
             match audio {
@@ -148,18 +149,11 @@ impl PlaybackContext {
                         &item.snippet.channel_title,
                     );
 
-                    if let Some(track_id) = item.id.as_string() {
-                        let track = Track {
-                            id: track_id,
-                            title: item.snippet.title.clone(),
-                            channel_name: item.snippet.channel_title.clone(),
-                            thumbnail_url: item.snippet.thumbnails.high.url.clone(),
-                            ..Default::default()
-                        };
-                        if repository::history::record(track).await.is_ok() {
-                            let next = *history_revision.read() + 1;
-                            history_revision.set(next);
-                        }
+                    if item.id.as_string().is_some()
+                        && repository::history::record(&item).await.is_ok()
+                    {
+                        let next = *history_revision.read() + 1;
+                        history_revision.set(next);
                     }
                 }
                 Err(e) => {
@@ -244,6 +238,13 @@ impl PlaybackContext {
                 duration.set(len);
             }
         });
+    }
+}
+
+fn local_audio(track: &repository::db::models::Track) -> Result<String, String> {
+    match track.src.as_deref() {
+        Some(path) => repository::local::src_url(path),
+        None => Err("Local track is missing its file path".to_string()),
     }
 }
 
