@@ -12,6 +12,9 @@ serde.workspace = true
 doyou-media.workspace = true
 regex = "1.12.2"
 
+[dev-dependencies]
+tokio = { version = "1.49.0", features = ["macros", "rt"] }
+
 [target.'cfg(target_os = "android")'.dependencies]
 rustls = { version = "0.23", features = ["aws-lc-rs"] }
 webpki-roots = "1"
