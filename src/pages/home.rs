@@ -19,6 +19,7 @@ use crate::context::{
     use_settings,
 };
 use crate::repository;
+use crate::repository::TrackSource;
 use crate::route::Route;
 
 #[component]
@@ -73,11 +74,15 @@ pub fn Home() -> Element {
             SourceFilter::All => source,
             SourceFilter::Local => source
                 .into_iter()
-                .filter(|item| repository::is_local_id(&item.id.as_string().unwrap_or_default()))
+                .filter(|item| {
+                    TrackSource::from_id(&item.id.as_string().unwrap_or_default()).is_local()
+                })
                 .collect(),
             SourceFilter::YouTube => source
                 .into_iter()
-                .filter(|item| !repository::is_local_id(&item.id.as_string().unwrap_or_default()))
+                .filter(|item| {
+                    !TrackSource::from_id(&item.id.as_string().unwrap_or_default()).is_local()
+                })
                 .collect(),
         }
     });
@@ -98,7 +103,7 @@ pub fn Home() -> Element {
             .read()
             .iter()
             .take(4)
-            .map(|t| t.thumbnail_url.clone())
+            .map(repository::track_thumbnail)
             .collect::<Vec<_>>()
     });
     let favorite_count = use_memo(move || favorites.tracks.read().len());
@@ -179,7 +184,7 @@ pub fn Home() -> Element {
             }
 
             if mode() != HomeMode::Searching {
-                div { class: "flex justify-center pt-2",
+                div { class: "flex justify-center pt-2 pb-4 mb-2",
                     div { class: "join",
                         button {
                             class: if *home.source_filter.read() == SourceFilter::All { "btn btn-sm join-item btn-primary" } else { "btn btn-sm join-item" },

@@ -5,7 +5,6 @@ use yt::data_api::types::Item;
 use crate::context::AlertProps;
 use crate::core::platform;
 use crate::repository;
-use crate::repository::db::models::Track;
 
 #[component]
 pub fn PlaybackProvider(children: Element) -> Element {
@@ -126,8 +125,8 @@ impl PlaybackContext {
 
             let item_id = item.id.as_string().unwrap_or_default();
 
-            let audio = if repository::local::is_local_id(&item_id) {
-                match repository::db::get_track_by_id(&item_id).await {
+            let audio = if repository::TrackSource::from_id(&item_id).is_local() {
+                match repository::get_track(&item_id).await {
                     Ok(Some(track)) => match track.src.as_deref() {
                         Some(path) => repository::local::src_url(path),
                         None => Err("Local track is missing its file path".to_string()),
@@ -148,14 +147,8 @@ impl PlaybackContext {
                         &item.snippet.channel_title,
                     );
 
-                    if let Some(track_id) = item.id.as_string() {
-                        let track = Track {
-                            id: track_id,
-                            title: item.snippet.title.clone(),
-                            channel_name: item.snippet.channel_title.clone(),
-                            thumbnail_url: item.snippet.thumbnails.high.url.clone(),
-                            ..Default::default()
-                        };
+                    if item.id.as_string().is_some() {
+                        let track = repository::item_to_track(&item);
                         if repository::history::record(track).await.is_ok() {
                             let next = *history_revision.read() + 1;
                             history_revision.set(next);

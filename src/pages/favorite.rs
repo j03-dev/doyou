@@ -11,6 +11,7 @@ use crate::components::music_row::MusicRow;
 use crate::components::navbar::{NavBar, NavBarItem, NavBarPos};
 use crate::components::section_header::SectionHeader;
 use crate::context::{use_favorites, use_playback, use_playlists};
+use crate::repository;
 
 #[component]
 pub fn Favorite() -> Element {
@@ -29,7 +30,7 @@ pub fn Favorite() -> Element {
             .read()
             .iter()
             .take(4)
-            .map(|t| t.thumbnail_url.clone())
+            .map(repository::track_thumbnail)
             .collect::<Vec<_>>()
     });
     let count = use_memo(move || favorites.tracks.read().len());

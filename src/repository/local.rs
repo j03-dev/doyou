@@ -2,57 +2,68 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::path::Path;
 
+use rusql_alchemy::prelude::*;
 use walkdir::WalkDir;
 
 use crate::core::platform;
+use crate::repository::TrackSource;
 use crate::repository::db;
 use crate::repository::db::models::Track;
-
-pub const LOCAL_PREFIX: &str = "local:";
-
-const AUDIO_EXTENSIONS: [&str; 7] = ["mp3", "m4a", "flac", "ogg", "opus", "wav", "aac"];
-
-pub fn is_local_id(id: &str) -> bool {
-    id.starts_with(LOCAL_PREFIX)
-}
+use crate::repository::metadata;
+use crate::repository::upsert_track;
+use doyou_media as media;
 
 fn track_id_for(path: &Path) -> String {
     let mut hasher = std::collections::hash_map::DefaultHasher::new();
     path.to_string_lossy().hash(&mut hasher);
-    format!("{LOCAL_PREFIX}{:x}", hasher.finish())
-}
-
-fn is_audio(path: &Path) -> bool {
-    path.extension()
-        .and_then(|ext| ext.to_str())
-        .map(|ext| ext.to_ascii_lowercase())
-        .is_some_and(|ext| AUDIO_EXTENSIONS.contains(&ext.as_str()))
+    TrackSource::Local.id(&format!("{:x}", hasher.finish()))
 }
 
 fn track_from_path(path: &Path) -> Track {
-    let title = path
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or("Unknown")
-        .to_string();
-    let channel_name = path
-        .parent()
-        .and_then(|p| p.file_name())
-        .and_then(|s| s.to_str())
-        .unwrap_or("Local")
-        .to_string();
+    let metadata = metadata::read(path);
+    let id = track_id_for(path);
 
     Track {
-        id: track_id_for(path),
-        title,
-        channel_name,
+        title: metadata.title.unwrap_or_else(|| fallback_title(path)),
+        channel_name: metadata.artist.unwrap_or_else(|| fallback_artist(path)),
+        album: metadata.album,
+        duration: metadata.duration,
+        cover_path: metadata
+            .picture
+            .as_ref()
+            .and_then(|cover| metadata::save_cover(&id, cover).ok()),
+        id,
         thumbnail_url: String::new(),
+        downloaded_at: None,
         src: Some(path.to_string_lossy().to_string()),
     }
 }
 
+fn fallback_title(path: &Path) -> String {
+    path.file_stem()
+        .and_then(|name| name.to_str())
+        .unwrap_or("Unknown")
+        .to_string()
+}
+
+fn fallback_artist(path: &Path) -> String {
+    path.parent()
+        .and_then(|parent| parent.file_name())
+        .and_then(|name| name.to_str())
+        .unwrap_or("Local")
+        .to_string()
+}
+
 fn local_tracks(tracks: Vec<Track>) -> Vec<Track> {
-    tracks.into_iter().filter(|t| is_local_id(&t.id)).collect()
+    tracks
+        .into_iter()
+        .filter(|track| TrackSource::from_id(&track.id).is_local())
+        .collect()
+}
+
+async fn all_db_tracks() -> Result<Vec<Track>, String> {
+    let conn = db::conn().await.map_err(|err| err.to_string())?;
+    Track::all(conn).await.map_err(|err| err.to_string())
 }
 
 /// Scans the local music folders and syncs the database:
@@ -63,7 +74,7 @@ pub async fn scan() -> Result<Vec<Track>, String> {
         let entries = WalkDir::new(dir).follow_links(false).max_depth(6);
         for entry in entries.into_iter().filter_map(Result::ok) {
             let path = entry.path();
-            if !is_audio(path) {
+            if !media::is_audio(path) {
                 continue;
             }
             let track = track_from_path(path);
@@ -71,17 +82,24 @@ pub async fn scan() -> Result<Vec<Track>, String> {
         }
     }
 
-    let existing = local_tracks(db::get_all_tracks().await.map_err(|e| e.to_string())?);
+    let existing = local_tracks(all_db_tracks().await?);
 
     for track in found.values() {
-        db::save_track(track).await.map_err(|e| e.to_string())?;
+        upsert_track(track).await?;
     }
 
+    let conn = db::conn().await.map_err(|err| err.to_string())?;
     for track in &existing {
-        if !found.contains_key(&track.id) {
-            db::delete_track(&track.id)
+        // Downloads live in the app-private folder and are not scanned.
+        if track.downloaded_at.is_some() {
+            continue;
+        }
+        if !found.contains_key(&track.id)
+            && let Some(stored) = Track::get(kwargs!(id = track.id.clone()), conn)
                 .await
-                .map_err(|e| e.to_string())?;
+                .map_err(|err| err.to_string())?
+        {
+            stored.delete(conn).await.map_err(|err| err.to_string())?;
         }
     }
 
@@ -89,17 +107,15 @@ pub async fn scan() -> Result<Vec<Track>, String> {
 }
 
 pub async fn all() -> Result<Vec<Track>, String> {
-    let tracks = db::get_all_tracks().await.map_err(|e| e.to_string())?;
-    Ok(local_tracks(tracks))
+    Ok(local_tracks(all_db_tracks().await?))
 }
 
 pub async fn search(query: &str) -> Result<Vec<Track>, String> {
     let query = query.to_lowercase();
-    let tracks = db::get_all_tracks()
-        .await
-        .map_err(|e| e.to_string())?
+    let tracks = all_db_tracks()
+        .await?
         .into_iter()
-        .filter(|t| is_local_id(&t.id))
+        .filter(|track| TrackSource::from_id(&track.id).is_local())
         .filter(|t| {
             t.title.to_lowercase().contains(&query)
                 || t.channel_name.to_lowercase().contains(&query)

@@ -22,3 +22,19 @@ pub fn get_config_path() -> Result<PathBuf, Error> {
     std::fs::create_dir_all(&config_dir)?;
     Ok(config_dir.join("config.db"))
 }
+
+fn app_subdir(name: &str) -> Result<PathBuf, Error> {
+    let directory = get_config_dir()?.join(name);
+    std::fs::create_dir_all(&directory)?;
+    Ok(directory)
+}
+
+/// App-private folder for audio downloaded from YouTube.
+pub fn downloads_dir() -> Result<PathBuf, Error> {
+    app_subdir("downloads")
+}
+
+/// App-private folder for artwork extracted from local audio files.
+pub fn covers_dir() -> Result<PathBuf, Error> {
+    app_subdir("covers")
+}
