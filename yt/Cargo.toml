@@ -9,6 +9,7 @@ anyhow = "1.0.100"
 reqwest = { workspace = true, features = ["json", "rustls"] }
 serde_json.workspace = true
 serde.workspace = true
+doyou-media.workspace = true
 regex = "1.12.2"
 
 [target.'cfg(target_os = "android")'.dependencies]

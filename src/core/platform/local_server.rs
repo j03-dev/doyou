@@ -5,8 +5,6 @@ use std::sync::OnceLock;
 use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, percent_decode_str, utf8_percent_encode};
 use tiny_http::{Response, Server};
 
-const AUDIO_EXTENSIONS: [&str; 7] = ["mp3", "m4a", "flac", "ogg", "opus", "wav", "aac"];
-
 const PATH_SET: &AsciiSet = &NON_ALPHANUMERIC.remove(b'/');
 
 pub fn file_url(path: &str) -> Result<String, crate::core::error::Error> {
@@ -40,7 +38,7 @@ fn handle_request(request: tiny_http::Request) {
         .map(|path| PathBuf::from(path.as_ref()))
         .unwrap_or_default();
 
-    match audio_file_response(&decoded) {
+    match media_file_response(&decoded) {
         Some(response) => {
             let _ = request.respond(response);
         }
@@ -50,20 +48,8 @@ fn handle_request(request: tiny_http::Request) {
     }
 }
 
-fn audio_file_response(path: &Path) -> Option<Response<std::io::Cursor<Vec<u8>>>> {
-    let extension = path.extension()?.to_string_lossy().to_lowercase();
-    if !AUDIO_EXTENSIONS.contains(&extension.as_str()) {
-        return None;
-    }
-
-    let mime = match extension.as_str() {
-        "mp3" => "audio/mpeg",
-        "m4a" => "audio/mp4",
-        "flac" => "audio/flac",
-        "ogg" | "opus" => "audio/ogg",
-        "wav" => "audio/wav",
-        _ => "audio/aac",
-    };
+fn media_file_response(path: &Path) -> Option<Response<std::io::Cursor<Vec<u8>>>> {
+    let mime = doyou_media::MediaFormat::from_path(path)?.mime_type();
 
     let data = std::fs::read(path).ok()?;
     let mut response = Response::from_data(data);

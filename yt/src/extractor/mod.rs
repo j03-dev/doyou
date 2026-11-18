@@ -6,7 +6,9 @@ use reqwest::{
 };
 use serde_json::json;
 use std::collections::HashSet;
+use std::path::{Path, PathBuf};
 
+use doyou_media::AudioFormat;
 use types::{Format, PlayerResponse};
 mod types;
 
@@ -150,6 +152,43 @@ impl YouTubeExtractor {
     }
 
     pub async fn get_best_audio_url(&self, url: &str) -> Result<String> {
+        let format = self.best_audio_format(url).await?;
+        Self::format_url(&format)
+    }
+
+    /// Downloads the best audio-only stream into `directory` and returns the file path.
+    pub async fn download_audio(&self, url: &str, directory: &Path, stem: &str) -> Result<PathBuf> {
+        let format = self.best_audio_format(url).await?;
+        let stream_url = Self::format_url(&format)?;
+        let audio_format = format
+            .mime_type
+            .as_deref()
+            .and_then(AudioFormat::from_mime)
+            .unwrap_or(AudioFormat::M4a);
+
+        let response = self
+            .client
+            .get(&stream_url)
+            .header(USER_AGENT, CLIENTS[0].user_agent)
+            .send()
+            .await
+            .context("failed to download audio stream")?
+            .error_for_status()
+            .context("audio stream request failed")?;
+
+        let bytes = response
+            .bytes()
+            .await
+            .context("failed to read audio stream")?;
+
+        let target = directory.join(format!("{stem}.{}", audio_format.as_str()));
+        std::fs::write(&target, &bytes)
+            .with_context(|| format!("failed to write {}", target.display()))?;
+
+        Ok(target)
+    }
+
+    async fn best_audio_format(&self, url: &str) -> Result<Format> {
         let formats = self.get_formats(url).await?;
 
         let mut audio_formats: Vec<&Format> = formats
@@ -163,18 +202,20 @@ impl YouTubeExtractor {
 
         audio_formats.sort_by_key(|format| format.average_bitrate.or(format.bitrate).unwrap_or(0));
 
-        let format = audio_formats
+        let best = audio_formats
             .last()
             .ok_or_else(|| anyhow!("no audio-only format found"))?;
 
+        Ok((*best).clone())
+    }
+
+    fn format_url(format: &Format) -> Result<String> {
         if let Some(url) = &format.url {
             return Ok(url.clone());
         }
 
         if let Some(cipher) = &format.signature_cipher {
-            let parsed = Self::parse_signature_cipher(cipher)?;
-
-            return Ok(parsed.url);
+            return Ok(Self::parse_signature_cipher(cipher)?.url);
         }
 
         Err(anyhow!("selected audio format has no usable URL"))
