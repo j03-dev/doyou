@@ -1,4 +1,3 @@
-use crate::components::downloaded_badge::DownloadedBadge;
 use crate::context::{use_downloads, use_favorites, use_playback, use_playlists};
 use crate::repository::TrackSource;
 use dioxus::prelude::*;
@@ -104,9 +103,6 @@ pub fn MusicCard(
                     }
                 }
                 div { class: "pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" }
-                if already_downloaded() {
-                    DownloadedBadge { class: "absolute left-3 top-3 shadow-md" }
-                }
                 if show_extra_actions {
                     button {
                         class: "btn btn-ghost btn-circle btn-sm absolute right-3 top-3 border-none bg-base-100/80 shadow-md backdrop-blur",

@@ -8,7 +8,6 @@ use dioxus_free_icons::{
 use yt::data_api::types::Item;
 
 use crate::components::button::ButtonGhost;
-use crate::components::downloaded_badge::DownloadedBadge;
 use crate::context::{use_downloads, use_favorites, use_playback, use_playlists};
 use crate::repository::TrackSource;
 
@@ -114,9 +113,6 @@ pub fn MusicRow(
                     span {
                         class: if is_playing_now() { "truncate text-sm font-bold leading-5 text-primary" } else { "truncate text-sm font-bold leading-5" },
                         dangerous_inner_html: title,
-                    }
-                    if already_downloaded() {
-                        DownloadedBadge {}
                     }
                 }
                 div { class: "flex min-w-0 items-center gap-1.5",
