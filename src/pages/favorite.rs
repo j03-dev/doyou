@@ -19,10 +19,6 @@ pub fn Favorite() -> Element {
     let playback = use_playback();
     let playlists = use_playlists();
 
-    use_effect(move || {
-        favorites.fetch_all();
-    });
-
     let items: Memo<Vec<Item>> = use_memo(move || favorites.items());
     let thumbnails = use_memo(move || {
         favorites

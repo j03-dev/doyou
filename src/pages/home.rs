@@ -41,30 +41,9 @@ pub fn Home() -> Element {
     let history_error = history.error;
 
     use_effect(move || {
-        if settings.general.read().youtube_token.is_none() {
+        if settings.general.peek().youtube_token.is_none() {
             document::eval("token_form.showModal()");
         }
-    });
-
-    use_effect(move || {
-        home.load_feed();
-    });
-
-    use_effect(move || {
-        home.scan_local();
-    });
-
-    use_effect(move || {
-        favorites.fetch_all();
-    });
-
-    use_effect(move || {
-        playlists.fetch_all();
-    });
-
-    use_effect(move || {
-        let _ = playback.history_revision.read();
-        history.fetch_all();
     });
 
     let displayed: Memo<Vec<Item>> = use_memo(move || {

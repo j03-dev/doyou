@@ -8,7 +8,12 @@ use crate::repository::identity;
 
 #[component]
 pub fn FavoritesProvider(children: Element) -> Element {
-    use_context_provider(FavoritesContext::new);
+    let favorites = use_context_provider(FavoritesContext::new);
+
+    use_effect(move || {
+        favorites.fetch_all();
+    });
+
     rsx! {
         {children}
     }

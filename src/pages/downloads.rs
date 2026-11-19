@@ -21,10 +21,6 @@ pub fn Downloads() -> Element {
     let downloads = use_downloads();
     let playback = use_playback();
 
-    use_effect(move || {
-        downloads.fetch_all();
-    });
-
     let items: Memo<Vec<Item>> = use_memo(move || downloads.items());
     let thumbnails = use_memo(move || {
         downloads

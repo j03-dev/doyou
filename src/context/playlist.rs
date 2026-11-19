@@ -7,7 +7,12 @@ use crate::repository::playlist::PlaylistWithTracks;
 
 #[component]
 pub fn PlaylistProvider(children: Element) -> Element {
-    use_context_provider(PlaylistContext::new);
+    let playlists = use_context_provider(PlaylistContext::new);
+
+    use_effect(move || {
+        playlists.fetch_all();
+    });
+
     rsx! {
         {children}
     }
@@ -58,7 +63,7 @@ impl PlaylistContext {
     }
 
     pub fn fetch_all(&self) {
-        if !self.items.read().is_empty() {
+        if !self.items.peek().is_empty() {
             return;
         }
 

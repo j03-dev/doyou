@@ -9,7 +9,17 @@ use crate::repository::db::models::Track;
 #[component]
 pub fn HomeProvider(children: Element) -> Element {
     let settings = use_context::<AppSettingsContext>();
-    use_context_provider(move || HomeContext::new(settings));
+    let home = use_context_provider(move || HomeContext::new(settings));
+
+    // Loading is app-wide, not page-wide: navigating between screens must not
+    // restart the feed request or rescan the whole music folder.
+    use_effect(move || {
+        home.load_feed();
+    });
+
+    use_effect(move || {
+        home.scan_local();
+    });
 
     rsx! {
         {children}
@@ -68,7 +78,9 @@ impl HomeContext {
     }
 
     pub fn load_feed(&self) {
-        if !self.feed.read().is_empty() {
+        // `peek` keeps the caller's effect from subscribing to the signals this
+        // function writes, which otherwise causes an endless load loop.
+        if !self.feed.peek().is_empty() {
             return;
         }
 
@@ -93,7 +105,7 @@ impl HomeContext {
     }
 
     pub fn scan_local(&self) {
-        if *self.is_scanning_local.read() {
+        if *self.is_scanning_local.peek() {
             return;
         }
 
