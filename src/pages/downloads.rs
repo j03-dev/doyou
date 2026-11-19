@@ -37,10 +37,6 @@ pub fn Downloads() -> Element {
     let total = items().len();
     let visible = visible_count().min(total);
 
-    use_effect(move || {
-        playback.set_queue(items());
-    });
-
     let error = downloads.error;
     let is_loading = downloads.is_loading;
 
@@ -134,6 +130,10 @@ pub fn Downloads() -> Element {
                                             item: item.clone(),
                                             index,
                                             meta,
+                                            on_play: move |idx| {
+                                                playback.set_queue(items());
+                                                playback.start(idx);
+                                            },
                                             on_remove: remove_id.map(|id| EventHandler::new(move |_| { downloads.remove(&id) })),
                                         }
                                     }

@@ -80,10 +80,6 @@ pub fn Home() -> Element {
         local_count.min(8)
     };
 
-    use_effect(move || {
-        playback.set_queue(displayed());
-    });
-
     let favorite_thumbnails = use_memo(move || {
         favorites
             .tracks

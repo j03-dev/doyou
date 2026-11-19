@@ -1,3 +1,6 @@
+use std::sync::Mutex;
+use std::time::{Duration, Instant};
+
 use dioxus::prelude::*;
 
 use yt::data_api::types::Item;
@@ -85,6 +88,9 @@ impl PlaybackContext {
     }
 
     pub fn set_queue(&self, items: Vec<Item>) {
+        if self.queue.peek().as_slice() == items.as_slice() {
+            return;
+        }
         let mut queue = self.queue;
         queue.set(items);
     }
@@ -202,6 +208,20 @@ impl PlaybackContext {
     }
 
     pub fn update_current_time(&self) {
+        // `ontimeupdate` fires several times a second. Each read is a JS eval
+        // followed by a signal write that re-renders the mini player, so cap it.
+        static LAST_READ: Mutex<Option<Instant>> = Mutex::new(None);
+        const MIN_INTERVAL: Duration = Duration::from_millis(250);
+
+        {
+            let mut last = LAST_READ.lock().expect("progress throttle poisoned");
+            let now = Instant::now();
+            if last.is_some_and(|at| now.duration_since(at) < MIN_INTERVAL) {
+                return;
+            }
+            *last = Some(now);
+        }
+
         let id = self.id;
         let mut current_time = self.current_time;
         spawn(async move {

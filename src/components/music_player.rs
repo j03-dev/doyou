@@ -34,7 +34,7 @@ pub fn MusicPlayer() -> Element {
                     if let Some(alert_props) = playback_error() {
                         Alert { ..alert_props }
                     }
-                    div { class: "pointer-events-auto overflow-hidden rounded-2xl border border-base-content/10 bg-base-100/95 shadow-lg backdrop-blur-xl",
+                    div { class: "pointer-events-auto overflow-hidden rounded-2xl border border-base-content/10 bg-base-100/95 shadow-lg",
                         MiniMusicPlayer { on_open_full_player: move |_| show_full_player.set(true) }
                     }
                 }

@@ -44,10 +44,6 @@ pub fn Favorite() -> Element {
         }
     });
 
-    use_effect(move || {
-        playback.set_queue(items());
-    });
-
     let favorite_error = favorites.error;
     let playlist_error = playlists.error;
     let favorite_is_loading = favorites.is_loading;
@@ -136,7 +132,14 @@ pub fn Favorite() -> Element {
                     } else {
                         ul { class: "list",
                             for (index, item) in items().iter().enumerate() {
-                                MusicRow { item: item.clone(), index }
+                                MusicRow {
+                                    item: item.clone(),
+                                    index,
+                                    on_play: move |idx| {
+                                        playback.set_queue(items());
+                                        playback.start(idx);
+                                    },
+                                }
                             }
                         }
                     }
