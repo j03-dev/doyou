@@ -14224,6 +14224,9 @@
   .h-screen {
     height: 100vh;
   }
+  .min-h-0 {
+    min-height: calc(var(--spacing) * 0);
+  }
   .min-h-16 {
     min-height: calc(var(--spacing) * 16);
   }
@@ -20001,6 +20004,11 @@
           content: var(--tw-content);
         }
       }
+    }
+  }
+  .md\:my-auto {
+    @media (width >= 48rem) {
+      margin-block: auto;
     }
   }
   .md\:w-80 {
