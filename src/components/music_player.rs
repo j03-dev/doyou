@@ -134,8 +134,8 @@ fn FullMusicPlayer(on_close_full_player: EventHandler<MouseEvent>) -> Element {
                     Icon { icon: LdEllipsis }
                 }
             }
-            main { class: "flex-1 overflow-y-auto px-4 pb-8 pt-2 sm:pt-4",
-                div { class: "mx-auto flex w-full max-w-sm flex-col",
+            main { class: "flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-8 pt-2 sm:pt-4",
+                div { class: "mx-auto flex w-full max-w-sm flex-col md:my-auto",
                     div { class: "relative mx-auto aspect-square w-full max-w-xs overflow-hidden rounded-3xl bg-base-300 shadow-2xl",
                         div { class: "absolute -inset-3 -z-10 rounded-3xl bg-primary/25 blur-3xl" }
                         Artwork {
