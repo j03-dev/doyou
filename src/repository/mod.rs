@@ -5,6 +5,7 @@ pub mod history;
 pub mod identity;
 pub mod local;
 pub mod metadata;
+pub mod network;
 pub mod playlist;
 pub mod settings;
 pub mod source;

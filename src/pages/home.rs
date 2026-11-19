@@ -41,30 +41,9 @@ pub fn Home() -> Element {
     let history_error = history.error;
 
     use_effect(move || {
-        if settings.general.read().youtube_token.is_none() {
+        if settings.general.peek().youtube_token.is_none() {
             document::eval("token_form.showModal()");
         }
-    });
-
-    use_effect(move || {
-        home.load_feed();
-    });
-
-    use_effect(move || {
-        home.scan_local();
-    });
-
-    use_effect(move || {
-        favorites.fetch_all();
-    });
-
-    use_effect(move || {
-        playlists.fetch_all();
-    });
-
-    use_effect(move || {
-        let _ = playback.history_revision.read();
-        history.fetch_all();
     });
 
     let displayed: Memo<Vec<Item>> = use_memo(move || {
@@ -100,10 +79,6 @@ pub fn Home() -> Element {
     } else {
         local_count.min(8)
     };
-
-    use_effect(move || {
-        playback.set_queue(displayed());
-    });
 
     let favorite_thumbnails = use_memo(move || {
         favorites
@@ -314,72 +289,6 @@ pub fn Home() -> Element {
                     }
                 }
 
-                if !local_items().is_empty() || *home.is_scanning_local.read() {
-                    div { class: "flex items-center justify-between px-1 pt-8 sm:pt-10 pb-3",
-                        div { class: "flex items-center gap-2.5",
-                            div { class: "flex size-8 items-center justify-center rounded-lg bg-base-200 text-base-content/70",
-                                Icon { icon: LdHardDrive, class: "size-5" }
-                            }
-                            h2 { class: "text-base font-bold tracking-tight", "Local Music" }
-                            span { class: "badge badge-sm badge-ghost", "{local_items().len()}" }
-                        }
-                        button {
-                            class: "btn btn-ghost btn-sm btn-circle",
-                            title: "Rescan local files",
-                            disabled: *home.is_scanning_local.read(),
-                            onclick: move |_| home.scan_local(),
-                            if *home.is_scanning_local.read() {
-                                span { class: "loading loading-spinner loading-xs" }
-                            } else {
-                                Icon { icon: LdRefreshCw, class: "size-4" }
-                            }
-                        }
-                    }
-                    if *home.is_scanning_local.read() && local_items().is_empty() {
-                        div { class: "flex justify-center py-8",
-                            LoadingSpinner { size: 8 }
-                        }
-                    } else {
-                        div { class: "grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3",
-                            for (index, item) in local_items().iter().take(local_limit).enumerate() {
-                                MusicCard {
-                                    item: item.clone(),
-                                    index,
-                                    show_extra_actions: false,
-                                    on_play: move |idx| {
-                                        playback.set_queue(local_items());
-                                        playback.start(idx);
-                                    },
-                                }
-                            }
-                        }
-                        if local_count > 8 {
-                            div { class: "flex justify-center pt-4",
-                                button {
-                                    class: "btn btn-sm btn-ghost gap-1 rounded-full px-4",
-                                    onclick: move |_| {
-                                        let expanded = !show_all_local();
-                                        show_all_local.set(expanded);
-                                    },
-                                    if show_all_local() {
-                                        Icon {
-                                            icon: LdChevronUp,
-                                            class: "size-4",
-                                        }
-                                        span { "Show less" }
-                                    } else {
-                                        Icon {
-                                            icon: LdChevronDown,
-                                            class: "size-4",
-                                        }
-                                        span { "Show all" }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
                 if *home.source_filter.read() != SourceFilter::Local {
                     div { class: "flex items-center gap-2.5 px-1 pt-8 sm:pt-10 pb-3",
                         div { class: "flex size-8 items-center justify-center rounded-lg bg-base-200 text-base-content/70",
@@ -443,6 +352,72 @@ pub fn Home() -> Element {
                                         playback.set_queue(most_items());
                                         playback.start(idx);
                                     },
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if !local_items().is_empty() || *home.is_scanning_local.read() {
+                    div { class: "flex items-center justify-between px-1 pt-8 sm:pt-10 pb-3",
+                        div { class: "flex items-center gap-2.5",
+                            div { class: "flex size-8 items-center justify-center rounded-lg bg-base-200 text-base-content/70",
+                                Icon { icon: LdHardDrive, class: "size-5" }
+                            }
+                            h2 { class: "text-base font-bold tracking-tight", "Local Music" }
+                            span { class: "badge badge-sm badge-ghost", "{local_items().len()}" }
+                        }
+                        button {
+                            class: "btn btn-ghost btn-sm btn-circle",
+                            title: "Rescan local files",
+                            disabled: *home.is_scanning_local.read(),
+                            onclick: move |_| home.scan_local(),
+                            if *home.is_scanning_local.read() {
+                                span { class: "loading loading-spinner loading-xs" }
+                            } else {
+                                Icon { icon: LdRefreshCw, class: "size-4" }
+                            }
+                        }
+                    }
+                    if *home.is_scanning_local.read() && local_items().is_empty() {
+                        div { class: "flex justify-center py-8",
+                            LoadingSpinner { size: 8 }
+                        }
+                    } else {
+                        div { class: "grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3",
+                            for (index, item) in local_items().iter().take(local_limit).enumerate() {
+                                MusicCard {
+                                    item: item.clone(),
+                                    index,
+                                    show_extra_actions: false,
+                                    on_play: move |idx| {
+                                        playback.set_queue(local_items());
+                                        playback.start(idx);
+                                    },
+                                }
+                            }
+                        }
+                        if local_count > 8 {
+                            div { class: "flex justify-center pt-4",
+                                button {
+                                    class: "btn btn-sm btn-ghost gap-1 rounded-full px-4",
+                                    onclick: move |_| {
+                                        let expanded = !show_all_local();
+                                        show_all_local.set(expanded);
+                                    },
+                                    if show_all_local() {
+                                        Icon {
+                                            icon: LdChevronUp,
+                                            class: "size-4",
+                                        }
+                                        span { "Show less" }
+                                    } else {
+                                        Icon {
+                                            icon: LdChevronDown,
+                                            class: "size-4",
+                                        }
+                                        span { "Show all" }
+                                    }
                                 }
                             }
                         }

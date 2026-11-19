@@ -7,7 +7,7 @@ pub mod playback;
 pub mod playlist;
 pub mod settings;
 
-pub use alert::AlertProps;
+pub use alert::{AlertProps, AlertProvider, offline_alert, use_alerts};
 pub use downloads::DownloadsProvider;
 pub use favorites::FavoritesProvider;
 pub use history::HistoryProvider;

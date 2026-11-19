@@ -1,15 +1,25 @@
 use dioxus::prelude::*;
 use yt::data_api::types::Item;
 
-use crate::context::AlertProps;
 use crate::context::settings::AppSettingsContext;
+use crate::context::{AlertProps, offline_alert};
 use crate::repository;
 use crate::repository::db::models::Track;
 
 #[component]
 pub fn HomeProvider(children: Element) -> Element {
     let settings = use_context::<AppSettingsContext>();
-    use_context_provider(move || HomeContext::new(settings));
+    let home = use_context_provider(move || HomeContext::new(settings));
+
+    // Loading is app-wide, not page-wide: navigating between screens must not
+    // restart the feed request or rescan the whole music folder.
+    use_effect(move || {
+        home.load_feed();
+    });
+
+    use_effect(move || {
+        home.scan_local();
+    });
 
     rsx! {
         {children}
@@ -68,7 +78,9 @@ impl HomeContext {
     }
 
     pub fn load_feed(&self) {
-        if !self.feed.read().is_empty() {
+        // `peek` keeps the caller's effect from subscribing to the signals this
+        // function writes, which otherwise causes an endless load loop.
+        if !self.feed.peek().is_empty() {
             return;
         }
 
@@ -81,9 +93,14 @@ impl HomeContext {
         let mut error = self.error;
 
         error.set(None);
-        is_loading.set(true);
 
         spawn(async move {
+            if !repository::network::youtube_reachable().await {
+                error.set(Some(offline_alert()));
+                return;
+            }
+
+            is_loading.set(true);
             match repository::youtube::home(&token).await {
                 Ok(fetched) => feed.set(fetched),
                 Err(err) => error.set(Some(AlertProps::error(err))),
@@ -93,7 +110,7 @@ impl HomeContext {
     }
 
     pub fn scan_local(&self) {
-        if *self.is_scanning_local.read() {
+        if *self.is_scanning_local.peek() {
             return;
         }
 
@@ -161,7 +178,20 @@ impl HomeContext {
                 Err(err) => error.set(Some(AlertProps::error(err))),
             }
 
-            if let Some(token) = token {
+            // Search local files regardless of connectivity; only reach out
+            // to YouTube when the API host is actually reachable.
+            let online = if token.is_some() {
+                repository::network::youtube_reachable().await
+            } else {
+                false
+            };
+            if token.is_some() && !online {
+                error.set(Some(offline_alert()));
+            }
+
+            if let Some(token) = token
+                && online
+            {
                 match repository::youtube::search(&query, &token).await {
                     Ok(fetched) => items.extend(fetched),
                     Err(err) => error.set(Some(AlertProps::error(err))),

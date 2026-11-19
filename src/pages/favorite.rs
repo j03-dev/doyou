@@ -19,10 +19,6 @@ pub fn Favorite() -> Element {
     let playback = use_playback();
     let playlists = use_playlists();
 
-    use_effect(move || {
-        favorites.fetch_all();
-    });
-
     let items: Memo<Vec<Item>> = use_memo(move || favorites.items());
     let thumbnails = use_memo(move || {
         favorites
@@ -46,10 +42,6 @@ pub fn Favorite() -> Element {
         } else {
             Some(format!("{} min", (seconds / 60.0).ceil().max(1.0) as u64))
         }
-    });
-
-    use_effect(move || {
-        playback.set_queue(items());
     });
 
     let favorite_error = favorites.error;
@@ -140,7 +132,14 @@ pub fn Favorite() -> Element {
                     } else {
                         ul { class: "list",
                             for (index, item) in items().iter().enumerate() {
-                                MusicRow { item: item.clone(), index }
+                                MusicRow {
+                                    item: item.clone(),
+                                    index,
+                                    on_play: move |idx| {
+                                        playback.set_queue(items());
+                                        playback.start(idx);
+                                    },
+                                }
                             }
                         }
                     }

@@ -38,10 +38,6 @@ pub fn Playlist(id: i32) -> Element {
             .unwrap_or_default()
     });
 
-    use_effect(move || {
-        playback.set_queue(items());
-    });
-
     let play_all = move |_: Event<MouseData>| {
         let list = items();
         if list.is_empty() {
@@ -157,6 +153,10 @@ pub fn Playlist(id: i32) -> Element {
                                             MusicRow {
                                                 item: item.clone(),
                                                 index,
+                                                on_play: move |idx| {
+                                                    playback.set_queue(items());
+                                                    playback.start(idx);
+                                                },
                                                 on_remove: move |_| {
                                                     playlists.remove_track(id, remove_item.clone());
                                                 },

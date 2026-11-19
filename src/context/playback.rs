@@ -1,8 +1,11 @@
+use std::sync::Mutex;
+use std::time::{Duration, Instant};
+
 use dioxus::prelude::*;
 
 use yt::data_api::types::Item;
 
-use crate::context::AlertProps;
+use crate::context::{AlertProps, offline_alert};
 use crate::core::platform;
 use crate::repository;
 
@@ -85,6 +88,9 @@ impl PlaybackContext {
     }
 
     pub fn set_queue(&self, items: Vec<Item>) {
+        if self.queue.peek().as_slice() == items.as_slice() {
+            return;
+        }
         let mut queue = self.queue;
         queue.set(items);
     }
@@ -135,6 +141,12 @@ impl PlaybackContext {
                 // A YouTube item with a download plays the offline file.
                 match repository::downloads::find_downloaded(&item_id).await {
                     Ok(Some(track)) => local_audio(&track),
+                    Ok(None) if !repository::network::youtube_reachable().await => {
+                        error.set(Some(offline_alert()));
+                        is_playing.set(false);
+                        is_loading.set(false);
+                        return;
+                    }
                     Ok(None) => repository::youtube::audio_url(&item_id).await,
                     Err(e) => Err(e),
                 }
@@ -202,6 +214,20 @@ impl PlaybackContext {
     }
 
     pub fn update_current_time(&self) {
+        // `ontimeupdate` fires several times a second. Each read is a JS eval
+        // followed by a signal write that re-renders the mini player, so cap it.
+        static LAST_READ: Mutex<Option<Instant>> = Mutex::new(None);
+        const MIN_INTERVAL: Duration = Duration::from_millis(250);
+
+        {
+            let mut last = LAST_READ.lock().expect("progress throttle poisoned");
+            let now = Instant::now();
+            if last.is_some_and(|at| now.duration_since(at) < MIN_INTERVAL) {
+                return;
+            }
+            *last = Some(now);
+        }
+
         let id = self.id;
         let mut current_time = self.current_time;
         spawn(async move {

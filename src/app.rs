@@ -3,8 +3,8 @@ use dioxus::prelude::*;
 use crate::components::add_to_playlist::AddToPlaylistDialog;
 use crate::components::music_player::MusicPlayer;
 use crate::context::{
-    AppSettingsProvider, DownloadsProvider, FavoritesProvider, HistoryProvider, HomeProvider,
-    PlaybackProvider, PlaylistProvider,
+    AlertProvider, AppSettingsProvider, DownloadsProvider, FavoritesProvider, HistoryProvider,
+    HomeProvider, PlaybackProvider, PlaylistProvider,
 };
 use crate::route::Route;
 
@@ -16,16 +16,18 @@ pub fn App() -> Element {
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
-        AppSettingsProvider {
-            HomeProvider {
-                PlaybackProvider {
-                    DownloadsProvider {
-                        FavoritesProvider {
-                            PlaylistProvider {
-                                HistoryProvider {
-                                    Router::<Route> {}
-                                    MusicPlayer {}
-                                    AddToPlaylistDialog {}
+        AlertProvider {
+            AppSettingsProvider {
+                HomeProvider {
+                    PlaybackProvider {
+                        DownloadsProvider {
+                            FavoritesProvider {
+                                PlaylistProvider {
+                                    HistoryProvider {
+                                        Router::<Route> {}
+                                        MusicPlayer {}
+                                        AddToPlaylistDialog {}
+                                    }
                                 }
                             }
                         }

@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::context::AlertProps;
+use crate::context::{AlertProps, use_playback};
 use crate::repository;
 use crate::repository::db::models::Track;
 
@@ -8,7 +8,14 @@ const HISTORY_LIMIT: usize = 5;
 
 #[component]
 pub fn HistoryProvider(children: Element) -> Element {
-    use_context_provider(HistoryContext::new);
+    let history = use_context_provider(HistoryContext::new);
+    let playback = use_playback();
+
+    use_effect(move || {
+        let _ = playback.history_revision.read();
+        history.fetch_all();
+    });
+
     rsx! {
         {children}
     }

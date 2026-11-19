@@ -2,20 +2,28 @@ use std::time::Duration;
 
 use dioxus::prelude::*;
 
-use crate::context::AlertProps;
+use crate::context::{AlertProps, use_alerts};
 
 #[component]
 pub fn Alert(props: AlertProps) -> Element {
+    let seen = use_alerts();
+    let id = props.id;
+    let duration = props.duration;
     let mut visible = use_signal(|| true);
 
     use_effect(move || {
         spawn(async move {
-            tokio::time::sleep(Duration::from_millis(props.duration)).await;
+            tokio::time::sleep(Duration::from_millis(duration)).await;
+            seen.mark_seen(id);
             visible.set(false);
         });
     });
 
-    if !visible() {
+    // Navigating away before the timer ends must not bring the alert back on
+    // the next visit either.
+    use_drop(move || seen.mark_seen(id));
+
+    if seen.is_seen(id) || !visible() {
         return rsx! {};
     }
 
