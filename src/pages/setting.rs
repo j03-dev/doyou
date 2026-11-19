@@ -65,6 +65,11 @@ pub fn Setting() -> Element {
         let mut status = ping_status;
         status.set(PingStatus::Testing);
         spawn(async move {
+            if !repository::network::youtube_reachable().await {
+                status.set(PingStatus::Error("Offline".to_string()));
+                return;
+            }
+
             let start = Instant::now();
             let result = repository::youtube::home(&current_token).await;
             let ms = start.elapsed().as_millis();

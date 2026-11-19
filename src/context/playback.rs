@@ -5,7 +5,7 @@ use dioxus::prelude::*;
 
 use yt::data_api::types::Item;
 
-use crate::context::AlertProps;
+use crate::context::{AlertProps, offline_alert};
 use crate::core::platform;
 use crate::repository;
 
@@ -141,6 +141,12 @@ impl PlaybackContext {
                 // A YouTube item with a download plays the offline file.
                 match repository::downloads::find_downloaded(&item_id).await {
                     Ok(Some(track)) => local_audio(&track),
+                    Ok(None) if !repository::network::youtube_reachable().await => {
+                        error.set(Some(offline_alert()));
+                        is_playing.set(false);
+                        is_loading.set(false);
+                        return;
+                    }
                     Ok(None) => repository::youtube::audio_url(&item_id).await,
                     Err(e) => Err(e),
                 }
